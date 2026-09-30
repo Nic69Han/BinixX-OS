@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Microsoft Teams
+GenericName=Visioconférence et messagerie (web)
+Comment=Réunions et conversations Microsoft Teams dans leur propre fenêtre
+Exec=/usr/libexec/nicos/nicos-webapp https://teams.microsoft.com/
+Icon=camera-video
+Terminal=false
+Categories=Network;Chat;VideoConference;
+Keywords=teams;microsoft;visio;réunion;meeting;
+StartupNotify=true
+# Classe de fenêtre de Chromium en mode application, pour grouper la fenêtre sous cette icône
+StartupWMClass=chrome-teams.microsoft.com__-Default

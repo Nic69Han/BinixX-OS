@@ -1,0 +1,59 @@
+# ISO de TEST uniquement : installation entièrement automatique, qui EFFACE le disque cible.
+# Ne jamais la distribuer. Généré par run-vm-test.sh, qui remplace :
+#   @SSH_PUBKEY@  clé publique SSH du test
+#   @SWITCH_CMD@  même commande `bootc switch` que dans disk_config/iso.toml (ou rien)
+#
+# Différences avec l'ISO publique (disk_config/iso.toml), nécessaires à l'automatisation :
+#   - disque, langue, clavier et fuseau horaire fixés ici au lieu d'être demandés ;
+#   - compte « testeur » créé par l'installeur, avec SSH et sudo sans mot de passe ;
+#   - assistant Plasma Setup désactivé et session ouverte automatiquement (capture d'écran).
+
+[customizations.installer.kickstart]
+contents = """
+text --non-interactive
+lang fr_FR.UTF-8
+keyboard --vckeymap=fr --xlayouts=fr
+timezone Europe/Paris --utc
+network --bootproto=dhcp --device=link --activate --onboot=on
+firewall --enabled --service=ssh
+ignoredisk --only-use=vda
+zerombr
+clearpart --all --initlabel --disklabel=gpt
+autopart --noswap --type=btrfs
+rootpw --lock
+user --name=testeur --groups=wheel --password=nicos-test --plaintext
+sshkey --username=testeur "@SSH_PUBKEY@"
+services --enabled=sshd
+poweroff
+
+%post --erroronfail
+@SWITCH_CMD@
+echo 'testeur ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-nicos-test
+chmod 0440 /etc/sudoers.d/90-nicos-test
+# Compte déjà créé : pas d'assistant de premier démarrage
+touch /etc/plasma-setup-done
+# Session Plasma ouverte automatiquement, pour vérifier le bureau et en faire une capture
+mkdir -p /etc/plasmalogin.conf.d
+printf '[Autologin]\\nUser=testeur\\nSession=plasma\\n' > /etc/plasmalogin.conf.d/90-nicos-test.conf
+%end
+
+%post --nochroot
+# Signal de fin d'installation, lu sur la console série par run-vm-test.sh
+echo NICOS-INSTALL-OK > /dev/ttyS0
+%end
+"""
+
+[customizations.installer.modules]
+enable = [
+  "org.fedoraproject.Anaconda.Modules.Storage",
+  "org.fedoraproject.Anaconda.Modules.Runtime",
+  "org.fedoraproject.Anaconda.Modules.Network",
+  "org.fedoraproject.Anaconda.Modules.Security",
+  "org.fedoraproject.Anaconda.Modules.Services",
+  "org.fedoraproject.Anaconda.Modules.Users",
+  "org.fedoraproject.Anaconda.Modules.Timezone",
+  "org.fedoraproject.Anaconda.Modules.Localization"
+]
+disable = [
+  "org.fedoraproject.Anaconda.Modules.Subscription",
+]

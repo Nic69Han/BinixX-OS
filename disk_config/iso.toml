@@ -1,0 +1,30 @@
+# ISO d'installation NicOS (Anaconda), générée par bootc-image-builder.
+#
+# L'installeur ne demande que le disque de destination, avec l'option
+# « Chiffrer mes données » (recommandée). Tout le reste (langue, clavier, Wi-Fi,
+# fuseau horaire, compte utilisateur) est demandé au premier démarrage par
+# l'assistant KDE « Plasma Setup », comme l'accueil de Windows.
+# Activer ici le module Users ferait créer le compte deux fois.
+
+[customizations.installer.kickstart]
+contents = """
+%post
+# L'ISO installe l'image embarquée ; on pointe ensuite le système vers le registre
+# pour que les mises à jour viennent de GHCR.
+bootc switch --mutate-in-place --transport registry ghcr.io/nic69han/nicos:latest
+%end
+"""
+
+[customizations.installer.modules]
+enable = [
+  "org.fedoraproject.Anaconda.Modules.Storage",
+  "org.fedoraproject.Anaconda.Modules.Runtime"
+]
+disable = [
+  "org.fedoraproject.Anaconda.Modules.Network",
+  "org.fedoraproject.Anaconda.Modules.Security",
+  "org.fedoraproject.Anaconda.Modules.Services",
+  "org.fedoraproject.Anaconda.Modules.Users",
+  "org.fedoraproject.Anaconda.Modules.Subscription",
+  "org.fedoraproject.Anaconda.Modules.Timezone"
+]

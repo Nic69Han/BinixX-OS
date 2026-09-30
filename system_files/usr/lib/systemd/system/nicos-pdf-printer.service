@@ -1,0 +1,18 @@
+[Unit]
+Description=NicOS : création de l'imprimante virtuelle PDF
+Documentation=https://github.com/Nic69Han/NicOS
+Wants=cups.service
+After=cups.service
+# Une fois créée, l'imprimante est enregistrée par CUPS dans /etc/cups ;
+# l'utilisateur reste libre de la supprimer ensuite.
+ConditionPathExists=!/var/lib/nicos/pdf-printer.done
+
+[Service]
+Type=oneshot
+# Même commande que le paquet cups-pdf, qui ne peut pas l'exécuter pendant le build de l'image
+ExecStart=/usr/sbin/lpadmin -p Cups-PDF -D "Imprimante PDF" -L "Fichiers PDF enregistrés sur le Bureau" -v cups-pdf:/ -m CUPS-PDF_noopt.ppd -E
+ExecStartPost=/usr/bin/mkdir -p /var/lib/nicos
+ExecStartPost=/usr/bin/touch /var/lib/nicos/pdf-printer.done
+
+[Install]
+WantedBy=multi-user.target

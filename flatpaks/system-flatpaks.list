@@ -1,0 +1,17 @@
+# Applications Flatpak installées au premier démarrage (depuis Flathub, pour tout le système).
+# Un identifiant Flathub par ligne. Les lignes vides et les commentaires (#) sont ignorés.
+# Quand cette liste change, les applications manquantes sont installées au démarrage suivant.
+
+# Bureautique
+org.onlyoffice.desktopeditors
+org.mozilla.firefox
+org.mozilla.Thunderbird
+org.kde.okular
+com.nextcloud.desktopclient.nextcloud
+
+# Web apps (Teams, Zoom, Slack) : Chromium sert de moteur en mode « application »
+org.chromium.Chromium
+
+# Utilitaires qu'un utilisateur Windows s'attend à trouver
+org.kde.gwenview
+org.kde.kcalc

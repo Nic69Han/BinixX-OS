@@ -1,0 +1,59 @@
+# Passer de Windows à NicOS
+
+Ce guide s'adresse à la personne qui migre un poste (ou à celle qui l'accompagne).
+
+## Avant de changer de système
+
+- **Sauvegarder les fichiers** (Documents, Bureau, Images, Téléchargements) sur un disque externe ou un
+  cloud. L'installation de NicOS efface le disque.
+- **Courriel** : noter les paramètres des comptes (serveurs IMAP/SMTP ou compte Microsoft 365 / Gmail).
+  Thunderbird configure seul la plupart des comptes à partir de l'adresse et du mot de passe.
+  Avec Outlook en POP et des fichiers `.pst`, importer d'abord le courrier dans Thunderbird **sous Windows**.
+- **Mots de passe du navigateur** : les exporter depuis Edge ou Chrome (fichier CSV), puis les importer dans
+  Firefox. Plus simple : activer la synchronisation Firefox avant la migration.
+- **Logiciels métiers** : vérifier chacun dans [compatibilite.md](compatibilite.md). Un logiciel Windows
+  (`.exe`) ne s'installe pas sur NicOS.
+- **Licences** : noter la clé Windows si le PC doit pouvoir revenir en arrière.
+
+## Où retrouver ses habitudes
+
+| Sous Windows | Sous NicOS |
+| --- | --- |
+| Menu Démarrer, touche Windows | Menu en bas à gauche, touche Windows (même comportement, recherche comprise) |
+| Barre des tâches, épingler une application | Identique : clic droit sur l'icône → « Épingler au gestionnaire de tâches » |
+| Explorateur de fichiers | Dolphin (Windows + E) |
+| Word, Excel, PowerPoint | OnlyOffice (ouvre et enregistre directement les .docx, .xlsx, .pptx) |
+| Outlook | Thunderbird (courriel, agenda, contacts) |
+| Edge, Chrome | Firefox |
+| Teams, Zoom, Slack | Web apps du même nom dans le menu (fenêtre dédiée, partage d'écran possible) |
+| Lecteur PDF | Okular |
+| OneDrive | Pas de client officiel ; client Nextcloud inclus, OneDrive reste accessible sur le web |
+| Bloc-notes | KWrite |
+| Outil Capture d'écran | Spectacle (touche Impr. écran) |
+| Photos | Gwenview |
+| Calculatrice | KCalc |
+| Paramètres, Panneau de configuration | Configuration du système |
+| Windows Update | Automatique ; suivi dans Discover (« Mises à jour ») |
+| Microsoft Store | Discover |
+| Imprimer en PDF | Imprimante « Imprimante PDF » (fichier enregistré sur le Bureau), ou « Imprimer dans un fichier » |
+| Gestionnaire des tâches (Ctrl + Maj + Échap) | Moniteur système (Ctrl + Échap) |
+
+Raccourcis identiques : Alt + Tab, Ctrl + C / V / X / Z, Windows + L (verrouiller), Windows + D (bureau),
+Alt + F4 (fermer), Windows + flèches (ancrer une fenêtre à gauche ou à droite).
+
+## Les premiers jours
+
+- **Applications au premier démarrage** : OnlyOffice, Firefox, Thunderbird… se téléchargent pendant les
+  premières minutes, PC connecté à Internet. Si le menu semble incomplet, patienter puis se reconnecter.
+- **Polices** : les documents en Calibri, Cambria, Arial ou Times New Roman s'affichent avec des polices de
+  même largeur, donc même mise en page. Seul le dessin des lettres change légèrement.
+- **Mises à jour** : elles s'installent en arrière-plan et s'appliquent au redémarrage. En cas de problème
+  après une mise à jour, choisir la version précédente dans le menu de démarrage, ou
+  `sudo bootc rollback` puis redémarrer.
+- **Installer une application** : Discover, comme un magasin d'applications. Les applications viennent de
+  Flathub et fonctionnent isolées du système, qui reste intact.
+
+## Obtenir de l'aide
+
+Ouvrir une *issue* sur le dépôt GitHub du projet en précisant le modèle du PC, ce qui était attendu et ce
+qui s'est produit.

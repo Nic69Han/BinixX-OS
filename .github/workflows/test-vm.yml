@@ -1,0 +1,81 @@
+---
+name: Test VM
+
+# End-to-end test of the published image in a KVM virtual machine (tests/vm/run-vm-test.sh):
+# unattended install from the ISO, Secure Boot boot, system checks, then an update from a
+# local registry followed by a rollback. Runs after each successful build of main,
+# or by hand from the Actions tab.
+on:
+  workflow_run:
+    workflows: ["Build container image"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Image to test (default: ghcr.io/<owner>/nicos:latest)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vm-test:
+    name: Install, boot, update and rollback in a VM
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 300
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Maximize build space
+        uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6
+        with:
+          remove-codeql: true
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+
+      - name: Install QEMU and OVMF
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf xorriso openssh-client
+
+      - name: Select image
+        env:
+          INPUT_IMAGE: ${{ inputs.image }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          image="${INPUT_IMAGE:-ghcr.io/${OWNER,,}/nicos:latest}"
+          echo "TEST_IMAGE=${image}" >> "${GITHUB_ENV}"
+
+      - name: Log in to GHCR
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "${REGISTRY_TOKEN}" | sudo podman login ghcr.io --username "${{ github.actor }}" --password-stdin
+
+      - name: Run VM test
+        run: |
+          sudo tests/vm/run-vm-test.sh --image "${TEST_IMAGE}"
+
+      - name: Upload logs and screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: vm-test-logs
+          path: tests/vm/_work/logs/
+          if-no-files-found: warn
+          retention-days: 14
