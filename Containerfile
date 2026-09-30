@@ -12,7 +12,8 @@ COPY flatpaks /flatpaks
 # quotidien récupère donc les correctifs de sécurité sans intervention, mais le passage
 # à la version suivante ne se fait jamais tout seul.
 # Changer de version = modifier ce numéro dans une pull request et la valider,
-# test en VM compris (voir « Changer de version de Fedora » dans le README).
+# test en VM compris : `sudo just build` puis
+# `sudo tests/vm/run-vm-test.sh --image localhost/nicos:latest` (voir tests/README.md).
 # À faire avant la fin du support de Fedora 44 (environ un mois après la sortie de Fedora 46).
 FROM ghcr.io/ublue-os/kinoite-main:44
 

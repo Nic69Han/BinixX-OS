@@ -5,3 +5,6 @@ _build-*/**
 *_chunkah_*
 *_rpm-ostree_*
 tests/vm/_work/
+
+# README public en préparation : gardé en local, hors du dépôt
+/README.md

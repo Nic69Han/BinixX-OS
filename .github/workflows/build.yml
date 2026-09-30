@@ -147,8 +147,9 @@ jobs:
 
           echo "digest=${digest}" >> $GITHUB_OUTPUT
 
-      # Signing needs a Cosign key pair: the private key goes in the SIGNING_SECRET repository
-      # secret and cosign.pub is committed at the root of the repository (see README).
+      # Signing needs a Cosign key pair (`COSIGN_PASSWORD="" cosign generate-key-pair`):
+      # cosign.key goes in the SIGNING_SECRET repository secret and is never committed,
+      # cosign.pub is committed at the root of the repository.
       # NicOS: until the secret exists the image is published unsigned, with a warning,
       # so that the very first build of the repository can succeed.
       - name: Install Cosign
@@ -167,7 +168,7 @@ jobs:
           DIGEST: ${{ steps.push-image.outputs.digest }}
         run: |
           if [[ -z "${COSIGN_PRIVATE_KEY}" ]]; then
-            echo "::warning title=Unsigned image::SIGNING_SECRET is not set, the image was published without a Cosign signature. See the README to create the key."
+            echo "::warning title=Unsigned image::SIGNING_SECRET is not set, the image was published without a Cosign signature. Create a key pair with 'cosign generate-key-pair' and store cosign.key in the SIGNING_SECRET secret."
             exit 0
           fi
           # https://github.com/containers/container-libs/issues/388
