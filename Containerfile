@@ -8,11 +8,13 @@ COPY flatpaks /flatpaks
 # (codecs, pilotes, Flathub, mises à jour automatiques déjà configurés).
 # On configure cette image, on ne la forke pas.
 #
-# L'étiquette `latest` n'est volontairement pas épinglée par digest : le build
-# quotidien récupère ainsi les correctifs de sécurité de Fedora sans intervention.
-# Pour des builds reproductibles, épinglez le digest (…:latest@sha256:…) et
-# installez Renovate sur le dépôt pour qu'il le mette à jour (voir .github/renovate.json5).
-FROM ghcr.io/ublue-os/kinoite-main:latest
+# Version de Fedora épinglée : l'étiquette `44` suit uniquement Fedora 44. Le build
+# quotidien récupère donc les correctifs de sécurité sans intervention, mais le passage
+# à la version suivante ne se fait jamais tout seul.
+# Changer de version = modifier ce numéro dans une pull request et la valider,
+# test en VM compris (voir « Changer de version de Fedora » dans le README).
+# À faire avant la fin du support de Fedora 44 (environ un mois après la sortie de Fedora 46).
+FROM ghcr.io/ublue-os/kinoite-main:44
 
 ### PERSONNALISATION
 ## Tout se passe dans build_files/build.sh (paquets, réglages KDE, services)

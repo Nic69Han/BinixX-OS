@@ -102,6 +102,23 @@ just lint           # shellcheck
 Pour tester une image locale sur votre poste Fedora Atomic :
 `sudo bootc switch --transport containers-storage localhost/nicos:latest`.
 
+## Changer de version de Fedora
+
+NicOS est épinglé sur **Fedora 44** (`kinoite-main:44` dans le `Containerfile`). Le build quotidien
+applique les correctifs de Fedora 44, mais le passage à une nouvelle version n'arrive jamais tout seul.
+Fedora sort une version tous les six mois et chacune est suivie environ treize mois : prévoir la montée de
+version peu après chaque sortie, et au plus tard avant la fin du support.
+
+1. Ouvrir une pull request qui remplace `44` par la nouvelle version dans le `Containerfile`.
+   La CI construit l'image et lance les vérifications de contenu.
+2. Avant de fusionner, lancer le test complet en VM sur l'image de la pull request :
+   ```bash
+   sudo just build
+   sudo tests/vm/run-vm-test.sh --image localhost/nicos:latest
+   ```
+3. Après la fusion, le workflow **Test VM** revérifie l'image publiée. En cas de problème sur un poste,
+   `sudo bootc rollback` ramène la version précédente.
+
 ## Mise en route du dépôt (une seule fois)
 
 1. **Actions** : *Settings → Actions → General → Workflow permissions → Read and write permissions*.
