@@ -24,6 +24,9 @@ rootpw --lock
 user --name=testeur --groups=wheel --password=nicos-test --plaintext
 sshkey --username=testeur "@SSH_PUBKEY@"
 services --enabled=sshd
+# Sans cette ligne, une installation en mode texte règle le démarrage sur multi-user.target :
+# pas d'écran de connexion ni de bureau (l'ISO publique, sans module Services, n'est pas concernée)
+xconfig --startxonboot
 poweroff
 
 %post --erroronfail

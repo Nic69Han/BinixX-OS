@@ -209,6 +209,10 @@ cleanup() {
         stop_vm
     fi
     podman rm -f nicos-test-registry >/dev/null 2>&1 || true
+    # Journaux rendus à l'utilisateur qui a lancé sudo (lisibles sans root, et par la CI)
+    if [[ -n "${SUDO_UID:-}" && -d "${LOGS}" ]]; then
+        chown -R "${SUDO_UID}:${SUDO_GID:-${SUDO_UID}}" "${LOGS}" || true
+    fi
     exit "${status}"
 }
 trap cleanup EXIT

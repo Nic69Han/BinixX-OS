@@ -27,7 +27,7 @@ tasks.currentConfigGroup = ["General"]
 tasks.writeConfig("launchers", [
     "preferred://browser",
     "applications:org.kde.dolphin.desktop",
-    "applications:org.mozilla.Thunderbird.desktop",
+    "applications:org.mozilla.thunderbird_esr.desktop",
     "applications:org.onlyoffice.desktopeditors.desktop"
 ])
 

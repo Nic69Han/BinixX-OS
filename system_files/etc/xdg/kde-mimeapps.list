@@ -2,8 +2,8 @@
 # qui choisit déjà Firefox comme navigateur)
 [Default Applications]
 # Courriel
-x-scheme-handler/mailto=org.mozilla.Thunderbird.desktop
-message/rfc822=org.mozilla.Thunderbird.desktop
+x-scheme-handler/mailto=org.mozilla.thunderbird_esr.desktop
+message/rfc822=org.mozilla.thunderbird_esr.desktop
 
 # PDF
 application/pdf=org.kde.okular.desktop
