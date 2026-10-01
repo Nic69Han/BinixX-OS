@@ -9,9 +9,9 @@
 [customizations.installer.kickstart]
 contents = """
 %post
-# L'ISO installe l'image embarquée ; on pointe ensuite le système vers le registre
-# pour que les mises à jour viennent de GHCR.
-bootc switch --mutate-in-place --transport registry ghcr.io/nic69han/nicos:latest
+# L'ISO installe l'image embarquée ; on pointe ensuite le système vers le canal « stable »
+# du registre : les mises à jour ne viennent que d'images validées par le test VM.
+bootc switch --mutate-in-place --transport registry ghcr.io/nic69han/nicos:stable
 %end
 """
 

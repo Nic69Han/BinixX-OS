@@ -1,13 +1,13 @@
 // Disposition par défaut du bureau NicOS, appliquée à la première ouverture de session.
-// Proche de Windows : une barre des tâches collée en bas de l'écran, sur toute la largeur,
-// avec de gauche à droite le menu de démarrage, les applications épinglées et ouvertes,
-// la zone de notification, l'horloge et le bouton « Afficher le bureau ».
+// Une barre des tâches fixée en haut de l'écran, sur toute la largeur, avec de gauche
+// à droite le menu de démarrage, les applications épinglées et ouvertes, la zone de
+// notification, l'horloge et le bouton « Afficher le bureau ».
 //
 // Adapté du modèle upstream org.kde.plasma.desktop.defaultPanel (plasma-desktop, GPL-2.0-or-later).
 // API de script : https://develop.kde.org/docs/plasma/scripting/
 
 var panel = new Panel
-panel.location = "bottom"
+panel.location = "top"
 // Barre fixe, pas « flottante » comme le veut le réglage par défaut de Plasma 6
 panel.floating = false
 
@@ -15,8 +15,10 @@ panel.floating = false
 // arrondie à un nombre pair car le réglage de taille n'affiche que des valeurs paires
 panel.height = 2 * Math.ceil(gridUnit * 2.5 / 2)
 
-// Menu de démarrage (Kickoff), ouvert aussi par la touche Windows
-panel.addWidget("org.kde.plasma.kickoff")
+// Menu de démarrage (Kickoff), ouvert aussi par la touche Windows, avec le logo NicOS
+var kickoff = panel.addWidget("org.kde.plasma.kickoff")
+kickoff.currentConfigGroup = ["General"]
+kickoff.writeConfig("icon", "nicos")
 
 // Barre des tâches à icônes, avec les applications épinglées.
 // Pas de sélecteur de bureaux virtuels : il déroute les utilisateurs venant de Windows.
@@ -43,8 +45,10 @@ panel.addWidget("org.kde.plasma.systemtray")
 panel.addWidget("org.kde.plasma.digitalclock")
 panel.addWidget("org.kde.plasma.showdesktop")
 
-// Fond d'écran : image fixe (celle définie dans contents/defaults)
+// Fond d'écran NicOS (version sombre choisie automatiquement avec un thème sombre)
 var desktopsArray = desktopsForActivity(currentActivity())
 for (var j = 0; j < desktopsArray.length; j++) {
     desktopsArray[j].wallpaperPlugin = "org.kde.image"
+    desktopsArray[j].currentConfigGroup = ["Wallpaper", "org.kde.image", "General"]
+    desktopsArray[j].writeConfig("Image", "file:///usr/share/wallpapers/NicOS/")
 }

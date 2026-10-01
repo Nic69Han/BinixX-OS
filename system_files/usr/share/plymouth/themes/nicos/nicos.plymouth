@@ -1,0 +1,65 @@
+[Plymouth Theme]
+Name=NicOS
+Description=Écran de démarrage NicOS : logo au centre, indicateur de chargement en dessous.
+ModuleName=two-step
+
+# Adapté du thème « spinner » de Plymouth. Les images d'animation (throbber-*.png,
+# entry.png, lock.png…) sont copiées depuis /usr/share/plymouth/themes/spinner
+# pendant le build de l'image ; watermark.png est le logo NicOS (branding/generer.py).
+[two-step]
+Font=Cantarell 12
+TitleFont=Cantarell Light 30
+ImageDir=/usr/share/plymouth/themes/nicos
+# Logo un peu au-dessus du centre, saisie du mot de passe (disque chiffré) en dessous
+WatermarkHorizontalAlignment=.5
+WatermarkVerticalAlignment=.4
+DialogHorizontalAlignment=.5
+DialogVerticalAlignment=.62
+TitleHorizontalAlignment=.5
+TitleVerticalAlignment=.62
+HorizontalAlignment=.5
+VerticalAlignment=.72
+Transition=none
+TransitionDuration=0.0
+BackgroundStartColor=0x0b0f1a
+BackgroundEndColor=0x10163a
+ProgressBarBackgroundColor=0x2a3150
+ProgressBarForegroundColor=0x8ccbff
+MessageBelowAnimation=true
+
+[boot-up]
+UseEndAnimation=false
+
+[shutdown]
+UseEndAnimation=false
+
+[reboot]
+UseEndAnimation=false
+
+[updates]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+Title=Installation des mises à jour…
+SubTitle=N'éteignez pas l'ordinateur
+
+[system-upgrade]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+Title=Mise à niveau du système…
+SubTitle=N'éteignez pas l'ordinateur
+
+[firmware-upgrade]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+Title=Mise à jour du micrologiciel…
+SubTitle=N'éteignez pas l'ordinateur
+
+[system-reset]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+Title=Réinitialisation du système…
+SubTitle=N'éteignez pas l'ordinateur

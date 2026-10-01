@@ -1,10 +1,14 @@
 ---
 name: Test VM
 
-# End-to-end test of the published image in a KVM virtual machine (tests/vm/run-vm-test.sh):
+# End-to-end test of the image in a KVM virtual machine (tests/vm/run-vm-test.sh):
 # unattended install from the ISO, Secure Boot boot, system checks, then an update from a
-# local registry followed by a rollback. Runs after each successful build of main,
-# or by hand from the Actions tab.
+# local registry followed by a rollback.
+#
+# Release channels: build.yml publishes every build as `testing`. This workflow pins the
+# digest of `testing` when it starts, tests exactly that image and, only if every check
+# passes, promotes that same digest to `stable` and `latest`. Installed machines follow
+# `stable` (see disk_config/iso.toml), so they never receive an untested image.
 on:
   workflow_run:
     workflows: ["Build container image"]
@@ -13,13 +17,18 @@ on:
   workflow_dispatch:
     inputs:
       image:
-        description: "Image to test (default: ghcr.io/<owner>/nicos:latest)"
+        description: "Image to test (default: ghcr.io/<owner>/nicos:testing)"
         required: false
         type: string
+      promote:
+        description: "Promote the tested image to stable and latest if the test passes"
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: read
-  packages: read
+  packages: write  # promotion: new tags on the existing image
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -48,28 +57,49 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls -l /dev/kvm
 
-      - name: Install QEMU and OVMF
+      - name: Install QEMU, OVMF and skopeo
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf xorriso openssh-client
-
-      - name: Select image
-        env:
-          INPUT_IMAGE: ${{ inputs.image }}
-          OWNER: ${{ github.repository_owner }}
-        run: |
-          image="${INPUT_IMAGE:-ghcr.io/${OWNER,,}/nicos:latest}"
-          echo "TEST_IMAGE=${image}" >> "${GITHUB_ENV}"
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf xorriso openssh-client skopeo
 
       - name: Log in to GHCR
         env:
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
         run: |
-          echo "${REGISTRY_TOKEN}" | sudo podman login ghcr.io --username "${{ github.actor }}" --password-stdin
+          # podman and skopeo share the root credentials file
+          echo "${REGISTRY_TOKEN}" | sudo podman login ghcr.io --username "${ACTOR}" --password-stdin
+
+      - name: Pin the image digest
+        env:
+          INPUT_IMAGE: ${{ inputs.image }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          image="${INPUT_IMAGE:-ghcr.io/${OWNER,,}/nicos:testing}"
+          if [[ "${image}" == *@* ]]; then repo="${image%@*}"; else repo="${image%:*}"; fi
+          digest="$(sudo skopeo inspect --format '{{.Digest}}' "docker://${image}")"
+          echo "Testing ${repo}@${digest} (from ${image})"
+          echo "TEST_REPO=${repo}" >> "${GITHUB_ENV}"
+          echo "TEST_DIGEST=${digest}" >> "${GITHUB_ENV}"
 
       - name: Run VM test
         run: |
-          sudo tests/vm/run-vm-test.sh --image "${TEST_IMAGE}"
+          sudo tests/vm/run-vm-test.sh \
+            --image "${TEST_REPO}@${TEST_DIGEST}" \
+            --switch-ref "${TEST_REPO}:stable"
+
+      - name: Promote to stable
+        if: success() && (github.event_name == 'workflow_run' || inputs.promote)
+        run: |
+          for tag in stable latest; do
+            sudo skopeo copy --all --preserve-digests \
+              "docker://${TEST_REPO}@${TEST_DIGEST}" "docker://${TEST_REPO}:${tag}"
+          done
+          {
+            echo "### Image promoted"
+            echo ""
+            echo "\`${TEST_REPO}@${TEST_DIGEST}\` passed the VM test and is now \`stable\` and \`latest\`."
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Upload logs and screenshots
         if: always()
