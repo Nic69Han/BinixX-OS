@@ -88,6 +88,28 @@ check_system_state() {
     if [[ "${image}" == *nicos* ]]; then pass "image démarrée : ${image}"; else fail "image démarrée : '${image}'"; fi
 }
 
+check_security() {
+    section "Sécurité"
+    check "pare-feu actif" systemctl is-active firewalld.service
+    local zone services ports
+    zone="$(firewall-cmd --get-default-zone 2>/dev/null)"
+    if [[ "${zone}" == nicos ]]; then pass "pare-feu : zone par défaut nicos"; else fail "pare-feu : zone par défaut '${zone}'"; fi
+    # La VM de test ouvre SSH en plus (kickstart) ; rien d'autre ne doit pouvoir entrer
+    services="$(firewall-cmd --zone=nicos --list-services 2>/dev/null)"
+    ports="$(firewall-cmd --zone=nicos --list-ports 2>/dev/null)"
+    if [[ -z "${ports}" ]] && ! tr ' ' '\n' <<<"${services}" | grep -qvxE 'dhcpv6-client|mdns|samba-client|kdeconnect|ssh|'; then
+        pass "pare-feu : entrées limitées à ${services}"
+    else
+        fail "pare-feu : services '${services}', ports '${ports}'"
+    fi
+    local setting
+    for setting in kernel.dmesg_restrict=1 kernel.yama.ptrace_scope=1 net.ipv4.conf.all.accept_redirects=0; do
+        check "noyau : ${setting}" test "$(sysctl -n "${setting%=*}")" = "${setting#*=}"
+    done
+    check "mises à jour automatiques du système programmées" systemctl is-enabled rpm-ostreed-automatic.timer
+    check "mises à jour automatiques des applications programmées" systemctl is-enabled flatpak-system-update.timer
+}
+
 check_hardware_and_network() {
     section "Son, réseau, visio"
     check "carte son détectée" grep -q '[0-9]' /proc/asound/cards
@@ -197,6 +219,7 @@ PYEOF
 case "${PHASE}" in
 base)
     check_system_state
+    check_security
     check_hardware_and_network
     check_printing
     check_plasma_desktop
