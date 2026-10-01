@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Projet NicOS"
+            }
+        ],
+        "Id": "NicOS",
+        "License": "Apache-2.0",
+        "Name": "NicOS"
+    }
+}

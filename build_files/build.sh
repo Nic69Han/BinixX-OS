@@ -74,7 +74,7 @@ dnf5 -y install \
     "${VIDEOCONF[@]}" \
     "${SECURITY[@]}"
 
-### 3. Bureau Plasma façon Windows
+### 3. Bureau Plasma
 # Thème global org.nicos.desktop : copie complète de Breeze (clair), puis nos fichiers
 # (system_files/…/org.nicos.desktop) par-dessus. --update=none ne remplace aucun
 # fichier déjà présent, donc nos defaults et notre disposition du panneau sont conservés.
@@ -92,14 +92,61 @@ fi
 # Pavé numérique activé à l'ouverture de session, comme sous Windows (0 = activé)
 kwriteconfig6 --file /etc/xdg/kcminputrc --group Keyboard --key NumLock 0
 
-### 4. Applications Flatpak
+### 4. Identité visuelle NicOS
+# Logo, icône, fond d'écran et écran de démarrage viennent de system_files/
+# (générés par branding/generer.py).
+
+# Logos Fedora remplacés par des logos génériques, comme le demande la politique de
+# marque Fedora pour un système dérivé.
+dnf5 -y swap fedora-logos generic-logos
+
+# Nom du système (« À propos », menu de démarrage GRUB, accueil). ID=fedora est conservé :
+# les outils s'en servent pour reconnaître la base Fedora.
+sed -i \
+    -e 's/^NAME=.*/NAME="NicOS"/' \
+    -e "s/^PRETTY_NAME=.*/PRETTY_NAME=\"NicOS $(rpm -E %fedora)\"/" \
+    -e 's/^LOGO=.*/LOGO=nicos/' \
+    -e 's|^HOME_URL=.*|HOME_URL="https://github.com/Nic69Han/NicOS"|' \
+    -e 's|^DOCUMENTATION_URL=.*|DOCUMENTATION_URL="https://github.com/Nic69Han/NicOS/tree/main/docs"|' \
+    -e 's|^SUPPORT_URL=.*|SUPPORT_URL="https://github.com/Nic69Han/NicOS/issues"|' \
+    -e 's|^BUG_REPORT_URL=.*|BUG_REPORT_URL="https://github.com/Nic69Han/NicOS/issues"|' \
+    -e 's/^DEFAULT_HOSTNAME=.*/DEFAULT_HOSTNAME="nicos"/' \
+    /usr/lib/os-release
+
+# Fond d'écran NicOS sur l'écran de verrouillage et l'écran de connexion
+# (le bureau le prend dans le thème global org.nicos.desktop)
+NICOS_WALLPAPER=file:///usr/share/wallpapers/NicOS/
+kwriteconfig6 --file /etc/xdg/kscreenlockerrc --group Greeter --key WallpaperPlugin org.kde.image
+for key in Image PreviewImage; do
+    kwriteconfig6 --file /etc/xdg/kscreenlockerrc \
+        --group Greeter --group Wallpaper --group org.kde.image --group General --key "${key}" "${NICOS_WALLPAPER}"
+    kwriteconfig6 --file /usr/lib/plasmalogin/defaults.conf \
+        --group Greeter --group Wallpaper --group org.kde.image --group General --key "${key}" "${NICOS_WALLPAPER}"
+done
+
+# Écran de démarrage : thème Plymouth NicOS. Les images d'animation viennent du thème
+# « spinner » de Fedora ; watermark.png (le logo) n'est pas écrasé.
+cp -a --update=none /usr/share/plymouth/themes/spinner/. /usr/share/plymouth/themes/nicos/
+rm -f /usr/share/plymouth/themes/nicos/spinner.plymouth
+plymouth-set-default-theme nicos
+
+### 5. Applications Flatpak
 # La liste est installée au premier démarrage par nicos-flatpak-install.service
 # (les Flatpak vivent dans /var, ils ne peuvent pas être intégrés à l'image).
 install -Dm0644 /ctx/flatpaks/system-flatpaks.list /usr/share/nicos/flatpaks/system-flatpaks.list
 
-### 5. Services
+### 6. Services
 systemctl enable nicos-flatpak-install.service
 systemctl enable nicos-pdf-printer.service
 # Assistant de premier démarrage (langue, clavier, réseau, fuseau horaire, compte) :
 # l'ISO ne crée pas de compte, c'est lui qui s'en charge.
 systemctl enable plasma-setup.service
+
+### 7. Initramfs
+# Le thème de démarrage est chargé depuis l'initramfs : on le régénère en dernier,
+# avec la même commande que l'image de base Universal Blue.
+KERNEL_VERSION="$(rpm -q --queryformat='%{evr}.%{arch}' kernel-core)"
+export DRACUT_NO_XATTR=1
+dracut --no-hostonly --kver "${KERNEL_VERSION}" --reproducible --add ostree \
+    -f "/usr/lib/modules/${KERNEL_VERSION}/initramfs.img"
+chmod 0600 "/usr/lib/modules/${KERNEL_VERSION}/initramfs.img"

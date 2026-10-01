@@ -143,8 +143,8 @@ panels = [s for s in cfg.sections()
 if len(panels) != 1:
     sys.exit(f"{len(panels)} panneau(x) au lieu d'un seul")
 panel = panels[0]
-if cfg.get(panel, "location", fallback="") != "4":
-    sys.exit("le panneau n'est pas en bas de l'écran (location=%s)" % cfg.get(panel, "location", fallback="?"))
+if cfg.get(panel, "location", fallback="") != "3":  # 3 = bord haut (Plasma::Types::TopEdge)
+    sys.exit("le panneau n'est pas en haut de l'écran (location=%s)" % cfg.get(panel, "location", fallback="?"))
 prefix = panel + "][Applets]["
 applets = [cfg.get(s, "plugin", fallback="") for s in cfg.sections()
            if s.startswith(prefix) and s.count("][") == 3]
@@ -162,7 +162,12 @@ for s in cfg.sections():
 for app in ("org.mozilla.Thunderbird.desktop", "org.onlyoffice.desktopeditors.desktop"):
     if app not in launchers:
         sys.exit(f"{app} non épinglé dans la barre des tâches")
-print("panneau en bas : " + ", ".join(applets))
+kickoff = [s for s in cfg.sections() if s.startswith(prefix) and s.count("][") == 3
+           and cfg.get(s, "plugin", fallback="") == "org.kde.plasma.kickoff"]
+icon = cfg.get(kickoff[0] + "][Configuration][General", "icon", fallback="")
+if icon != "nicos":
+    sys.exit(f"icône du bouton Démarrer : '{icon}' (attendu : nicos)")
+print("panneau en haut : " + ", ".join(applets))
 PYEOF
     )"; then
         pass "${report}"

@@ -7,7 +7,7 @@
             }
         ],
         "Category": "",
-        "Description": "Thème clair et disposition façon Windows : barre des tâches en bas, menu de démarrage à gauche",
+        "Description": "Thème clair NicOS : barre des tâches en haut, menu de démarrage à gauche",
         "Id": "org.nicos.desktop",
         "License": "GPLv2+",
         "Name": "NicOS",

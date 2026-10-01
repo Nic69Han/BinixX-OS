@@ -1,0 +1,285 @@
+#!/usr/bin/env python3
+"""Génère l'identité visuelle de NicOS : logos, icône, fond d'écran, écran de démarrage.
+
+Tous les fichiers sont produits à partir de ce script, pour pouvoir retoucher le logo
+(couleurs, proportions) et tout régénérer d'un coup :
+
+    pip install fonttools uharfbuzz
+    python3 branding/generer.py [--chromium /chemin/vers/chrome]
+
+Chromium (ou Chrome) sert à rendre les images matricielles (PNG, JPG) : il gère les
+flous du fond d'écran. Pillow, s'il est installé, ajoute un grain imperceptible au fond
+d'écran pour éviter les bandes dans les dégradés.
+
+Police : Outfit (SIL Open Font License, voir branding/police/OFL.txt). Le texte est
+converti en tracés : les fichiers produits ne dépendent d'aucune police installée.
+"""
+import argparse
+import math
+import re
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+import uharfbuzz as hb
+from fontTools.pens.boundsPen import BoundsPen
+from fontTools.pens.recordingPen import DecomposingRecordingPen
+from fontTools.pens.svgPathPen import SVGPathPen
+from fontTools.pens.transformPen import TransformPen
+from fontTools.ttLib import TTFont
+from fontTools.varLib.instancer import instantiateVariableFont
+
+BRANDING = Path(__file__).resolve().parent
+REPO = BRANDING.parent
+SYSTEM = REPO / "system_files"
+FONT = BRANDING / "police" / "Outfit.ttf"
+
+# ------------------------------------------------------------------ couleurs
+INK = "#0B0F1A"          # encre : texte et fonds sombres
+WHITE = "#FFFFFF"
+# dégradé de la gemme : ciel lumineux -> bleu NicOS -> indigo profond
+GEM_LIGHT = [("0", "#5FB2FF"), ("0.45", "#2F5BFF"), ("1", "#1A26C9")]
+GEM_DARK = [("0", "#8CCBFF"), ("0.45", "#5A7DFF"), ("1", "#3A3FE0")]
+
+_ids = [0]
+
+
+def uid(prefix):
+    _ids[0] += 1
+    return f"{prefix}{_ids[0]}"
+
+
+def stops_xml(stops):
+    return "".join(f'<stop offset="{o}" stop-color="{c}"/>' for o, c in stops)
+
+
+# ------------------------------------------------------------------ symbole
+def gem(cx, cy, size, stops=GEM_LIGHT, small=False, mono=None, highlight=True):
+    """La gemme : losange aux angles doux, fendu de deux entailles diagonales
+    (une seule en petite taille), héritées des lames de l'avatar Nic69Han."""
+    side = size / math.sqrt(2) * 0.98
+    radius = side * 0.2
+    if small:
+        weights, gap = [1.15, 0.85], side * 0.09
+    else:
+        weights, gap = [1.25, 1.0, 0.8], side * 0.05
+    unit = (side - gap * (len(weights) - 1)) / sum(weights)
+    clip = uid("c")
+    defs = [f'<clipPath id="{clip}"><rect x="{-side / 2:.2f}" y="{-side / 2:.2f}" width="{side:.2f}" '
+            f'height="{side:.2f}" rx="{radius:.2f}"/></clipPath>']
+    if mono:
+        fill = mono
+    else:
+        gid = uid("g")
+        defs.append(f'<linearGradient id="{gid}" gradientUnits="userSpaceOnUse" x1="{-side / 2:.1f}" '
+                    f'y1="{-side / 2:.1f}" x2="{side / 2:.1f}" y2="{side / 2:.1f}">{stops_xml(stops)}</linearGradient>')
+        fill = f"url(#{gid})"
+    body, y = [], -side / 2
+    for w in weights:
+        h = unit * w
+        body.append(f'<rect x="{-side / 2 - 1:.2f}" y="{y:.2f}" width="{side + 2:.2f}" height="{h:.2f}" fill="{fill}"/>')
+        y += h + gap
+    if highlight and not mono:
+        hid = uid("h")  # lumière venant du haut de l'écran
+        defs.append(f'<linearGradient id="{hid}" x1="1" y1="0" x2="0.35" y2="0.65">'
+                    f'<stop offset="0" stop-color="#fff" stop-opacity="0.26"/>'
+                    f'<stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>')
+        body.append(f'<rect x="{-side / 2:.2f}" y="{-side / 2:.2f}" width="{side:.2f}" height="{side:.2f}" fill="url(#{hid})"/>')
+    return (f'<defs>{"".join(defs)}</defs><g transform="translate({cx:.2f} {cy:.2f}) rotate(-45)">'
+            f'<g clip-path="url(#{clip})">{"".join(body)}</g></g>')
+
+
+def dot_gem(cx, cy, d, stops):
+    """Point du « i » : une mini-gemme."""
+    gid, r = uid("g"), d / 2
+    return (f'<defs><linearGradient id="{gid}" x1="0" y1="0" x2="1" y2="1">{stops_xml(stops)}</linearGradient></defs>'
+            f'<path d="M{cx:.2f} {cy - r:.2f} Q{cx + r * 0.08:.2f} {cy - r * 0.92:.2f} {cx + r * 0.92:.2f} {cy - r * 0.08:.2f} '
+            f'L{cx + r:.2f} {cy:.2f} L{cx:.2f} {cy + r:.2f} L{cx - r:.2f} {cy:.2f} Z" fill="url(#{gid})"/>')
+
+
+# ------------------------------------------------------------------ logotype
+class Wordmark:
+    """« NicOS » en Outfit SemiBold, converti en tracés, point du i en gemme."""
+
+    def __init__(self, weight=600):
+        self.font = instantiateVariableFont(TTFont(FONT), {"wght": weight})
+        self.glyphs = self.font.getGlyphSet()
+        self.cap = self.font["OS/2"].sCapHeight
+        self.hbfont = hb.Font(hb.Face(hb.Blob.from_file_path(str(FONT))))
+        self.hbfont.set_variations({"wght": weight})
+        self.dot = self._dot_box()
+
+    def _dot_box(self):
+        """Boîte du point d'origine du « i » (son contour le plus haut)."""
+        rec = DecomposingRecordingPen(self.glyphs)
+        self.glyphs["i"].draw(rec)
+        contours, current = [], []
+        for op, args in rec.value:
+            current.append((op, args))
+            if op in ("closePath", "endPath"):
+                contours.append(current)
+                current = []
+        boxes = []
+        for contour in contours:
+            bp = BoundsPen(self.glyphs)
+            for op, args in contour:
+                getattr(bp, op)(*args)
+            boxes.append(bp.bounds)
+        return max(boxes, key=lambda b: b[1])
+
+    def render(self, x, baseline, cap_px, color, stops):
+        """Renvoie (svg, largeur)."""
+        text = "NicOS"
+        buf = hb.Buffer()
+        buf.add_str(text.replace("i", "ı"))  # i sans point : le point est dessiné à part
+        buf.guess_segment_properties()
+        hb.shape(self.hbfont, buf, {"kern": True, "liga": False})
+        scale = cap_px / self.cap
+        out, pen_x = [], 0
+        for ch, info, pos in zip(text, buf.glyph_infos, buf.glyph_positions):
+            pen = SVGPathPen(self.glyphs)
+            self.glyphs[self.font.getGlyphName(info.codepoint)].draw(
+                TransformPen(pen, (scale, 0, 0, -scale, x + pen_x * scale, baseline)))
+            out.append(f'<path d="{pen.getCommands()}" fill="{color}"/>')
+            if ch == "i":
+                x0, y0, x1, y1 = self.dot
+                out.append(dot_gem(x + (pen_x + (x0 + x1) / 2) * scale, baseline - (y0 + y1) / 2 * scale,
+                                   (x1 - x0) * 1.45 * scale, stops))
+            pen_x += pos.x_advance
+        return "".join(out), pen_x * scale
+
+
+def lockup_horizontal(wm, x, cy, sym, stops, text_color):
+    cap = sym * 0.42
+    tx = x + sym * 1.2
+    text, w = wm.render(tx, cy + cap / 2, cap, text_color, stops)
+    return gem(x + sym / 2, cy, sym, stops) + text, tx + w - x
+
+
+def lockup_vertical(wm, cx, top, sym, stops, text_color):
+    cap = sym * 0.27
+    _, w = wm.render(0, 0, cap, text_color, stops)
+    text, _ = wm.render(cx - w / 2, top + sym * 1.2 + cap, cap, text_color, stops)
+    return gem(cx, top + sym / 2, sym, stops) + text, top + sym * 1.2 + cap
+
+
+def svg_doc(w, h, body, background=None):
+    bg = f'<rect width="100%" height="100%" fill="{background}"/>' if background else ""
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w:g}" height="{h:g}" '
+            f'viewBox="0 0 {w:g} {h:g}">{bg}{body}</svg>\n')
+
+
+# ------------------------------------------------------------------ rendu matriciel
+class Renderer:
+    def __init__(self, chromium):
+        self.chromium = chromium
+        self.tmp = Path(tempfile.mkdtemp(prefix="nicos-branding-"))
+
+    def png(self, html_body, w, h, dest, transparent=False):
+        page = self.tmp / "page.html"
+        page.write_text('<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;'
+                        f'padding:0;{"background:transparent" if transparent else ""}}}</style></head>'
+                        f'<body>{html_body}</body></html>')
+        args = [self.chromium, "--headless", "--no-sandbox", "--hide-scrollbars",
+                f"--window-size={w},{h}", "--force-device-scale-factor=1", f"--screenshot={dest}"]
+        if transparent:
+            args.append("--default-background-color=00000000")
+        subprocess.run(args + [page.as_uri()], check=True, capture_output=True)
+
+
+def wallpaper_html(w, h, dark):
+    """Fond d'écran : une gemme lumineuse en grand, sur un halo bleu (esprit « Bloom »)."""
+    size = h * 0.95
+    stops = GEM_DARK if dark else GEM_LIGHT
+    background = ("radial-gradient(55% 75% at 66% 45%, rgba(47,91,255,.55), transparent 70%),"
+                  "radial-gradient(45% 60% at 20% 85%, rgba(26,38,201,.45), transparent 70%),"
+                  "linear-gradient(135deg,#0B0F1A,#10163A)") if dark else \
+                 ("radial-gradient(60% 80% at 70% 40%, rgba(95,178,255,.55), transparent 70%),"
+                  "radial-gradient(50% 70% at 25% 90%, rgba(47,91,255,.30), transparent 70%),"
+                  "radial-gradient(40% 50% at 12% 12%, rgba(205,225,255,.95), transparent 70%),"
+                  "linear-gradient(135deg,#EEF3FF,#D9E4FF)")
+    glow = svg_doc(size, size, gem(size / 2, size / 2, size * 0.8, stops, highlight=False))
+    shape = svg_doc(size, size, gem(size / 2, size / 2, size * 0.8, stops))
+    left, top = w * 0.66 - size / 2, h * 0.47 - size / 2
+    return (f'<div style="position:relative;width:{w}px;height:{h}px;overflow:hidden;background:{background}">'
+            f'<div style="position:absolute;left:{left}px;top:{top}px;filter:blur({h * 0.09:.0f}px);opacity:.75">{glow}</div>'
+            f'<div style="position:absolute;left:{left}px;top:{top}px;opacity:{0.9 if dark else 0.92}">{shape}</div>'
+            '</div>')
+
+
+def to_jpeg(png, jpg, quality=90):
+    """Grain léger contre les bandes des dégradés, puis JPEG. Sans Pillow : PNG gardé tel quel."""
+    try:
+        from PIL import Image, ImageChops
+    except ImportError:
+        shutil.copy(png, jpg.with_suffix(".png"))
+        return jpg.with_suffix(".png")
+    img = Image.open(png).convert("RGB")
+    # bruit centré sur 128, écart type ~1,5 niveau : img + bruit - 128
+    noise = Image.effect_noise(img.size, 1.5).convert("L")
+    img = ImageChops.add(img, Image.merge("RGB", (noise, noise, noise)), scale=1.0, offset=-128)
+    img.save(jpg, "JPEG", quality=quality, optimize=True, progressive=True)
+    return jpg
+
+
+# ------------------------------------------------------------------ fichiers produits
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--chromium", default=shutil.which("chromium") or shutil.which("google-chrome")
+                        or "/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell")
+    args = parser.parse_args()
+    wm = Wordmark()
+
+    # 1. Logos (vectoriels)
+    logos = {
+        "nicos-symbole": svg_doc(512, 512, gem(256, 256, 500)),
+        "nicos-symbole-fond-sombre": svg_doc(512, 512, gem(256, 256, 500, GEM_DARK)),
+        "nicos-symbole-mono": svg_doc(512, 512, gem(256, 256, 500, mono=INK)),
+        "nicos-symbole-petit": svg_doc(64, 64, gem(32, 32, 62, small=True)),
+        "nicos-avatar": svg_doc(512, 512, f'<rect width="512" height="512" rx="112" fill="{INK}"/>'
+                                + gem(256, 256, 330, GEM_DARK)),
+    }
+    body, w = lockup_horizontal(wm, 0, 60, 120, GEM_LIGHT, INK)
+    logos["nicos-logo-horizontal"] = svg_doc(math.ceil(w), 120, body)
+    body, w = lockup_horizontal(wm, 0, 60, 120, GEM_DARK, WHITE)
+    logos["nicos-logo-horizontal-fond-sombre"] = svg_doc(math.ceil(w), 120, body)
+    body, h = lockup_vertical(wm, 170, 4, 200, GEM_LIGHT, INK)
+    logos["nicos-logo-vertical"] = svg_doc(340, math.ceil(h) + 16, body)
+    body, h = lockup_vertical(wm, 170, 4, 200, GEM_DARK, WHITE)
+    logos["nicos-logo-vertical-fond-sombre"] = svg_doc(340, math.ceil(h) + 16, body)
+    for name, doc in logos.items():
+        (BRANDING / "logo" / f"{name}.svg").write_text(doc)
+
+    # 2. Icône système (menu Démarrer, « À propos », os-release LOGO=nicos)
+    icons = SYSTEM / "usr/share/icons/hicolor/scalable/apps"
+    icons.mkdir(parents=True, exist_ok=True)
+    (icons / "nicos.svg").write_text(logos["nicos-symbole"])
+
+    renderer = Renderer(args.chromium)
+
+    # 3. Écran de démarrage (Plymouth) : logo vertical blanc, taille 1x
+    plymouth = SYSTEM / "usr/share/plymouth/themes/nicos"
+    plymouth.mkdir(parents=True, exist_ok=True)
+    body, h = lockup_vertical(wm, 120, 4, 140, GEM_DARK, WHITE)
+    mark_h = math.ceil(h) + 8
+    renderer.png(svg_doc(240, mark_h, body), 240, mark_h, plymouth / "watermark.png", transparent=True)
+
+    # 4. Fond d'écran NicOS (clair et sombre)
+    wall = SYSTEM / "usr/share/wallpapers/NicOS/contents"
+    for folder, dark in (("images", False), ("images_dark", True)):
+        (wall / folder).mkdir(parents=True, exist_ok=True)
+        for w, h in ((1920, 1080), (3840, 2160)):
+            png = renderer.tmp / f"wall-{folder}-{w}.png"
+            renderer.png(wallpaper_html(w, h, dark), w, h, png)
+            to_jpeg(png, wall / folder / f"{w}x{h}.jpg")
+    shot = renderer.tmp / "screenshot.png"
+    renderer.png(wallpaper_html(400, 250, False), 400, 250, shot)
+    to_jpeg(shot, wall / "screenshot.jpg", quality=85)
+
+    shutil.rmtree(renderer.tmp)
+    print("Identité visuelle régénérée.")
+
+
+if __name__ == "__main__":
+    main()

@@ -59,6 +59,31 @@ check "favoris du menu de démarrage" grep -q 'org.onlyoffice.desktopeditors.des
 check "OnlyOffice associé aux .docx" \
     grep -qx 'application/vnd.openxmlformats-officedocument.wordprocessingml.document=org.onlyoffice.desktopeditors.desktop' /etc/xdg/kde-mimeapps.list
 
+check "barre des tâches en haut de l'écran" \
+    grep -q 'panel.location = "top"' "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
+check "logo NicOS sur le bouton Démarrer" \
+    grep -q 'writeConfig("icon", "nicos")' "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
+
+section "Identité visuelle"
+# shellcheck source=/dev/null  # fichier de l'image, absent du dépôt
+. /usr/lib/os-release
+if [[ "${NAME}" == NicOS && "${LOGO}" == nicos ]]; then pass "os-release : ${PRETTY_NAME}"; else fail "os-release : NAME='${NAME}' LOGO='${LOGO}'"; fi
+if [[ "${ID}" == fedora ]]; then pass "ID=fedora conservé"; else fail "ID='${ID}' (attendu : fedora)"; fi
+check "icône NicOS installée" test -s /usr/share/icons/hicolor/scalable/apps/nicos.svg
+check "logos Fedora remplacés (generic-logos)" bash -c '! rpm -q fedora-logos && rpm -q generic-logos'
+check "fond d'écran NicOS (clair et sombre)" \
+    test -s /usr/share/wallpapers/NicOS/contents/images/1920x1080.jpg -a -s /usr/share/wallpapers/NicOS/contents/images_dark/1920x1080.jpg
+check "fond d'écran par défaut du bureau" grep -qx 'Image=NicOS' "${LNF}/contents/defaults"
+check "fond d'écran de l'écran de verrouillage" grep -q 'wallpapers/NicOS' /etc/xdg/kscreenlockerrc
+check "fond d'écran de l'écran de connexion" grep -q 'wallpapers/NicOS' /usr/lib/plasmalogin/defaults.conf
+check "logo NicOS dans « À propos »" grep -q 'nicos.svg' /etc/xdg/kcm-about-distrorc
+theme="$(plymouth-set-default-theme 2>/dev/null)"
+if [[ "${theme}" == nicos ]]; then pass "écran de démarrage : thème ${theme}"; else fail "thème Plymouth : '${theme}' (attendu : nicos)"; fi
+check "animation de chargement copiée dans le thème" test -s /usr/share/plymouth/themes/nicos/throbber-0001.png
+check "thème de démarrage présent dans l'initramfs" \
+    bash -c 'lsinitrd /usr/lib/modules/*/initramfs.img | grep -q "plymouth/themes/nicos/watermark.png"'
+check "système de fichiers racine par défaut (bootc)" grep -q 'type = "btrfs"' /usr/lib/bootc/install/50-nicos.toml
+
 section "Applications Flatpak"
 LIST=/usr/share/nicos/flatpaks/system-flatpaks.list
 check "liste Flatpak installée dans l'image" test -f "${LIST}"
