@@ -33,6 +33,7 @@ Ce guide s'adresse à la personne qui migre un poste (ou à celle qui l'accompag
 | Photos | Gwenview |
 | Calculatrice | KCalc |
 | Paramètres, Panneau de configuration | Configuration du système |
+| Gestion de l'ordinateur, Observateur d'événements, Gestion des disques | « Administration du PC » (voir [administration.md](administration.md)) |
 | Windows Update | Automatique ; suivi dans Discover (« Mises à jour ») |
 | Microsoft Store | Discover |
 | Imprimer en PDF | Imprimante « Imprimante PDF » (fichier enregistré sur le Bureau), ou « Imprimer dans un fichier » |

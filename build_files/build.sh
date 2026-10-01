@@ -67,7 +67,22 @@ SECURITY=(
     mokutil
 )
 
+# Administration à la souris : Cockpit, console web de Fedora (domaine Active Directory, mises à
+# jour et retour arrière, pare-feu, disques, services, journaux), et pare-feu dans
+# Configuration du système (plasma-firewall)
+ADMINISTRATION=(
+    cockpit
+    cockpit-files
+    cockpit-networkmanager
+    cockpit-ostree
+    cockpit-selinux
+    cockpit-storaged
+    plasma-firewall
+    plasma-firewall-firewalld
+)
+
 dnf5 -y install \
+    "${ADMINISTRATION[@]}" \
     "${FONTS[@]}" \
     "${PRINTING[@]}" \
     "${SCANNING[@]}" \
@@ -164,6 +179,9 @@ systemctl enable nicos-pdf-printer.service
 # Assistant de premier démarrage (langue, clavier, réseau, fuseau horaire, compte) :
 # l'ISO ne crée pas de compte, c'est lui qui s'en charge.
 systemctl enable plasma-setup.service
+# Centre d'administration (Cockpit), joignable seulement depuis le PC lui-même
+# (usr/lib/systemd/system/cockpit.socket.d/50-nicos-localhost.conf)
+systemctl enable cockpit.socket
 
 ### 7. Initramfs
 # Le thème de démarrage est chargé depuis l'initramfs : on le régénère en dernier,
