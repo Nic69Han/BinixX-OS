@@ -71,12 +71,14 @@ check_system_state() {
         check "Secure Boot actif" bash -c 'mokutil --sb-state | grep -q "SecureBoot enabled"'
     fi
     if command -v efibootmgr >/dev/null; then
-        local entries
-        entries="$(efibootmgr 2>/dev/null)"
-        if grep -qi 'nicos' <<<"${entries}" && ! grep -qi 'fedora' <<<"${entries}"; then
+        # Noms des entrées seulement : le chemin (\EFI\fedora\shimx64.efi) garde « fedora »,
+        # dossier dont dépend Secure Boot
+        local labels
+        labels="$(efibootmgr 2>/dev/null | grep '^Boot[0-9A-F]\{4\}' | cut -f1 | sed 's/^Boot[0-9A-F]\{4\}\*\{0,1\} //')"
+        if grep -qx 'NicOS' <<<"${labels}" && ! grep -qi 'fedora' <<<"${labels}"; then
             pass "menu de démarrage du PC : entrée « NicOS », aucune entrée « Fedora »"
         else
-            fail "menu de démarrage du PC : $(grep -i '^Boot[0-9A-F]\{4\}' <<<"${entries}" | tr '\n' ';')"
+            fail "menu de démarrage du PC : $(tr '\n' ';' <<<"${labels}")"
         fi
     else
         warn "efibootmgr absent : entrée de démarrage du PC non vérifiée"
