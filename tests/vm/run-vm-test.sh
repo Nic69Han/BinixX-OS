@@ -239,6 +239,13 @@ printf '%s\n' "${config}" >"${WORK}/iso-unattended.toml"
 if [[ "${REUSE_ISO:-0}" == 1 && -f "${ISO}" ]]; then
     log "Réutilisation de l'ISO existante (REUSE_ISO=1)"
 else
+    # Ubuntu 25.04+ : le profil AppArmor bwrap-userns-restrict retire tous les droits aux
+    # programmes lancés par bwrap, même root dans un conteneur privilégié. osbuild (dans
+    # bootc-image-builder) passe par bwrap à chaque étape et échouerait au premier montage.
+    if grep -qs '^unpriv_bwrap ' /sys/kernel/security/apparmor/profiles; then
+        die "le profil AppArmor bwrap-userns-restrict bloque bootc-image-builder.
+Désactivez-le jusqu'au prochain redémarrage : apparmor_parser -R /etc/apparmor.d/bwrap-userns-restrict"
+    fi
     log "Génération de l'ISO d'installation automatique"
     rm -rf "${WORK}/bib-output" && mkdir -p "${WORK}/bib-output"
     podman run --rm --privileged --pull=newer \

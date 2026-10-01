@@ -62,6 +62,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf xorriso openssh-client skopeo
 
+      - name: Let osbuild use bubblewrap
+        run: |
+          # Ubuntu 25.04+ confines /usr/bin/bwrap with AppArmor: every program it starts loses
+          # all capabilities, even as root in a privileged container. osbuild (inside
+          # bootc-image-builder) runs each build stage through bwrap, so the ISO build fails
+          # with "mount: /run/osbuild/tree/dev: permission denied". The runner is discarded
+          # after the job, so the profile is simply unloaded.
+          if [[ -f /etc/apparmor.d/bwrap-userns-restrict ]]; then
+            sudo apparmor_parser -R /etc/apparmor.d/bwrap-userns-restrict
+          fi
+
       - name: Log in to GHCR
         env:
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
