@@ -67,6 +67,17 @@ check_system_state() {
     if [[ "${EXPECT_SECURE_BOOT}" == 1 ]]; then
         check "Secure Boot actif" bash -c 'mokutil --sb-state | grep -q "SecureBoot enabled"'
     fi
+    if command -v efibootmgr >/dev/null; then
+        local entries
+        entries="$(efibootmgr 2>/dev/null)"
+        if grep -qi 'nicos' <<<"${entries}" && ! grep -qi 'fedora' <<<"${entries}"; then
+            pass "menu de démarrage du PC : entrée « NicOS », aucune entrée « Fedora »"
+        else
+            fail "menu de démarrage du PC : $(grep -i '^Boot[0-9A-F]\{4\}' <<<"${entries}" | tr '\n' ';')"
+        fi
+    else
+        warn "efibootmgr absent : entrée de démarrage du PC non vérifiée"
+    fi
     local image
     image="$(booted_image)"
     if [[ "${image}" == *nicos* ]]; then pass "image démarrée : ${image}"; else fail "image démarrée : '${image}'"; fi
