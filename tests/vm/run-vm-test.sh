@@ -46,8 +46,9 @@ done
 mkdir -p "${WORK}"
 WORK="$(cd "${WORK}" && pwd)"
 
-VM_CPUS="${VM_CPUS:-4}"
-VM_RAM="${VM_RAM:-6144}"
+# Configuration minimale annoncée (docs/compatibilite.md) : un PC refusé par Windows 11 doit suffire
+VM_CPUS="${VM_CPUS:-2}"
+VM_RAM="${VM_RAM:-4096}"
 SSH_PORT="${SSH_PORT:-2222}"
 BIB_IMAGE="${BIB_IMAGE:-quay.io/centos-bootc/bootc-image-builder:latest}"
 REGISTRY_PORT=5000

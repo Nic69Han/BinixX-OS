@@ -36,6 +36,8 @@ Légende : ✅ vérifié · 🟡 attendu, à vérifier · ⚠️ partiel ou avec
 
 ## Matériel
 
+**Configuration minimale** : PC 64 bits (x86_64) avec UEFI, 2 cœurs, 4 Go de mémoire, 64 Go de disque. C'est la configuration du test en VM, qui installe et utilise NicOS à chaque version : un PC refusé par Windows 11 (processeur trop ancien, pas de TPM 2.0) convient le plus souvent.
+
 | Matériel | État | Remarques |
 | --- | --- | --- |
 | Imprimantes réseau récentes (IPP Everywhere, AirPrint) | 🟡 | Détectées sans pilote : la majorité des modèles depuis 2015 |
