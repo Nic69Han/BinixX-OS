@@ -26,11 +26,14 @@ Journaux, rapports et captures d'écran (dont `bureau.png`) : `tests/vm/_work/lo
 - En local (hôte x86_64 avec KVM, root) : `just test-vm`, ou
   `sudo tests/vm/run-vm-test.sh --image ghcr.io/nic69han/nicos:testing`
   (options `--switch-ref`, `--no-secure-boot`, `--skip-update` ; `REUSE_ISO=1` pour ne pas
-  regénérer l'ISO).
+  regénérer l'ISO). Sur Ubuntu 25.04 et suivantes, désactiver d'abord le profil AppArmor qui bloque
+  bootc-image-builder, jusqu'au prochain redémarrage : `sudo apparmor_parser -R /etc/apparmor.d/bwrap-userns-restrict`.
 - En CI : `test-vm.yml`, après chaque build réussi de `main` ou à la main depuis l'onglet Actions.
   Il fige l'empreinte de l'image `testing`, la teste et, **si tout passe, la promeut en `stable`**,
   le canal que suivent les postes installés (voir [docs/mises-a-jour.md](../docs/mises-a-jour.md)).
   Compter 1 à 2 heures ; les journaux sont joints au run (artefact `vm-test-logs`).
+  Pour tester une pull request avant de la fusionner : lancer « Test VM » sur sa branche avec l'option
+  `build` cochée. L'image est alors construite depuis la branche, et jamais promue.
 
 Ce qui n'est pas testé automatiquement (fidélité des documents OnlyOffice, son réellement audible,
 partage d'écran dans une vraie réunion) est décrit dans [docs/validation-mvp.md](../docs/validation-mvp.md).

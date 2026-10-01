@@ -130,6 +130,29 @@ cp -a --update=none /usr/share/plymouth/themes/spinner/. /usr/share/plymouth/the
 rm -f /usr/share/plymouth/themes/nicos/spinner.plymouth
 plymouth-set-default-theme nicos
 
+# Nom de l'entrée de démarrage dans le firmware du PC (menu F12 / Échap) : « NicOS ».
+# - À l'installation, bootupd crée l'entrée avec le nom lu dans /etc/system-release
+#   (Anaconda le lance dans le système installé) ;
+# - si l'entrée disparaît, le firmware la recrée d'après BOOTX64.CSV.
+# Les binaires signés (shim, GRUB) et le dossier EFI/fedora ne changent pas : Secure Boot
+# en dépend. /etc/fedora-release et ID=fedora restent pour les outils.
+system_release="$(sed 's/^Fedora/NicOS/' /etc/fedora-release)"
+rm -f /etc/system-release
+printf '%s\n' "${system_release}" >/etc/system-release
+shopt -s nullglob
+boot_csvs=(/usr/lib/efi/shim/*/EFI/*/BOOT*.CSV /usr/lib/bootupd/updates/EFI/*/BOOT*.CSV)
+shopt -u nullglob
+if [[ ${#boot_csvs[@]} -eq 0 ]]; then
+    echo "BOOT*.CSV introuvable : impossible de renommer l'entrée de démarrage" >&2
+    exit 1
+fi
+for csv in "${boot_csvs[@]}"; do
+    # Fichier UTF-16 avec BOM, comme l'original ; cat garde les droits du fichier
+    iconv -f UTF-16 -t UTF-8 "${csv}" | sed 's/Fedora/NicOS/g' | iconv -f UTF-8 -t UTF-16 >/tmp/boot.csv
+    cat /tmp/boot.csv >"${csv}"
+    rm -f /tmp/boot.csv
+done
+
 ### 5. Applications Flatpak
 # La liste est installée au premier démarrage par nicos-flatpak-install.service
 # (les Flatpak vivent dans /var, ils ne peuvent pas être intégrés à l'image).

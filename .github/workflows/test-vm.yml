@@ -9,6 +9,9 @@ name: Test VM
 # digest of `testing` when it starts, tests exactly that image and, only if every check
 # passes, promotes that same digest to `stable` and `latest`. Installed machines follow
 # `stable` (see disk_config/iso.toml), so they never receive an untested image.
+#
+# Pull requests: run it by hand on the PR branch with `build` checked. The image is then
+# built from that branch and tested, and never promoted.
 on:
   workflow_run:
     workflows: ["Build container image"]
@@ -20,6 +23,11 @@ on:
         description: "Image to test (default: ghcr.io/<owner>/nicos:testing)"
         required: false
         type: string
+      build:
+        description: "Build the image from the selected branch instead (to test a pull request; never promoted)"
+        required: false
+        default: false
+        type: boolean
       promote:
         description: "Promote the tested image to stable and latest if the test passes"
         required: false
@@ -62,6 +70,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf xorriso openssh-client skopeo
 
+      - name: Let osbuild use bubblewrap
+        run: |
+          # Ubuntu 25.04+ confines /usr/bin/bwrap with AppArmor: every program it starts loses
+          # all capabilities, even as root in a privileged container. osbuild (inside
+          # bootc-image-builder) runs each build stage through bwrap, so the ISO build fails
+          # with "mount: /run/osbuild/tree/dev: permission denied". The runner is discarded
+          # after the job, so the profile is simply unloaded.
+          if [[ -f /etc/apparmor.d/bwrap-userns-restrict ]]; then
+            sudo apparmor_parser -R /etc/apparmor.d/bwrap-userns-restrict
+          fi
+
       - name: Log in to GHCR
         env:
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,6 +90,7 @@ jobs:
           echo "${REGISTRY_TOKEN}" | sudo podman login ghcr.io --username "${ACTOR}" --password-stdin
 
       - name: Pin the image digest
+        if: ${{ !inputs.build }}
         env:
           INPUT_IMAGE: ${{ inputs.image }}
           OWNER: ${{ github.repository_owner }}
@@ -79,17 +99,30 @@ jobs:
           if [[ "${image}" == *@* ]]; then repo="${image%@*}"; else repo="${image%:*}"; fi
           digest="$(sudo skopeo inspect --format '{{.Digest}}' "docker://${image}")"
           echo "Testing ${repo}@${digest} (from ${image})"
-          echo "TEST_REPO=${repo}" >> "${GITHUB_ENV}"
-          echo "TEST_DIGEST=${digest}" >> "${GITHUB_ENV}"
+          {
+            echo "TEST_REPO=${repo}"
+            echo "TEST_DIGEST=${digest}"
+            echo "TEST_IMAGE=${repo}@${digest}"
+          } >> "${GITHUB_ENV}"
+
+      # Same Containerfile as build.yml, built in root's storage where run-vm-test.sh reads it
+      - name: Build the image from this branch
+        if: ${{ inputs.build }}
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          sudo podman build --pull=newer --tag localhost/nicos:vm-test --file Containerfile .
+          echo "TEST_REPO=ghcr.io/${OWNER,,}/nicos" >> "${GITHUB_ENV}"
+          echo "TEST_IMAGE=localhost/nicos:vm-test" >> "${GITHUB_ENV}"
 
       - name: Run VM test
         run: |
           sudo tests/vm/run-vm-test.sh \
-            --image "${TEST_REPO}@${TEST_DIGEST}" \
+            --image "${TEST_IMAGE}" \
             --switch-ref "${TEST_REPO}:stable"
 
       - name: Promote to stable
-        if: success() && (github.event_name == 'workflow_run' || inputs.promote)
+        if: success() && !inputs.build && (github.event_name == 'workflow_run' || inputs.promote)
         run: |
           for tag in stable latest; do
             sudo skopeo copy --all --preserve-digests \

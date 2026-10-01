@@ -47,6 +47,23 @@ python3 branding/generer.py   # Chromium ou Chrome nécessaire pour les images P
 La police Outfit est fournie sous licence SIL Open Font License (`branding/police/OFL.txt`).
 Le texte des logos est converti en tracés : aucune police n'est nécessaire pour les afficher.
 
+## Où le nom « Fedora » apparaît encore
+
+NicOS remplace le nom et les logos Fedora partout où l'utilisateur les voit : écran de démarrage,
+menu de démarrage du PC (entrée « NicOS »), menu GRUB, connexion, bureau, « À propos ».
+
+Restent, visibles seulement en ligne de commande ou dans les détails techniques :
+
+| Trace | Pourquoi elle reste |
+| --- | --- |
+| Numéro du noyau `…fc44` | Changer le noyau obligerait à le recompiler et le signer nous-mêmes ; Secure Boot le refuserait |
+| Dossier `EFI/fedora` sur la partition de démarrage | Les chargeurs signés pour Secure Boot (shim, GRUB) cherchent ce chemin |
+| `ID=fedora`, `/etc/fedora-release`, dépôts et paquets « fedora » | Les outils de mise à jour et les logiciels s'en servent pour reconnaître la base Fedora |
+| Installeur (ISO) | À vérifier au premier build de l'ISO ; si besoin, passer à une ISO « live » (Titanoboa) |
+
+La politique de marque Fedora demande de retirer ses logos d'un système dérivé et permet de dire
+qu'il est « basé sur Fedora » : c'est ce que fait NicOS.
+
 ## À vérifier avant une diffusion publique
 
 - Recherche d'antériorité sur le nom et sur la forme du logo (marques déposées).

@@ -1,5 +1,5 @@
 # Favoris du menu de démarrage pour les nouveaux utilisateurs
 # (remplace la liste de Fedora, qui cite Kontact, absent de l'image)
 [General]
-Prepend=preferred://browser;org.mozilla.Thunderbird.desktop;org.onlyoffice.desktopeditors.desktop;org.kde.dolphin.desktop;org.kde.okular.desktop;org.kde.skanpage.desktop;systemsettings.desktop;org.kde.discover.desktop
+Prepend=preferred://browser;org.mozilla.thunderbird_esr.desktop;org.onlyoffice.desktopeditors.desktop;org.kde.dolphin.desktop;org.kde.okular.desktop;org.kde.skanpage.desktop;systemsettings.desktop;org.kde.discover.desktop
 IgnoreDefaults=true

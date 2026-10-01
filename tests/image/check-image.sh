@@ -83,6 +83,18 @@ check "animation de chargement copiée dans le thème" test -s /usr/share/plymou
 check "thème de démarrage présent dans l'initramfs" \
     bash -c 'lsinitrd /usr/lib/modules/*/initramfs.img | grep -q "plymouth/themes/nicos/watermark.png"'
 check "système de fichiers racine par défaut (bootc)" grep -q 'type = "btrfs"' /usr/lib/bootc/install/50-nicos.toml
+check "nom du système pour le firmware (/etc/system-release)" grep -q '^NicOS release ' /etc/system-release
+check "/etc/fedora-release conservé pour les outils" grep -q '^Fedora release ' /etc/fedora-release
+boot_csv_ok=1
+shopt -s nullglob
+boot_csvs=(/usr/lib/efi/shim/*/EFI/*/BOOT*.CSV /usr/lib/bootupd/updates/EFI/*/BOOT*.CSV)
+shopt -u nullglob
+[[ ${#boot_csvs[@]} -gt 0 ]] || boot_csv_ok=0
+for csv in "${boot_csvs[@]}"; do
+    label="$(iconv -f UTF-16 -t UTF-8 "${csv}")"
+    [[ "${label}" == *",NicOS,"* && "${label}" != *Fedora* ]] || boot_csv_ok=0
+done
+if [[ ${boot_csv_ok} -eq 1 ]]; then pass "entrée de démarrage du firmware : NicOS (${#boot_csvs[@]} fichier(s) BOOT*.CSV)"; else fail "entrée de démarrage du firmware : BOOT*.CSV absent ou encore « Fedora »"; fi
 
 section "Applications Flatpak"
 LIST=/usr/share/nicos/flatpaks/system-flatpaks.list
@@ -90,7 +102,7 @@ check "liste Flatpak installée dans l'image" test -f "${LIST}"
 if [[ -f /flatpaks/system-flatpaks.list ]]; then
     check "liste Flatpak identique à celle du dépôt" cmp -s "${LIST}" /flatpaks/system-flatpaks.list
 fi
-for app in org.onlyoffice.desktopeditors org.mozilla.firefox org.mozilla.Thunderbird org.kde.okular \
+for app in org.onlyoffice.desktopeditors org.mozilla.firefox org.mozilla.thunderbird_esr org.kde.okular \
     com.nextcloud.desktopclient.nextcloud org.chromium.Chromium; do
     check "${app} dans la liste" grep -qx "${app}" "${LIST}"
 done
@@ -107,6 +119,7 @@ for unit in nicos-flatpak-install.service nicos-pdf-printer.service plasma-setup
     if [[ "${state}" == enabled ]]; then pass "${unit} activé"; else fail "${unit} : '${state}' (attendu : enabled)"; fi
 done
 check "script d'installation Flatpak exécutable" test -x /usr/libexec/nicos/nicos-flatpak-install
+check "script de création de l'imprimante PDF exécutable" test -x /usr/libexec/nicos/nicos-pdf-printer
 check "syntaxe des unités systemd NicOS" \
     systemd-analyze verify --man=no --recursive-errors=no \
     /usr/lib/systemd/system/nicos-flatpak-install.service /usr/lib/systemd/system/nicos-pdf-printer.service

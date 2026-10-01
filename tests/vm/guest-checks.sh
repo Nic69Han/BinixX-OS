@@ -52,10 +52,13 @@ check_system_state() {
     degraded)
         local failed
         failed="$(systemctl --failed --no-legend --plain | awk '{print $1}')"
-        if grep -q '^nicos-' <<<"${failed}"; then
-            fail "service NicOS en échec : $(grep '^nicos-' <<<"${failed}" | tr '\n' ' ')"
-        else
-            warn "unités en échec (hors NicOS) : $(tr '\n' ' ' <<<"${failed}")"
+        local unit
+        while read -r unit; do
+            fail "service NicOS en échec : ${unit}"
+            journalctl -b -u "${unit}" --no-pager -o cat 2>/dev/null | tail -n 15 | sed 's/^/            /'
+        done < <(grep '^nicos-' <<<"${failed}")
+        if grep -qv '^nicos-' <<<"${failed}"; then
+            warn "unités en échec (hors NicOS) : $(grep -v '^nicos-' <<<"${failed}" | tr '\n' ' ')"
         fi
         ;;
     *) fail "état du système : '${state}'" ;;
@@ -66,6 +69,19 @@ check_system_state() {
     check "/usr en lecture seule, même pour root" bash -c '! touch /usr/.nicos-rw-test'
     if [[ "${EXPECT_SECURE_BOOT}" == 1 ]]; then
         check "Secure Boot actif" bash -c 'mokutil --sb-state | grep -q "SecureBoot enabled"'
+    fi
+    if command -v efibootmgr >/dev/null; then
+        # Noms des entrées seulement : le chemin (\EFI\fedora\shimx64.efi) garde « fedora »,
+        # dossier dont dépend Secure Boot
+        local labels
+        labels="$(efibootmgr 2>/dev/null | grep '^Boot[0-9A-F]\{4\}' | cut -f1 | sed 's/^Boot[0-9A-F]\{4\}\*\{0,1\} //')"
+        if grep -qx 'NicOS' <<<"${labels}" && ! grep -qi 'fedora' <<<"${labels}"; then
+            pass "menu de démarrage du PC : entrée « NicOS », aucune entrée « Fedora »"
+        else
+            fail "menu de démarrage du PC : $(tr '\n' ';' <<<"${labels}")"
+        fi
+    else
+        warn "efibootmgr absent : entrée de démarrage du PC non vérifiée"
     fi
     local image
     image="$(booted_image)"
@@ -159,7 +175,7 @@ launchers = ""
 for s in cfg.sections():
     if s.startswith(prefix) and s.endswith("][Configuration][General"):
         launchers += cfg.get(s, "launchers", fallback="")
-for app in ("org.mozilla.Thunderbird.desktop", "org.onlyoffice.desktopeditors.desktop"):
+for app in ("org.mozilla.thunderbird_esr.desktop", "org.onlyoffice.desktopeditors.desktop"):
     if app not in launchers:
         sys.exit(f"{app} non épinglé dans la barre des tâches")
 kickoff = [s for s in cfg.sections() if s.startswith(prefix) and s.count("][") == 3

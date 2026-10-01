@@ -52,6 +52,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      - name: Let osbuild use bubblewrap
+        run: |
+          # Ubuntu 25.04+ confines /usr/bin/bwrap with AppArmor: every program it starts loses
+          # all capabilities, even as root in a privileged container. osbuild (inside
+          # bootc-image-builder) runs each build stage through bwrap, so the ISO build fails
+          # with "mount: /run/osbuild/tree/dev: permission denied". The runner is discarded
+          # after the job, so the profile is simply unloaded.
+          if [[ -f /etc/apparmor.d/bwrap-userns-restrict ]]; then
+            sudo apparmor_parser -R /etc/apparmor.d/bwrap-userns-restrict
+          fi
+
       - name: Build ISO
         id: build
         uses: osbuild/bootc-image-builder-action@8661cd3832544ad68c12dcde8681b13ab0f56a8d # main

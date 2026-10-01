@@ -9,8 +9,7 @@ ConditionPathExists=!/var/lib/nicos/pdf-printer.done
 
 [Service]
 Type=oneshot
-# Même commande que le paquet cups-pdf, qui ne peut pas l'exécuter pendant le build de l'image
-ExecStart=/usr/sbin/lpadmin -p Cups-PDF -D "Imprimante PDF" -L "Fichiers PDF enregistrés sur le Bureau" -v cups-pdf:/ -m CUPS-PDF_noopt.ppd -E
+ExecStart=/usr/libexec/nicos/nicos-pdf-printer
 ExecStartPost=/usr/bin/mkdir -p /var/lib/nicos
 ExecStartPost=/usr/bin/touch /var/lib/nicos/pdf-printer.done
 

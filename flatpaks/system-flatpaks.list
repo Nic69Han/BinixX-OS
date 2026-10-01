@@ -5,7 +5,8 @@
 # Bureautique
 org.onlyoffice.desktopeditors
 org.mozilla.firefox
-org.mozilla.Thunderbird
+# Thunderbird ESR (version longue durée) ; l'ancien identifiant org.mozilla.Thunderbird est en fin de vie
+org.mozilla.thunderbird_esr
 org.kde.okular
 com.nextcloud.desktopclient.nextcloud
 
