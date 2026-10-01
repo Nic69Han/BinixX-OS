@@ -32,6 +32,8 @@ Journaux, rapports et captures d'écran (dont `bureau.png`) : `tests/vm/_work/lo
   Il fige l'empreinte de l'image `testing`, la teste et, **si tout passe, la promeut en `stable`**,
   le canal que suivent les postes installés (voir [docs/mises-a-jour.md](../docs/mises-a-jour.md)).
   Compter 1 à 2 heures ; les journaux sont joints au run (artefact `vm-test-logs`).
+  Pour tester une pull request avant de la fusionner : lancer « Test VM » sur sa branche avec l'option
+  `build` cochée. L'image est alors construite depuis la branche, et jamais promue.
 
 Ce qui n'est pas testé automatiquement (fidélité des documents OnlyOffice, son réellement audible,
 partage d'écran dans une vraie réunion) est décrit dans [docs/validation-mvp.md](../docs/validation-mvp.md).
