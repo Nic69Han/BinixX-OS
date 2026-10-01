@@ -49,8 +49,8 @@ Alt + F4 (fermer), Windows + flèches (ancrer une fenêtre à gauche ou à droit
 
 - **Applications au premier démarrage** : OnlyOffice, Thunderbird, Remmina… se téléchargent pendant les
   premières minutes, PC connecté à Internet (Firefox est déjà là). Si le menu semble incomplet, patienter puis se reconnecter.
-- **Polices** : les documents en Calibri, Cambria, Arial ou Times New Roman s'affichent avec des polices de
-  même largeur, donc même mise en page. Seul le dessin des lettres change légèrement.
+- **Polices** : les documents en Calibri, Cambria, Arial, Times New Roman ou Segoe UI s'affichent avec des
+  polices de même largeur, donc même mise en page. Seul le dessin des lettres change légèrement.
 - **Mises à jour** : elles s'installent en arrière-plan et s'appliquent au redémarrage. En cas de problème
   après une mise à jour, choisir la version précédente dans le menu de démarrage, ou
   `sudo bootc rollback` puis redémarrer.

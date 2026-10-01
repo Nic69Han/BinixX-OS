@@ -38,6 +38,9 @@ expect_font Cambria Caladea
 expect_font Arial "Liberation Sans"
 expect_font "Times New Roman" "Liberation Serif"
 expect_font "Courier New" "Liberation Mono"
+expect_font "Segoe UI" Selawik
+expect_font "Segoe UI Semibold" Selawik
+check "licence de Selawik fournie avec la police" test -s /usr/share/fonts/selawik/LICENSE.txt
 
 section "Bureau Plasma"
 LNF=/usr/share/plasma/look-and-feel/org.nicos.desktop

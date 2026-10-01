@@ -19,7 +19,8 @@ Légende : ✅ vérifié · 🟡 attendu, à vérifier · ⚠️ partiel ou avec
 | PDF : lecture, annotation, formulaires | Okular | 🟡 | |
 | PDF : création | Imprimante PDF, export OnlyOffice | 🟡 | Impression vers PDF couverte par le test en VM |
 | Polices Calibri, Cambria, Arial, Times New Roman, Courier New | Carlito, Caladea, Liberation | 🟡 | Substitution contrôlée à chaque build ; même métrique, dessin différent |
-| Autres polices Microsoft (Segoe UI, Verdana, Tahoma…) | | ⚠️ | Remplacées par une police par défaut : mise en page possiblement décalée |
+| Segoe UI (police de l'interface de Windows) | Selawik | 🟡 | Publiée par Microsoft, mêmes largeurs de caractères. Appliquée par les applications du système (KDE, Firefox) ; les applications Flatpak (OnlyOffice, Chromium…) voient la police mais font leur propre substitution |
+| Autres polices Microsoft (Verdana, Tahoma, Georgia…) | | ⚠️ | Remplacées par une police par défaut : mise en page possiblement décalée |
 
 ## Communication
 

@@ -107,6 +107,10 @@ dnf5 -y install \
     "${VPN[@]}" \
     "${ENTERPRISE[@]}"
 
+# Selawik (remplace Segoe UI, voir branding/fabriquer-selawik.sh) vient de system_files :
+# cache de fontconfig régénéré pour l'inclure
+fc-cache -s
+
 ### 3. Bureau Plasma
 # Thème global org.nicos.desktop : copie complète de Breeze (clair), puis nos fichiers
 # (system_files/…/org.nicos.desktop) par-dessus. --update=none ne remplace aucun
