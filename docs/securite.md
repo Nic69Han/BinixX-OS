@@ -24,6 +24,9 @@ sous `ghcr.io/nic69han/nicos`, sur une connexion chiffrée) ; elle est prévue e
 - **Chiffrer le disque** : cocher « Chiffrer mes données » à l'installation. Pour ne pas taper le mot
   de passe de chiffrement à chaque démarrage, le confier à la puce TPM du PC : `ujust setup-luks-tpm-unlock`
   (annulation : `ujust remove-luks-tpm-unlock`). Le disque reste illisible s'il est retiré du PC.
+  **Pas sur un processeur AMD Ryzen des générations Zen 1 à 3** (environ 2017 à 2022) : leur puce TPM
+  intégrée est vulnérable (faille « faulTPM ») ; garder alors le mot de passe, ou ajouter un code PIN
+  quand le script le propose.
 - **Sauvegarder** : Déjà Dup (« Sauvegardes »), sur un disque externe débranché après la sauvegarde ou
   un service cloud. C'est la protection contre les rançongiciels.
 - **Mots de passe** : un mot de passe différent par site, dans le gestionnaire de Firefox ou Bitwarden.

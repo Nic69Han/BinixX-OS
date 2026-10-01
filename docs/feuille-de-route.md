@@ -1,6 +1,6 @@
 # Feuille de route
 
-État au 1er octobre 2026. Une ligne = une pull request, dans l'ordre de réalisation.
+État au 1er octobre 2026. Une ligne = une pull request.
 
 ## Objectif
 
@@ -56,7 +56,18 @@ automatiques testées avec retour arrière, applications isolées (Flatpak), les
 | **M2. Vieux PC** | Cible 4 Go de mémoire : le test VM tourne avec 4 Go ; services d'arrière-plan allégés si besoin. | Test VM complet vert à 4 Go. |
 | **M3. Essayer sans installer** | ISO « live » : NicOS démarre depuis la clé USB, sans toucher au disque, avec un bouton « Installer ». | Test de démarrage de l'ISO live jusqu'au bureau. |
 
-## Lot 4 — Se faire connaître
+## Lot 4 — Zéro terminal
+
+Un utilisateur de Windows n'ouvre pas de terminal. Toute tâche courante d'utilisation ou d'administration
+doit se faire à la souris ; la documentation donne d'abord le chemin graphique.
+
+| PR | Contenu | Critères d'acceptation |
+| --- | --- | --- |
+| **U1. Centre d'administration** | Cockpit, la console d'administration web de Fedora, accessible seulement depuis le PC lui-même (lanceur « Administration du PC ») : rejoindre un domaine Active Directory, mises à jour et retour arrière, pare-feu, disques et chiffrement, services, journaux, comptes. Pare-feu aussi dans Configuration du système (plasma-firewall). Guide `administration.md` : chaque tâche, son chemin à la souris. | Image : paquets, socket limité à localhost, lanceur. VM : console joignable en local seulement, modules détectés. |
+| **U2. Assistants NicOS sans terminal** | Page « NicOS » dans le centre d'administration : déverrouillage du disque par la puce TPM (avec l'avertissement AMD Zen 1 à 3), ouverture de l'accès à distance (SSH, bureau à distance) en un clic, et OneDrive avec connexion par le navigateur et fichiers à la demande (montage rclone) au lieu de l'assistant en terminal. | Test VM de chaque action sans saisie au clavier. |
+| **U3. Console Active Directory** | Pour l'administrateur d'une PME : ADMC (équivalent libre des consoles Windows « Utilisateurs et ordinateurs » et « Gestion des stratégies de groupe »), à empaqueter : il n'est ni dans Fedora ni sur Flathub. | Construction reproductible ; démarrage de l'application en VM. |
+
+## Lot 5 — Se faire connaître
 
 | PR | Contenu |
 | --- | --- |
