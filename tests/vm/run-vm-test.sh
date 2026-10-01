@@ -6,8 +6,12 @@
 #   4. le met à jour depuis un registre local, redémarre et vérifie, puis revient en arrière
 #      avec `bootc rollback`, redémarre et vérifie de nouveau.
 #
-# Usage : sudo tests/vm/run-vm-test.sh --image ghcr.io/nic69han/nicos:latest
-#         [--workdir DIR] [--no-secure-boot] [--skip-update]
+# Usage : sudo tests/vm/run-vm-test.sh --image ghcr.io/nic69han/nicos:testing
+#         [--switch-ref REF] [--workdir DIR] [--no-secure-boot] [--skip-update]
+#
+# --image accepte une étiquette ou une empreinte (…/nicos@sha256:…), pour tester exactement
+# l'image qui sera promue. --switch-ref est l'image que le système installé suivra ensuite
+# pour ses mises à jour (comme le `bootc switch` de disk_config/iso.toml) ; par défaut --image.
 #
 # Prérequis (hôte x86_64) : /dev/kvm, podman, qemu-system-x86_64, qemu-img, OVMF (edk2),
 # xorriso, ssh, python3, curl. Journaux, captures et rapports : <workdir>/logs/.
@@ -20,16 +24,18 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TEST_DIR="${REPO_ROOT}/tests/vm"
 
 IMAGE=""
+SWITCH_REF=""
 WORK="${TEST_DIR}/_work"
 SECURE_BOOT=1
 RUN_UPDATE=1
 while [[ $# -gt 0 ]]; do
     case "$1" in
     --image) IMAGE="$2" && shift 2 ;;
+    --switch-ref) SWITCH_REF="$2" && shift 2 ;;
     --workdir) WORK="$2" && shift 2 ;;
     --no-secure-boot) SECURE_BOOT=0 && shift ;;
     --skip-update) RUN_UPDATE=0 && shift ;;
-    -h | --help) sed -n '2,17p' "${BASH_SOURCE[0]}" && exit 0 ;;
+    -h | --help) sed -n '2,21p' "${BASH_SOURCE[0]}" && exit 0 ;;
     *) echo "Option inconnue : $1" >&2 && exit 2 ;;
     esac
 done
@@ -217,6 +223,12 @@ else
     podman pull "${IMAGE}"
     switch_cmd="bootc switch --mutate-in-place --transport registry ${IMAGE}"
 fi
+if [[ -n "${SWITCH_REF}" ]]; then
+    switch_cmd="bootc switch --mutate-in-place --transport registry ${SWITCH_REF}"
+fi
+# Nom local fixe pour l'ISO et la mise à jour de test, même si --image est une empreinte
+CANDIDATE=localhost/nicos-vm-test:candidate
+podman tag "${IMAGE}" "${CANDIDATE}"
 
 [[ -f "${KEY}" ]] || ssh-keygen -q -t ed25519 -N '' -C nicos-vm-test -f "${KEY}"
 config="$(<"${TEST_DIR}/iso-unattended.toml.in")"
@@ -236,7 +248,7 @@ else
         -v /var/lib/containers/storage:/var/lib/containers/storage \
         "${BIB_IMAGE}" \
         --type anaconda-iso --use-librepo=True \
-        "${IMAGE}"
+        "${CANDIDATE}"
 fi
 [[ -f "${ISO}" ]] || die "ISO introuvable : ${ISO}"
 
@@ -301,7 +313,7 @@ screenshot bureau
 
 if [[ ${RUN_UPDATE} -eq 1 ]]; then
     log "Préparation d'une mise à jour dans un registre local"
-    podman build --pull=never --build-arg "BASE_IMAGE=${IMAGE}" \
+    podman build --pull=never --build-arg "BASE_IMAGE=${CANDIDATE}" \
         -t localhost/nicos-update-test:latest "${TEST_DIR}/update"
     podman rm -f nicos-test-registry >/dev/null 2>&1 || true
     podman run -d --rm --name nicos-test-registry -p "${REGISTRY_PORT}:5000" docker.io/library/registry:2

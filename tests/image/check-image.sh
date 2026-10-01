@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 # Vérifie le contenu de l'image NicOS depuis l'intérieur d'un conteneur, sans la démarrer.
 # Lancé par `just test-image` (et donc par la CI à chaque build, pull requests comprises) :
-#   podman run --rm -v ./tests/image:/tests:ro -v ./flatpaks:/flatpaks:ro nicos:latest bash /tests/check-image.sh
+#   podman run --rm -v ./tests/image:/tests:ro -v ./flatpaks:/flatpaks:ro nicos:testing bash /tests/check-image.sh
 
 set -uo pipefail
 
