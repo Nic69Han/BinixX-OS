@@ -35,5 +35,21 @@ Journaux, rapports et captures d'écran (dont `bureau.png`) : `tests/vm/_work/lo
   Pour tester une pull request avant de la fusionner : lancer « Test VM » sur sa branche avec l'option
   `build` cochée. L'image est alors construite depuis la branche, et jamais promue.
 
+## 3. ISO publique : `tests/iso/boot-installer.sh`
+
+L'ISO de l'étape 2 installe toute seule, mais ce n'est pas celle que téléchargent les utilisateurs.
+Ce script démarre l'**ISO publique** dans une VM, comme sur un vrai PC :
+
+1. firmware UEFI avec Secure Boot, puis shim et GRUB de l'ISO ;
+2. il attend l'installeur graphique et l'interroge par sa console (`hvc0`) : mode graphique,
+   Secure Boot actif, nom de produit affiché ;
+3. il prend une capture d'écran de l'installeur (`installeur.png`).
+
+Rien n'est installé.
+
+- En local : `tests/iso/boot-installer.sh chemin/vers/install.iso` (KVM et OVMF nécessaires).
+- En CI : `build-iso.yml` le lance juste après avoir fabriqué l'ISO. La capture et le rapport sont
+  joints au run (artefact `installer-boot`), et l'ISO est publiée même si ce test échoue.
+
 Ce qui n'est pas testé automatiquement (fidélité des documents OnlyOffice, son réellement audible,
 partage d'écran dans une vraie réunion) est décrit dans [docs/validation-mvp.md](../docs/validation-mvp.md).
