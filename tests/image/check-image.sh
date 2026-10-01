@@ -108,7 +108,7 @@ for app in org.onlyoffice.desktopeditors org.mozilla.firefox org.mozilla.thunder
 done
 
 section "Web apps"
-for webapp in teams zoom slack; do
+for webapp in teams zoom slack outlook word excel powerpoint microsoft365; do
     check "lanceur ${webapp} valide" desktop-file-validate "/usr/share/applications/nicos-webapp-${webapp}.desktop"
 done
 check "lanceur de web apps exécutable" test -x /usr/libexec/nicos/nicos-webapp

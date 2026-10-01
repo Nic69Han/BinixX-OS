@@ -22,7 +22,8 @@ Ce guide s'adresse à la personne qui migre un poste (ou à celle qui l'accompag
 | Menu Démarrer, touche Windows | Logo NicOS en haut à gauche, touche Windows (même comportement, recherche comprise) |
 | Barre des tâches, épingler une application | Même principe, mais la barre est **en haut** de l'écran : clic droit sur l'icône → « Épingler au gestionnaire de tâches ». Elle se déplace en bas par clic droit → « Modifier le tableau de bord » |
 | Explorateur de fichiers | Dolphin (Windows + E) |
-| Word, Excel, PowerPoint | OnlyOffice (ouvre et enregistre directement les .docx, .xlsx, .pptx) |
+| Word, Excel, PowerPoint | OnlyOffice (ouvre et enregistre directement les .docx, .xlsx, .pptx). Avec un abonnement Microsoft 365 : « Word (web) », « Excel (web) », « PowerPoint (web) » dans le menu |
+| Outlook (nouvel Outlook), OneDrive en ligne | « Outlook (web) » et « Microsoft 365 (web) » dans le menu, ou Thunderbird pour le courriel |
 | Outlook | Thunderbird (courriel, agenda, contacts) |
 | Edge, Chrome | Firefox |
 | Teams, Zoom, Slack | Web apps du même nom dans le menu (fenêtre dédiée, partage d'écran possible) |
