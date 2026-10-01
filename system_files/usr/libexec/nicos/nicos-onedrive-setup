@@ -1,0 +1,55 @@
+#!/usr/bin/bash
+# Assistant de connexion à OneDrive, lancé dans une fenêtre Konsole par le lanceur « OneDrive ».
+# S'appuie sur le client libre « onedrive » (https://github.com/abraunegg/onedrive) :
+#   1. autorise le compte Microsoft (onedrive lancé sans option, procédure prévue par le client) ;
+#   2. active la synchronisation continue (service utilisateur onedrive.service).
+# Les fichiers sont synchronisés dans ~/OneDrive.
+
+set -uo pipefail
+
+TOKEN="${HOME}/.config/onedrive/refresh_token"
+
+finish() {
+    echo
+    read -r -p "Appuyez sur Entrée pour fermer cette fenêtre." _
+    exit "$1"
+}
+
+if [[ -s "${TOKEN}" ]] && systemctl --user is-active --quiet onedrive.service; then
+    echo "OneDrive est déjà connecté : vos fichiers sont synchronisés dans ${HOME}/OneDrive."
+    finish 0
+fi
+
+cat <<'EOF'
+Connexion à OneDrive
+====================
+
+1. Une adresse Microsoft va s'afficher ci-dessous : ouvrez-la avec Ctrl + clic,
+   puis connectez-vous avec votre compte Microsoft (personnel ou professionnel).
+2. À la fin, le navigateur affiche une page blanche. Copiez l'adresse complète de
+   cette page (dans la barre d'adresse), collez-la ici avec Ctrl + Maj + V,
+   puis appuyez sur Entrée.
+
+EOF
+
+if [[ ! -s "${TOKEN}" ]]; then
+    # Sans option, le client ne fait que l'autorisation ; son code de sortie ne dit pas
+    # si elle a réussi, le jeton enregistré si.
+    onedrive
+    if [[ ! -s "${TOKEN}" ]]; then
+        echo
+        echo "La connexion n'a pas abouti. Relancez « OneDrive » depuis le menu pour réessayer."
+        finish 1
+    fi
+fi
+
+if ! systemctl --user enable --now onedrive.service; then
+    echo
+    echo "Compte connecté, mais la synchronisation n'a pas démarré (journalctl --user -u onedrive)."
+    finish 1
+fi
+
+echo
+echo "C'est fait : vos fichiers OneDrive arrivent dans le dossier ${HOME}/OneDrive."
+echo "La première synchronisation télécharge tous les fichiers : elle peut prendre du temps."
+finish 0

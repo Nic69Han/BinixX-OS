@@ -22,7 +22,8 @@ section "Paquets"
 for pkg in google-carlito-fonts google-crosextra-caladea-fonts liberation-sans-fonts \
     liberation-serif-fonts liberation-mono-fonts cups cups-pdf hplip gutenprint-cups \
     sane-backends sane-airscan ipp-usb skanpage pipewire xdg-desktop-portal-kde mokutil \
-    plasma-setup; do
+    plasma-setup langpacks-fr hunspell-fr onedrive plasma-nm-l2tp plasma-nm-sstp plasma-nm-strongswan \
+    adcli sssd-ad oddjob-mkhomedir krb5-workstation firefox; do
     check "${pkg} installé" rpm -q "${pkg}"
 done
 
@@ -102,16 +103,26 @@ check "liste Flatpak installée dans l'image" test -f "${LIST}"
 if [[ -f /flatpaks/system-flatpaks.list ]]; then
     check "liste Flatpak identique à celle du dépôt" cmp -s "${LIST}" /flatpaks/system-flatpaks.list
 fi
-for app in org.onlyoffice.desktopeditors org.mozilla.firefox org.mozilla.thunderbird_esr org.kde.okular \
-    com.nextcloud.desktopclient.nextcloud org.chromium.Chromium; do
+for app in org.onlyoffice.desktopeditors org.mozilla.thunderbird_esr org.kde.okular \
+    com.nextcloud.desktopclient.nextcloud org.chromium.Chromium org.remmina.Remmina org.gnome.DejaDup \
+    org.kde.haruna; do
     check "${app} dans la liste" grep -qx "${app}" "${LIST}"
 done
+# Firefox vient de l'image (navigateur par défaut de Fedora) : pas de second Firefox en Flatpak
+check "pas de Firefox en double dans la liste Flatpak" bash -c "! grep -qx org.mozilla.firefox '${LIST}'"
 
 section "Web apps"
 for webapp in teams zoom slack; do
     check "lanceur ${webapp} valide" desktop-file-validate "/usr/share/applications/nicos-webapp-${webapp}.desktop"
 done
 check "lanceur de web apps exécutable" test -x /usr/libexec/nicos/nicos-webapp
+
+section "OneDrive, vidéo, entreprise"
+check "lanceur OneDrive valide" desktop-file-validate /usr/share/applications/nicos-onedrive.desktop
+check "assistant OneDrive exécutable" test -x /usr/libexec/nicos/nicos-onedrive-setup
+check "service de synchronisation OneDrive (utilisateur)" test -f /usr/lib/systemd/user/onedrive.service
+check "Haruna lit les vidéos par défaut" grep -qx 'video/mp4=org.kde.haruna.desktop' /etc/xdg/kde-mimeapps.list
+check "jonction à un domaine Active Directory (realm)" bash -c 'command -v realm'
 
 section "Services"
 for unit in nicos-flatpak-install.service nicos-pdf-printer.service plasma-setup.service; do
