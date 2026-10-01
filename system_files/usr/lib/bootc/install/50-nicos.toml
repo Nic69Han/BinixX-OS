@@ -1,0 +1,4 @@
+# Système de fichiers racine par défaut, lu par bootc et par bootc-image-builder
+# (ISO d'installation, images disque). Fedora Kinoite utilise btrfs.
+[install.filesystem.root]
+type = "btrfs"
