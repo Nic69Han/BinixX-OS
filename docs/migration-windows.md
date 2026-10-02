@@ -15,6 +15,39 @@ Ce guide s'adresse à la personne qui migre un poste (ou à celle qui l'accompag
   (`.exe`) ne s'installe pas sur NicOS.
 - **Licences** : noter la clé Windows si le PC doit pouvoir revenir en arrière.
 
+## Récupérer ses fichiers : « Récupérer mes fichiers Windows »
+
+Une fois NicOS installé, **Récupérer mes fichiers Windows** (menu, ou page du Centre NicOS) copie les
+documents, le bureau, les images, la musique, les vidéos, les téléchargements et les favoris du navigateur
+depuis :
+
+- **un disque externe ou une clé USB** où l'on a copié le dossier du profil Windows (`C:\Users\Prénom`) ou
+  n'importe quel dossier de sauvegarde (« Choisir un dossier… ») : c'est le cas le plus courant, puisque
+  **l'installation de NicOS efface le disque du PC** ;
+- **l'ancien disque Windows**, quand il est resté dans le PC comme second disque : il apparaît dans « Ouvrir
+  mes disques » (un clic le monte), puis le profil est proposé dans l'étape 1.
+
+Ce que fait l'assistant, et ce qu'il ne fait pas :
+
+- Il **lit** l'ancien disque sans jamais y écrire. Il ne remplace **aucun fichier** du PC : un fichier de même
+  nom mais de contenu différent est gardé à côté, avec « (depuis Windows) » dans son nom ; un fichier
+  identique n'est pas recopié. Relancer la copie est donc sans risque.
+- Il copie dans les dossiers habituels (Documents, Bureau, Images…). Un dossier qui n'est pas un profil Windows
+  est copié en entier dans les Documents. Un rapport (`Rapport-migration-AAAAMMJJ-HHMMSS.txt`) liste ce qui a été
+  copié, gardé à côté ou illisible.
+- Il ignore les liens, les fichiers temporaires et ceux que Windows crée seul (`desktop.ini`, `Thumbs.db`…).
+- Les **favoris** (Edge, Chrome, Firefox) sont exportés dans un fichier HTML ; dans Firefox :
+  Ctrl + Maj + O → « Importer et sauvegarde » → « Importer les favoris depuis un fichier HTML ».
+- Les **mots de passe** du navigateur ne sont **pas** copiés : Windows les chiffre pour le compte de l'utilisateur.
+  Les exporter avant la migration (voir plus haut) ou activer la synchronisation Firefox.
+- **OneDrive** : les fichiers sont déjà dans le nuage ; reconnecter OneDrive plutôt que de les copier.
+  Un fichier de courrier Outlook (`.pst`) est copié avec les Documents, mais il doit être importé dans Thunderbird.
+- **BitLocker** : un disque chiffré se déverrouille avec son mot de passe ou la clé de récupération à
+  48 chiffres (compte Microsoft). **Windows doit être complètement arrêté** (ni veille prolongée, ni
+  démarrage rapide), sinon le disque est monté en lecture seule ou refusé.
+
+En ligne de commande : `nicos-migrer analyser|copier|favoris|sources` (voir `nicos-migrer` sans argument).
+
 ## Où retrouver ses habitudes
 
 > Pour un logiciel précis (Word, Sage, Photoshop…), l'application **« Mon logiciel Windows »** (menu, ou
