@@ -6,8 +6,17 @@ check "« Paramètres » est dans les favoris du menu" grep -q 'nicos-parametres
 check "kcmshell6 présent" command -v kcmshell6
 # Les modules KDE cités par la page doivent exister dans l'image : la liste vient de kcmshell6 lui-même
 # (un module renommé par une mise à jour de Plasma fait échouer le build, au lieu de laisser un bouton mort)
-if modules="$(kcmshell6 --list 2>&1)" && grep -q '^ *kcm_' <<<"${modules}"; then
-    pass "kcmshell6 liste $(grep -c '^ *kcm_' <<<"${modules}") modules"
+# kcmshell6 a besoin d'une plate-forme Qt : sans session graphique (build), on prend « offscreen ». S'il ne liste
+# toujours rien, on se rabat sur les greffons de modules installés (un fichier ou un dossier kcm_xxx par module).
+modules="$(QT_QPA_PLATFORM=offscreen kcmshell6 --list 2>&1 || true)"
+source_modules="kcmshell6 --list"
+if ! grep -q '^ *kcm_' <<<"${modules}"; then
+    modules="$(find /usr/lib64/qt6/plugins /usr/share/kpackage/kcms -maxdepth 5 -name 'kcm_*' -printf '%f\n' 2>/dev/null |
+        sed 's/\.so$//' | sort -u || true)"
+    source_modules="greffons installés"
+fi
+if grep -q '^ *kcm_' <<<"${modules}"; then
+    pass "$(grep -c '^ *kcm_' <<<"${modules}") modules KDE (${source_modules})"
     # Sortie complète du build, pour ajuster les identifiants si Plasma change
     printf '%s\n' "${modules}" | sed 's/^/            /' | head -150
     missing="$(
@@ -24,7 +33,7 @@ PYEOF
     )"
     if [[ -z "${missing}" ]]; then pass "tous les modules KDE cités par la page Paramètres existent"; else fail "modules KDE absents : ${missing}"; fi
 else
-    fail "kcmshell6 --list ne donne rien : ${modules}"
+    fail "aucun module KDE trouvé (kcmshell6 --list : ${modules:-rien})"
 fi
 # Les lanceurs cités existent dans l'image
 missing="$(
