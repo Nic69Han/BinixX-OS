@@ -57,3 +57,17 @@ def logout_prompt():
     """Propose de fermer la session (boîte de dialogue de Plasma)."""
     return _start(["busctl", "--user", "call", "org.kde.LogoutPrompt", "/LogoutPrompt", "org.kde.LogoutPrompt",
                    "promptLogout"])
+
+def run_flatpak(app_id):
+    """Lance une application Flatpak installée."""
+    return _start(["flatpak", "run", app_id])
+
+
+def installed_flatpaks():
+    """Identifiants des applications Flatpak installées (ensemble vide si flatpak ne répond pas)."""
+    try:
+        sortie = subprocess.run(["flatpak", "list", "--app", "--columns=application"], capture_output=True,
+                                text=True, timeout=10, check=False).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return set()
+    return {ligne.strip() for ligne in sortie.splitlines() if ligne.strip()}

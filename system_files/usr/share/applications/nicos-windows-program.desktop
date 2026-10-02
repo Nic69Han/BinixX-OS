@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Programme Windows
+Comment=Chercher l'équivalent NicOS d'un programme Windows (.exe, .msi)
+Exec=/usr/libexec/nicos/nicos-centre --programme %f
+Icon=nicos
+Terminal=false
+NoDisplay=true
+MimeType=application/vnd.microsoft.portable-executable;application/x-ms-dos-executable;application/x-msdownload;application/x-msi;application/x-dosexec;
