@@ -42,14 +42,19 @@ Ce script démarre l'**ISO publique** dans une VM, comme sur un vrai PC :
 
 1. firmware UEFI avec Secure Boot, puis shim et GRUB de l'ISO ;
 2. il attend l'installeur graphique et l'interroge par sa console (`hvc0`) : mode graphique,
-   Secure Boot actif, nom de produit affiché ;
-3. il prend une capture d'écran de l'installeur (`installeur.png`).
+   Secure Boot actif, écran de choix de la langue, logo et couleurs NicOS
+   (`disk_config/personnaliser-iso.sh`), nom de produit ;
+3. il prend une capture d'écran de l'installeur (`installeur.png`) ;
+4. il redémarre l'ISO avec la langue demandée au lancement (`inst.lang=fr_FR.UTF-8`), vérifie que
+   l'installeur l'adopte et en prend une capture (`installeur-fr.png`).
 
 Rien n'est installé.
 
-- En local : `tests/iso/boot-installer.sh chemin/vers/install.iso` (KVM et OVMF nécessaires).
+- En local : `tests/iso/boot-installer.sh chemin/vers/install.iso` (KVM, OVMF et xorriso
+  nécessaires ; `--langue en_US.UTF-8` pour une autre langue, `--sans-langue` pour s'en passer).
 - En CI : `build-iso.yml` le lance juste après avoir fabriqué l'ISO. La capture et le rapport sont
   joints au run (artefact `installer-boot`), et l'ISO est publiée même si ce test échoue.
+  L'ISO publiée est déjà passée par `disk_config/personnaliser-iso.sh`.
 
 Ce qui n'est pas testé automatiquement (fidélité des documents OnlyOffice, son réellement audible,
 partage d'écran dans une vraie réunion) est décrit dans [docs/validation-mvp.md](../docs/validation-mvp.md).

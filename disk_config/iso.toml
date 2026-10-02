@@ -1,10 +1,14 @@
 # ISO d'installation NicOS (Anaconda), générée par bootc-image-builder.
 #
-# L'installeur ne demande que le disque de destination, avec l'option
-# « Chiffrer mes données » (recommandée). Tout le reste (langue, clavier, Wi-Fi,
-# fuseau horaire, compte utilisateur) est demandé au premier démarrage par
-# l'assistant KDE « Plasma Setup », comme l'accueil de Windows.
-# Activer ici le module Users ferait créer le compte deux fois.
+# L'installeur demande d'abord sa langue (écran « Bienvenue » : français, anglais…),
+# qui règle aussi le clavier (AZERTY pour le français) et devient la langue du
+# système installé ; puis le disque de destination, avec l'option « Chiffrer mes
+# données » (recommandée). Le reste (Wi-Fi, fuseau horaire, compte utilisateur) est
+# demandé au premier démarrage par l'assistant KDE « Plasma Setup », comme l'accueil
+# de Windows. Activer ici le module Users ferait créer le compte deux fois.
+#
+# Logo et couleurs NicOS de l'installeur : ajoutés après coup par
+# disk_config/personnaliser-iso.sh (bootc-image-builder n'a pas d'option pour cela).
 
 [customizations.installer.kickstart]
 contents = """
@@ -17,6 +21,7 @@ bootc switch --mutate-in-place --transport registry ghcr.io/nic69han/nicos:stabl
 
 [customizations.installer.modules]
 enable = [
+  "org.fedoraproject.Anaconda.Modules.Localization",
   "org.fedoraproject.Anaconda.Modules.Storage",
   "org.fedoraproject.Anaconda.Modules.Runtime"
 ]
