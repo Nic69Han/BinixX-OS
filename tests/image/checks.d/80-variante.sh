@@ -9,6 +9,6 @@ nvidia)
     # shellcheck disable=SC2016  # expansion voulue dans le sous-shell
     check "NicOS reste NicOS (nom, logo)" bash -c '. /usr/lib/os-release && [[ "${NAME}" == NicOS && "${LOGO}" == nicos ]]'
     ;;
-"") pass "variante standard" ;;
+"" | kinoite) pass "variante standard (VARIANT_ID : ${variant_id:-aucun})" ;; # kinoite : valeur de la base Fedora
 *) fail "variante inconnue : ${variant_id}" ;;
 esac
