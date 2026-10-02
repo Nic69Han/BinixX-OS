@@ -5,8 +5,8 @@ Une seule application, `Bienvenue dans NicOS` dans le menu (commande `nicos-cent
 | Page | Rôle |
 | --- | --- |
 | **Accueil** | Les premiers pas : réseau, OneDrive, applications, apparence, administration ; et « Sous Windows, ici » (Explorateur → Dolphin, Store → Discover…). S'ouvre toute seule **une fois**, à la première ouverture de session ; le menu permet de la rouvrir. |
-
 | **Mon logiciel Windows** | Une recherche (« Word », « Sage », « Photoshop », « tableur »…) renvoie l'équivalent sous NicOS : déjà installé (bouton *Ouvrir*), à installer (bouton *Installer*, qui ouvre Discover sur la bonne application), version en ligne, ou « pas d'équivalent direct » avec les pistes pour s'en sortir. En bas, « Essayer avec Bottles » pour la compatibilité Windows, sans garantie. |
+| **Windows complet** | Pour le logiciel indispensable sans équivalent : le PC est-il prêt (virtualisation, mémoire, espace, processeur) ? Boxes, WinBoat ou Windows 365 : [windows-vm.md](windows-vm.md). |
 
 D'autres pages s'y ajoutent (aide) : voir la feuille de route.
 
