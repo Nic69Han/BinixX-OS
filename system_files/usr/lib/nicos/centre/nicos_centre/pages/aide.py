@@ -6,20 +6,28 @@ import time
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QGuiApplication
-from PySide6.QtWidgets import (QDialog, QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMessageBox,
-                               QPushButton, QScrollArea, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QDialog, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMessageBox, QPushButton,
+                               QVBoxLayout, QWidget)
 
-from .. import launch
+from .. import launch, theme, widgets
 
 ORDER = 30
 KEY = "aide"
 TITLE = "Obtenir de l'aide"
+ICONE = "life-buoy"
+ACCENT = theme.ACCENTS["rose"]
 
 DIAGNOSTIC = "/usr/libexec/nicos/nicos-diagnostic"
 REINITIALISER = "/usr/libexec/nicos/nicos-reinitialiser-bureau"
 REPARER = "/usr/libexec/nicos/nicos-reparer-systeme"
 
 ETATS = {"modifie": "Modifié", "supprime": "Supprimé (sera remis)", "ajoute": "Ajouté (sera retiré)"}
+
+# Un pictogramme par action (voir icones.py)
+ICONES_ACTIONS = {
+    "reseau": "wifi", "imprimantes": "printer", "son": "volume", "ecrans": "monitor", "moniteur": "clock",
+    "retour": "rotate", "bureau": "refresh", "reparer": "settings",
+}
 
 # (titre, que faire, libellé du bouton, nom de l'action)
 PROBLEMES = [
@@ -131,66 +139,28 @@ class Page(QWidget):
             "reparer": self.reparer_systeme,
         }
 
-        contenu = QWidget()
-        page = QVBoxLayout(contenu)
-        page.setContentsMargins(32, 28, 32, 24)
-        page.setSpacing(12)
-        titre = QLabel("Obtenir de l'aide")
-        titre.setObjectName("pageTitle")
-        intro = QLabel("Un souci ? Voici les cas les plus fréquents. Rien n'est envoyé nulle part : "
-                       "tout reste sur ce PC.")
-        intro.setObjectName("pageLead")
-        intro.setWordWrap(True)
-        page.addWidget(titre)
-        page.addWidget(intro)
+        contenu, page = widgets.page_de_cartes()
+        page.addWidget(widgets.entete(
+            "Obtenir de l'aide", "Un souci ? Voici les cas les plus fréquents. Rien n'est envoyé nulle part : tout "
+                                 "reste sur ce PC.", ICONE, ACCENT))
 
         for titre_p, texte, bouton, action in PROBLEMES:
-            page.addWidget(self._carte(titre_p, texte, bouton, self.actions[action]))
+            page.addWidget(self._carte(titre_p, texte, bouton, self.actions[action], ICONES_ACTIONS[action]))
 
-        page.addSpacing(8)
-        section = QLabel("Et si rien ne règle le problème ?")
-        section.setObjectName("sectionTitle")
-        page.addWidget(section)
+        page.addWidget(widgets.section("Et si rien ne règle le problème ?", ACCENT))
         self.rapport_texte = QLabel("Le rapport de diagnostic décrit l'état du PC (mises à jour, services en échec, "
                                     "erreurs récentes, disques, matériel). Il ne contient ni mot de passe, ni "
                                     "fichier, ni adresse réseau. Relisez-le, puis joignez-le à votre demande à "
                                     "l'administrateur ou au support.")
         self.rapport_texte.setWordWrap(True)
         self.rapport_carte = self._carte("Créer un rapport pour le support", "", "Créer le rapport",
-                                         self.creer_rapport, corps=self.rapport_texte)
+                                         self.creer_rapport, "file-text", corps=self.rapport_texte)
         page.addWidget(self.rapport_carte)
         page.addStretch(1)
+        widgets.remplir(self, contenu)
 
-        zone = QScrollArea()
-        zone.setWidgetResizable(True)
-        zone.setFrameShape(QFrame.NoFrame)
-        zone.setWidget(contenu)
-        racine = QVBoxLayout(self)
-        racine.setContentsMargins(0, 0, 0, 0)
-        racine.addWidget(zone)
-
-    def _carte(self, titre, texte, bouton, action, corps=None):
-        carte = QFrame()
-        carte.setObjectName("card")
-        ligne = QHBoxLayout(carte)
-        ligne.setContentsMargins(16, 12, 16, 12)
-        colonne = QVBoxLayout()
-        colonne.setSpacing(3)
-        haut = QLabel(titre)
-        haut.setObjectName("cardTitle")
-        haut.setWordWrap(True)
-        colonne.addWidget(haut)
-        if corps is None:
-            corps = QLabel(texte)
-            corps.setWordWrap(True)
-        colonne.addWidget(corps)
-        ligne.addLayout(colonne, 1)
-        action_bouton = QPushButton(bouton)
-        action_bouton.setObjectName("primary")
-        action_bouton.setCursor(Qt.PointingHandCursor)
-        action_bouton.clicked.connect(action)
-        ligne.addWidget(action_bouton, 0, Qt.AlignVCenter)
-        return carte
+    def _carte(self, titre, texte, bouton, action, icone, corps=None):
+        return widgets.carte(titre, texte, bouton, action, icone=icone, couleurs=ACCENT, corps=corps)
 
     def reinitialiser_bureau(self):
         reponse = QMessageBox.question(

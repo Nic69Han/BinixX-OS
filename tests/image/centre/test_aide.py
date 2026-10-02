@@ -89,10 +89,11 @@ class PageAide(unittest.TestCase):
             ancien_home, os.environ["HOME"] = os.environ.get("HOME"), maison
             aide.DIAGNOSTIC = os.path.join(LIBEXEC, "nicos-diagnostic")
             ouvertures = []
-            launch.open_app = ouvertures.append
+            ancienne_ouverture, launch.open_app = launch.open_app, ouvertures.append
             try:
                 chemin = aide.build(None).creer_rapport()
             finally:
+                launch.open_app = ancienne_ouverture  # sans cela, les tests suivants n'ouvrent plus rien
                 os.environ["HOME"] = ancien_home
             self.assertTrue(chemin.startswith(os.path.join(maison, "Documents", "Rapport-NicOS-")))
             with open(chemin, encoding="utf-8") as f:

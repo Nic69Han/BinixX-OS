@@ -55,6 +55,14 @@ class Catalogue(unittest.TestCase):
         noms = [e.windows for e in self.entrees]
         self.assertEqual(len(noms), len(set(noms)))
 
+    def test_chaque_categorie_a_son_pictogramme(self):
+        from nicos_centre import icones
+        for categorie in {e.categorie for e in self.entrees}:
+            self.assertIn(categorie, catalogue.ICONES_CATEGORIES, categorie)
+        for icone in catalogue.ICONES_CATEGORIES.values():
+            self.assertIn(icone, icones.ICONES)
+        self.assertEqual(catalogue.icone_de("Inconnue"), "package")
+
     def test_les_applications_fournies_sont_au_catalogue(self):
         cibles = {e.cible for e in self.entrees if e.type == "flatpak"}
         for identifiant in ("org.onlyoffice.desktopeditors", "org.mozilla.thunderbird_esr", "org.kde.okular"):

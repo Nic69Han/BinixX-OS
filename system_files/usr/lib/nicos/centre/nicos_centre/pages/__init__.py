@@ -2,6 +2,9 @@
 
 Un module définit  ORDER (position dans la barre latérale), KEY (identifiant, pour --page),
 TITLE (texte du bouton) et  build(centre) -> QWidget. Ajouter une page = ajouter un fichier.
+
+Une page peut aussi donner ICONE (nom d'une icône de icones.py) et ACCENT (un couple de theme.ACCENTS) : la barre
+latérale en fait la pastille du bouton, et la page reprend la même couleur pour son en-tête (widgets.entete).
 """
 
 import importlib

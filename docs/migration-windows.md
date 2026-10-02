@@ -73,7 +73,7 @@ En ligne de commande : `nicos-migrer analyser|copier|favoris|sources` (voir `nic
 | Connexion Bureau à distance (mstsc) | Remmina |
 | Historique des fichiers, Sauvegarde | Déjà Dup (« Sauvegardes ») : sur un disque externe ou un service cloud |
 | Calculatrice | KCalc |
-| Paramètres, Panneau de configuration | Configuration du système |
+| Paramètres, Panneau de configuration | **Paramètres** (menu NicOS, ou touche Windows + I) : mêmes catégories et mêmes noms qu'en Windows 11. Pour les réglages avancés : Configuration du système |
 | Gestion de l'ordinateur, Observateur d'événements, Gestion des disques | « Administration du PC » (voir [administration.md](administration.md)) |
 | Windows Update | Automatique ; suivi dans Discover (« Mises à jour ») |
 | Microsoft Store | Discover |

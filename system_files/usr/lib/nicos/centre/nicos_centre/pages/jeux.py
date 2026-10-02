@@ -1,12 +1,14 @@
 """Jeux : boutiques et outils à la demande, carte graphique, manettes. Rien n'est installé d'office."""
 
-from PySide6.QtWidgets import QFrame, QLabel, QScrollArea, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QLabel, QWidget
 
-from .. import catalogue, launch, materiel, widgets
+from .. import catalogue, launch, materiel, theme, widgets
 
 ORDER = 50
 KEY = "jeux"
 TITLE = "Jeux"
+ICONE = "gamepad"
+ACCENT = theme.ACCENTS["rouge"]
 
 CATEGORIE = "Jeux"
 PROTONDB = "https://www.protondb.com/"
@@ -60,23 +62,12 @@ class Page(QWidget):
         installees = launch.installed_flatpaks()
         fournies = catalogue.fournies()
 
-        contenu = QWidget()
-        page = QVBoxLayout(contenu)
-        page.setContentsMargins(32, 28, 32, 24)
-        page.setSpacing(12)
-        titre = QLabel("Jeux")
-        titre.setObjectName("pageTitle")
-        intro = QLabel("NicOS fait tourner beaucoup de jeux Windows grâce à Proton, intégré à Steam. Rien n'est "
-                       "installé d'office : choisissez la boutique que vous utilisiez.")
-        intro.setObjectName("pageLead")
-        intro.setWordWrap(True)
-        page.addWidget(titre)
-        page.addWidget(intro)
+        contenu, page = widgets.page_de_cartes()
+        page.addWidget(widgets.entete(
+            "Jeux", "NicOS fait tourner beaucoup de jeux Windows grâce à Proton, intégré à Steam. Rien n'est "
+                    "installé d'office : choisissez la boutique que vous utilisiez.", ICONE, ACCENT))
 
-        section = QLabel("Mes boutiques et mes outils")
-        section.setObjectName("sectionTitle")
-        page.addSpacing(6)
-        page.addWidget(section)
+        page.addWidget(widgets.section("Mes boutiques et mes outils", ACCENT))
         if self.erreur:
             page.addWidget(QLabel(f"Le catalogue n'a pas pu être lu : {self.erreur}"))
         for remplacant in catalogue.remplacants(entrees, CATEGORIE):
@@ -84,32 +75,25 @@ class Page(QWidget):
             carte = widgets.carte(
                 f"{remplacant.nom}   <span style='font-weight:400; font-size:9pt;'>· {badge}</span>",
                 remplacant.entree.remarque, bouton, (lambda _=False, a=action: launch.executer(a)) if action else None,
-                details="Remplace : " + ", ".join(remplacant.remplace))
+                details="Remplace : " + ", ".join(remplacant.remplace), icone=ICONE, couleurs=ACCENT)
             self.cartes.append(carte)
             page.addWidget(carte)
 
-        section = QLabel("Mon matériel")
-        section.setObjectName("sectionTitle")
-        page.addSpacing(8)
-        page.addWidget(section)
+        page.addWidget(widgets.section("Mon matériel", ACCENT))
         cartes, via_switcheroo = materiel.cartes_graphiques()
         page.addWidget(widgets.carte("Carte graphique", texte_cartes(cartes, via_switcheroo, variante()),
-                                     "Écrans", lambda: launch.open_settings("kcm_kscreen")))
+                                     "Écrans", lambda: launch.open_settings("kcm_kscreen"),
+                                     icone="monitor", couleurs=theme.ACCENTS["indigo"]))
         page.addWidget(widgets.carte("Manettes", "Branchez la manette, puis testez ses boutons et réglez-la.",
-                                     "Ouvrir les manettes", lambda: launch.open_settings("kcm_gamecontroller")))
+                                     "Ouvrir les manettes", lambda: launch.open_settings("kcm_gamecontroller"),
+                                     icone="gamepad", couleurs=theme.ACCENTS["violet"]))
         page.addWidget(widgets.carte("Un jeu ne démarre pas ?",
                                      "ProtonDB recense, jeu par jeu, ce qui marche sous Linux et les réglages à "
                                      "essayer. Les retours viennent de joueurs, sans garantie.",
-                                     "Ouvrir ProtonDB", lambda: launch.open_url(PROTONDB)))
+                                     "Ouvrir ProtonDB", lambda: launch.open_url(PROTONDB),
+                                     icone="life-buoy", couleurs=theme.ACCENTS["orange"]))
         page.addStretch(1)
-
-        zone = QScrollArea()
-        zone.setWidgetResizable(True)
-        zone.setFrameShape(QFrame.NoFrame)
-        zone.setWidget(contenu)
-        racine = QVBoxLayout(self)
-        racine.setContentsMargins(0, 0, 0, 0)
-        racine.addWidget(zone)
+        widgets.remplir(self, contenu)
 
 
 def build(centre):
