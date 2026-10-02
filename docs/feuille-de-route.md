@@ -89,7 +89,7 @@ Pro, Windows Autopilot). Chaque ligne est une pull request, empilée sur le socl
 | **C3. Obtenir de l'aide** (#20) | Sept cas fréquents sans IA, rapport de diagnostic sans secret, bureau réinitialisable. | Livré |
 | **E1. Image d'entreprise** (#17) | Gabarit `entreprise/` (nom, paquets, Flatpak, page d'accueil, proxy), modèles de CI et d'ISO, guide en six étapes. | Livré |
 | **R1. Retour arrière automatique** (#21) | greenboot : trois démarrages en échec, retour à la version précédente ; test VM de bout en bout. | Livré |
-| **G1. Variante NVIDIA** (#22) | Image `nicos-nvidia` construite et testée comme `nicos`. **Validation sur matériel réel attendue**, fusion non automatique. | Brouillon |
+| **G1. Variante NVIDIA** (#22) | Image `nicos-nvidia` construite et testée comme `nicos`. Fusion décidée comme **expérimentale** ; validation sur matériel réel attendue. | En test (lot 8) |
 | **D1. Créer nouveau** (#23) | Document texte, Classeur, Présentation vierges (.docx, .xlsx, .pptx) dans Dolphin. | Livré |
 
 ## Lot 7 — Études (aucun code livré)
@@ -99,15 +99,36 @@ Pro, Windows Autopilot). Chaque ligne est une pull request, empilée sur le socl
 | Solutions libres à intégrer (MIT ou permissives) | [solutions-mit.md](solutions-mit.md) | Lesquelles entrent dans le catalogue ou l'image |
 | Copilote IA (expliquer, agir avec confirmation, administrer) | [ia-copilote.md](ia-copilote.md) | Moteur par défaut, niveau de départ |
 | Gestion d'un parc de PC | [gestion-de-flotte.md](gestion-de-flotte.md) | Besoin réel des PME visées |
-| À instruire | Clé de récupération du disque chiffré (assistant autour de `systemd-cryptenroll --recovery-key`), pack jeux (Steam, Proton, Lutris, gestion des cartes graphiques), « Réinitialiser NicOS » complet (réinstallation en gardant ses fichiers), Windows en machine virtuelle (WinBoat) pour les logiciels indispensables | Priorité |
+| Traité | Clé de récupération du disque chiffré, pack jeux, remise à zéro du système, Windows en machine virtuelle | Voir le lot 8 : la « réinstallation complète » a été remplacée par « Réparer le système », jugée plus sûre |
+
+## Lot 8 — Autour du Centre NicOS (2 octobre 2026)
+
+Ce que les études du lot 7 sont devenues. Chaque ligne est une pull request ; « En test » = construction et test VM en cours.
+
+| PR | Contenu | État |
+| --- | --- | --- |
+| **K1. Clé de récupération du disque chiffré** (#26) | Page « Protéger mes données » : création et remplacement de la clé (équivalent de celle de BitLocker), testée sur un vrai volume LUKS2. | Livré |
+| **J1. Jeux à la demande** (#27) | Steam, Heroic, Lutris, Prism, ProtonUp-Qt, jeu en streaming : rien d'installé d'office, carte graphique et manettes détectées. | En test |
+| **R2. Réparer le système** (#28) | Remet **un réglage** de `/etc` comme dans l'image, avec sauvegarde et annulation ; remplace le « Réinitialiser NicOS » complet, qui aurait effacé comptes et réseaux. | Livré |
+| **W1. Windows complet** (#29) | Le PC est-il prêt (virtualisation, mémoire, espace) ? Boxes, WinBoat (expérimental) ou Windows 365 ; Podman Compose et FreeRDP 3 dans l'image. **WinBoat reste à valider à la main sur un vrai PC.** | Livré |
+| **T1. Test VM : retour arrière** (#30) | Le test n'exige plus d'attraper par SSH la mise à jour défectueuse (créneau de quelques secondes) : il lit un compteur de démarrages. Avait fait échouer `main` et la variante NVIDIA. | Livré |
+| **M1. Récupérer mes fichiers Windows** (#31) | Documents, photos, musique, favoris depuis l'ancien disque, une clé USB ou un dossier, sans rien écraser. | En test |
+| **S3. Chaîne d'approvisionnement** (#32) | SBOM CycloneDX, avis de sécurité Fedora avec seuil bloquant, attestations de provenance. | En test |
+| **G1. Variante NVIDIA** (#22) | Fusion décidée comme **expérimentale** (image séparée `nicos-nvidia`) ; test VM relancé sur `main` à jour. | En test |
+
+Reste à faire, sans décision du propriétaire : choix des applications au premier démarrage (A1), notes de version (L2), console
+Active Directory (U3), assistants sans terminal (U2).
 
 ## Décisions et actions du propriétaire
 
 1. Créer la clé de signature (S2) : `cosign generate-key-pair`, contenu de `cosign.key` dans le secret
    `SIGNING_SECRET` du dépôt, `cosign.pub` à la racine du dépôt. Ne jamais publier `cosign.key`.
 2. Activer le signalement privé des failles dans les réglages du dépôt (S1).
-3. Suite bureautique par défaut : OnlyOffice (meilleure fidélité Microsoft) ou LibreOffice (choix des
-   administrations européennes) ; l'autre reste proposée dans A1.
+3. ~~Suite bureautique par défaut~~ **Décidé** : OnlyOffice (meilleure fidélité Microsoft) ; LibreOffice reste proposée dans A1.
 4. Publication du README et du site (L1).
-5. Variante NVIDIA (G1) : essai sur une vraie carte, puis décision sur l'assistant de passage.
-6. Copilote IA : moteur par défaut (« aucun » recommandé), niveau de départ ; Coucou : réécriture pour Plasma ou idée seulement.
+5. ~~Variante NVIDIA (G1)~~ **Décidé** : fusion comme variante expérimentale. À faire : un essai sur une vraie carte, puis
+   décision sur l'assistant de passage à `nicos-nvidia`.
+6. **En attente** (le propriétaire a demandé de patienter) : copilote IA (moteur par défaut, « aucun » recommandé ; niveau de
+   départ) et Coucou (réécriture pour Plasma ou idée seulement). Rien n'est lancé tant que ce n'est pas tranché.
+7. **ISO publique : refaite en dernier**, une fois `stable` à jour avec tous les chantiers ci-dessus.
+8. Essais sur matériel réel avant de promettre : WinBoat (W1), disque Windows NTFS et BitLocker (M1), carte NVIDIA (G1).
