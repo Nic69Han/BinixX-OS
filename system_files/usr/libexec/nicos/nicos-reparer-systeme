@@ -12,7 +12,8 @@ Usage (chemins relatifs à /etc) :
   nicos-reparer-systeme sauvegardes           réparations faites (JSON)
 
 Prudence : seuls les dossiers de réglages courants sont concernés (voir DOSSIERS) ; comptes, mots de passe, réseau,
-disques, imprimantes, domaine, clés ne sont jamais touchés. Services activés ou désactivés (liens *.wants) non plus.
+disques, imprimantes, domaine, clés ne sont jamais touchés. Les liens symboliques (services activés ou
+désactivés, cible de démarrage) et ce que le système écrit lui-même (clavier, réglages dynamiques de systemd) non plus.
 Rien n'est supprimé sans copie : /var/lib/nicos/sauvegardes-etc/AAAAMMJJ-HHMMSS/.
 
 Codes de sortie : 0 réussi ; 2 appel incorrect ou fichier non réparable (rien n'est modifié) ; 5 échec en cours de route.
@@ -49,9 +50,21 @@ DOSSIERS = [
     ("dconf/", "Réglages GNOME et GTK"),
 ]
 
-# Jamais proposés, même dans un dossier ci-dessus : états de services (activer/désactiver), identité de la machine.
-EXCLUS_FRAGMENTS = (".wants/", ".requires/", "system-connections/", "/ssh_host_")
-EXCLUS_NOMS = {"machine-id", "hostname", "resolv.conf", "adjtime", "localtime", ".updated", ".pwd.lock"}
+# Jamais proposés, même dans un dossier ci-dessus. Constaté sur un poste neuf (test VM) : le système et ses outils
+# écrivent eux-mêmes dans /etc, ce ne sont pas des erreurs d'utilisateur, et les « remettre » serait dangereux
+# (retirer default.target ferait démarrer sans bureau ; retirer 00-keyboard.conf change le clavier choisi à
+# l'installation).
+EXCLUS_FRAGMENTS = (
+    ".wants/", ".requires/",  # services activés ou désactivés
+    "system.control/", "user.control/", "system.attached/",  # réglages dynamiques de systemd (set-property)
+    "system-connections/", "/ssh_host_",
+)
+EXCLUS_NOMS = {
+    "machine-id", "hostname", "resolv.conf", "adjtime", "localtime", ".updated", ".pwd.lock",
+    "default.target",  # cible de démarrage, choisie par l'installeur ou « systemctl set-default »
+    "00-keyboard.conf",  # disposition du clavier, écrite par l'installeur ou localectl
+    "tuned.conf",  # réécrit par le service tuned
+}
 
 
 def categorie(relatif):
@@ -123,6 +136,8 @@ def differences(etc=ETC, defaut=DEFAUT):
         ici, la = os.path.join(etc, relatif), os.path.join(defaut, relatif)
         if _dossier(ici) or _dossier(la):  # un dossier d'un côté et un fichier de l'autre : trop ambigu
             continue
+        if os.path.islink(ici) or os.path.islink(la):
+            continue  # les liens portent l'état du système (services, cibles) : jamais proposés
         existe_ici, existe_la = os.path.lexists(ici), os.path.lexists(la)
         if existe_ici and existe_la:
             if _meme(ici, la) is not False:  # identique, ou impossible à savoir

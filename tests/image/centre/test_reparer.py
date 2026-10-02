@@ -121,13 +121,29 @@ class Comparaison(Arbres):
         shutil.copytree(self.defaut, self.etc, symlinks=True)
         self.assertEqual(R.differences(self.etc, self.defaut), [])
 
-    def test_un_lien_modifie_est_detecte(self):
+    def test_les_liens_ne_sont_jamais_proposes(self):
+        # un lien porte l'état du système (service activé, cible de démarrage) : le retirer serait dangereux
         os.symlink("a", os.path.join(self.defaut, "xdg/lien"))
         os.symlink("a", os.path.join(self.etc, "xdg/lien"))
-        self.assertNotIn("xdg/lien", self.differences())
         os.remove(os.path.join(self.etc, "xdg/lien"))
         os.symlink("b", os.path.join(self.etc, "xdg/lien"))
-        self.assertEqual(self.differences()["xdg/lien"], "modifie")
+        os.symlink("/usr/lib/systemd/system/graphical.target", os.path.join(self.etc, "systemd/system/default.target"))
+        os.symlink("../x", os.path.join(self.etc, "sysctl.d/lien-ajoute.conf"))
+        propose = self.differences()
+        for lien in ("xdg/lien", "systemd/system/default.target", "sysctl.d/lien-ajoute.conf"):
+            self.assertNotIn(lien, propose)
+
+    def test_ce_que_le_systeme_ecrit_lui_meme_n_est_pas_propose(self):
+        # constaté sur un poste neuf : le système et ses outils écrivent ces fichiers, ce ne sont pas des erreurs
+        for relatif in ("systemd/system.control/user.slice.d/50-MemoryMin.conf",
+                        "systemd/system.attached/x.conf", "X11/xorg.conf.d/00-keyboard.conf", "modprobe.d/tuned.conf",
+                        "systemd/system/default.target"):
+            ecrire(self.etc, relatif, "écrit par le système\n")
+        self.assertEqual(self.differences(), {
+            "sddm.conf.d/10-nicos.conf": "modifie", "sddm.conf.d/zz-essai.conf": "ajoute",
+            "xdg/plasma-welcomerc": "supprime", "sysctl.d/99-essai.conf": "ajoute", "profile.d/nicos.sh": "modifie"})
+        code, _ = self.restaurer(["X11/xorg.conf.d/00-keyboard.conf"])
+        self.assertEqual(code, 2)
 
     def test_dossier_d_un_cote_fichier_de_l_autre_est_ignore(self):
         os.makedirs(os.path.join(self.etc, "xdg/curieux"))
