@@ -153,6 +153,9 @@ check_flatpaks() {
     while read -r app; do
         if grep -qxF "${app}" <<<"${installed}"; then pass "${app}"; else fail "${app} non installé"; fi
     done < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "${FLATPAK_LIST}")
+    local remotes
+    remotes="$(flatpak remotes --system --columns=name,title | tr '\t\n' '  ')"
+    if grep -qi fedora <<<"${remotes}"; then fail "source d'applications Fedora : ${remotes}"; else pass "sources d'applications : ${remotes}"; fi
 }
 
 check_plasma_desktop() {

@@ -153,6 +153,45 @@ for csv in "${boot_csvs[@]}"; do
     rm -f /tmp/boot.csv
 done
 
+# Plus de « Fedora » visible dans le bureau. plasma-workspace et plasma-setup imposent ces
+# paquets : on retire seulement ce qui s'affiche.
+# - Thèmes globaux « Fedora », « Fedora Dark », « Fedora Light » (Configuration du système) et
+#   fond d'écran « Fedora Forty-Four » (choix du fond d'écran) : repérés par leur nom affiché.
+# - Le fond d'écran « par défaut » de KDE (lien Default) devient celui de NicOS.
+python3 - <<'PYEOF'
+import json, pathlib, shutil
+for folder in ("/usr/share/plasma/look-and-feel", "/usr/share/wallpapers"):
+    for meta in sorted(pathlib.Path(folder).glob("*/metadata.json")):
+        if meta.parent.is_symlink():  # Default -> F44 : seul le dossier réel compte
+            continue
+        name = json.loads(meta.read_text()).get("KPlugin", {}).get("Name", "")
+        if "fedora" in name.lower():
+            print(f"Retiré : {meta.parent} ({name})")
+            shutil.rmtree(meta.parent)
+PYEOF
+ln -sfn NicOS /usr/share/wallpapers/Default
+
+# Firefox (paquet de Fedora) : page d'accueil et raccourci épinglé « Fedora Project - Start
+# Page », « Mozilla Firefox for Fedora » dans « À propos ». Page d'accueil de Firefox, et NicOS.
+FIREFOX_DIR=/usr/lib64/firefox
+sed -i '/start\.fedoraproject\.org/d' "${FIREFOX_DIR}/browser/defaults/preferences/firefox-redhat-default-prefs.js"
+cat >"${FIREFOX_DIR}/distribution/distribution.ini" <<'INIEOF'
+[Global]
+id=nicos
+version=1.0
+about=Mozilla Firefox pour NicOS
+
+[Preferences]
+app.distributor=nicos
+app.distributor.channel=nicos
+INIEOF
+
+# Discover ne propose que Flathub : pas de source d'applications « Fedora »
+# (nicos-flatpak-install retire aussi une source déjà ajoutée)
+if [[ -f /usr/lib/systemd/system/flatpak-add-fedora-repos.service ]]; then
+    systemctl mask flatpak-add-fedora-repos.service
+fi
+
 ### 5. Applications Flatpak
 # La liste est installée au premier démarrage par nicos-flatpak-install.service
 # (les Flatpak vivent dans /var, ils ne peuvent pas être intégrés à l'image).
