@@ -253,13 +253,8 @@ else
 Désactivez-le jusqu'au prochain redémarrage : apparmor_parser -R /etc/apparmor.d/bwrap-userns-restrict"
     fi
     log "Génération de l'ISO d'installation automatique"
-    # quay.io coupe parfois le téléchargement en cours de route (« unexpected EOF ») : quatre essais
-    for attempt in 1 2 3 4; do
-        podman pull "${BIB_IMAGE}" && break
-        [[ ${attempt} -lt 4 ]] || die "téléchargement de ${BIB_IMAGE} impossible après 4 essais"
-        echo "Téléchargement interrompu, nouvel essai dans $((attempt * 20)) s"
-        sleep $((attempt * 20))
-    done
+    # quay.io coupe parfois les connexions en cours de route : téléchargement avec reprise (fetch-bib.sh)
+    "${TEST_DIR}/fetch-bib.sh" "${BIB_IMAGE}"
     rm -rf "${WORK}/bib-output" && mkdir -p "${WORK}/bib-output"
     podman run --rm --privileged --pull=never \
         --security-opt label=type:unconfined_t \
