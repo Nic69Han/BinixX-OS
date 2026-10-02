@@ -53,6 +53,17 @@ def run(argv, timeout=120):
     return fini.returncode, fini.stdout
 
 
+def run_input(argv, texte, timeout=300):
+    """Exécute un programme en lui donnant `texte` sur l'entrée standard ; renvoie (code, sortie, erreurs).
+
+    Pour les actions privilégiées (pkexec) : un mot de passe ne passe jamais par la ligne de commande."""
+    try:
+        fini = subprocess.run(argv, input=texte, capture_output=True, text=True, timeout=timeout, check=False)
+    except (OSError, subprocess.TimeoutExpired) as erreur:
+        return 1, "", str(erreur)
+    return fini.returncode, fini.stdout, fini.stderr
+
+
 def logout_prompt():
     """Propose de fermer la session (boîte de dialogue de Plasma)."""
     return _start(["busctl", "--user", "call", "org.kde.LogoutPrompt", "/LogoutPrompt", "org.kde.LogoutPrompt",
