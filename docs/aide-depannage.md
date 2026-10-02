@@ -56,8 +56,7 @@ domaine et les clés : l'utilisateur ne pourrait plus ouvrir sa session. La rép
 sauvegarde et annulation, couvre le besoin réel (un réglage touché à la main) sans ce risque. Les deux
 autres filets existent déjà : le **retour à la version précédente** du système (Administration du PC →
 Mises à jour logicielles) et le **retour arrière automatique** si l'écran de connexion ne démarre plus
-([mises-a-jour.md](mises-a-jour.md)). Et en dernier recours, réinstaller NicOS en gardant sa partition
-personnelle (`/home`) ne touche pas aux fichiers de l'utilisateur.
+([mises-a-jour.md](mises-a-jour.md)).
 
 ## Rapport de diagnostic
 
