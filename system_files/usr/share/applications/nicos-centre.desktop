@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Bienvenue dans NicOS
+GenericName=Centre NicOS
+Comment=Premiers pas, équivalents de vos logiciels Windows, aide
+Exec=/usr/libexec/nicos/nicos-centre
+Icon=nicos
+Terminal=false
+Categories=System;
+Keywords=bienvenue;accueil;démarrer;premiers pas;windows;aide;
+StartupNotify=true
+StartupWMClass=nicos-centre
