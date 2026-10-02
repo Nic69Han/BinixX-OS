@@ -1,0 +1,309 @@
+#!/usr/bin/python3
+"""Réparer le système : remettre un réglage de /etc comme dans l'image NicOS, avec sauvegarde et retour possible.
+
+Sur un système bootc, l'image porte les réglages d'origine dans /usr/etc ; /etc contient ce que l'utilisateur ou un
+administrateur a changé depuis (un tutoriel suivi trop vite, un essai oublié). Cet outil compare les deux, propose de
+remettre un fichier comme à l'origine et garde la version remplacée, pour pouvoir annuler.
+
+Usage (chemins relatifs à /etc) :
+  nicos-reparer-systeme liste [--texte]       réglages modifiés, ajoutés ou supprimés (JSON, ou une ligne chacun)
+  nicos-reparer-systeme restaurer CHEMIN...   (administrateur) remet chaque fichier comme dans l'image
+  nicos-reparer-systeme annuler [DATE]        (administrateur) annule la dernière réparation, ou celle de DATE
+  nicos-reparer-systeme sauvegardes           réparations faites (JSON)
+
+Prudence : seuls les dossiers de réglages courants sont concernés (voir DOSSIERS) ; comptes, mots de passe, réseau,
+disques, imprimantes, domaine, clés ne sont jamais touchés. Les liens symboliques (services activés ou
+désactivés, cible de démarrage) et ce que le système écrit lui-même (clavier, réglages dynamiques de systemd) non plus.
+Rien n'est supprimé sans copie : /var/lib/nicos/sauvegardes-etc/AAAAMMJJ-HHMMSS/.
+
+Codes de sortie : 0 réussi ; 2 appel incorrect ou fichier non réparable (rien n'est modifié) ; 5 échec en cours de route.
+"""
+
+import filecmp
+import json
+import os
+import shutil
+import stat
+import subprocess
+import sys
+import time
+
+ETC = "/etc"
+DEFAUT = "/usr/etc"
+SAUVEGARDES = "/var/lib/nicos/sauvegardes-etc"
+CONSERVEES = 20  # nombre de réparations gardées
+
+# (préfixe relatif à /etc, nom courant). Un préfixe qui se termine par « / » désigne un dossier, sinon un fichier.
+DOSSIERS = [
+    ("sddm.conf", "Écran de connexion"), ("sddm.conf.d/", "Écran de connexion"),
+    ("xdg/", "Réglages du bureau (valeurs par défaut)"),
+    ("profile.d/", "Variables d'environnement"), ("environment", "Variables d'environnement"),
+    ("environment.d/", "Variables d'environnement"),
+    ("sysctl.d/", "Réglages du noyau"), ("modprobe.d/", "Pilotes (modules du noyau)"),
+    ("modules-load.d/", "Pilotes (modules du noyau)"), ("dracut.conf.d/", "Démarrage (initramfs)"),
+    ("udev/rules.d/", "Règles des périphériques"), ("default/", "Réglages par défaut des services"),
+    ("systemd/", "Services et démarrage"), ("pipewire/", "Son"), ("wireplumber/", "Son"), ("pulse/", "Son"),
+    ("firewalld/", "Pare-feu"), ("NetworkManager/conf.d/", "Réseau (options générales)"),
+    ("NetworkManager/dispatcher.d/", "Réseau (scripts)"), ("X11/", "Affichage"), ("fonts/", "Polices"),
+    ("polkit-1/rules.d/", "Autorisations"), ("security/", "Limites et sécurité des sessions"),
+    ("plymouth/", "Écran de démarrage"), ("skel/", "Modèle du dossier personnel des nouveaux comptes"),
+    ("dconf/", "Réglages GNOME et GTK"),
+]
+
+# Jamais proposés, même dans un dossier ci-dessus. Constaté sur un poste neuf (test VM) : le système et ses outils
+# écrivent eux-mêmes dans /etc, ce ne sont pas des erreurs d'utilisateur, et les « remettre » serait dangereux
+# (retirer default.target ferait démarrer sans bureau ; retirer 00-keyboard.conf change le clavier choisi à
+# l'installation).
+EXCLUS_FRAGMENTS = (
+    ".wants/", ".requires/",  # services activés ou désactivés
+    "system.control/", "user.control/", "system.attached/",  # réglages dynamiques de systemd (set-property)
+    "system-connections/", "/ssh_host_",
+)
+EXCLUS_NOMS = {
+    "machine-id", "hostname", "resolv.conf", "adjtime", "localtime", ".updated", ".pwd.lock",
+    "default.target",  # cible de démarrage, choisie par l'installeur ou « systemctl set-default »
+    "00-keyboard.conf",  # disposition du clavier, écrite par l'installeur ou localectl
+    "tuned.conf",  # réécrit par le service tuned
+}
+
+
+def categorie(relatif):
+    """Nom courant de la catégorie d'un fichier de /etc, ou None s'il n'est pas dans un dossier pris en charge."""
+    for prefixe, nom in DOSSIERS:
+        if prefixe.endswith("/"):
+            if relatif.startswith(prefixe):
+                return nom
+        elif relatif == prefixe:
+            return nom
+    return None
+
+
+def concerne(relatif):
+    """Vrai si le fichier peut être proposé : dans un dossier pris en charge et pas dans les exclusions."""
+    if categorie(relatif) is None:
+        return False
+    if os.path.basename(relatif) in EXCLUS_NOMS or any(f in "/" + relatif for f in EXCLUS_FRAGMENTS):
+        return False
+    return True
+
+
+def _fichiers(racine):
+    """Chemins relatifs des fichiers et liens de l'arbre (les dossiers ne comptent pas)."""
+    trouves = set()
+    for dossier, noms, fichiers in os.walk(racine, followlinks=False):
+        for nom in list(noms):
+            if os.path.islink(os.path.join(dossier, nom)):  # lien vers un dossier : traité comme un fichier
+                noms.remove(nom)
+                fichiers.append(nom)
+        for nom in fichiers:
+            trouves.add(os.path.relpath(os.path.join(dossier, nom), racine))
+    return trouves
+
+
+def _meme(a, b):
+    """Même type, même contenu (ou même cible pour un lien), mêmes droits et même propriétaire.
+
+    None si on ne peut pas le savoir (fichier illisible sans les droits d'administrateur)."""
+    try:
+        sa, sb = os.lstat(a), os.lstat(b)
+        if stat.S_ISLNK(sa.st_mode) or stat.S_ISLNK(sb.st_mode):
+            return stat.S_ISLNK(sa.st_mode) and stat.S_ISLNK(sb.st_mode) and os.readlink(a) == os.readlink(b)
+        if not (stat.S_ISREG(sa.st_mode) and stat.S_ISREG(sb.st_mode)):
+            return False
+        if stat.S_IMODE(sa.st_mode) != stat.S_IMODE(sb.st_mode) or (sa.st_uid, sa.st_gid) != (sb.st_uid, sb.st_gid):
+            return False
+        return filecmp.cmp(a, b, shallow=False)
+    except OSError:
+        return None
+
+
+def _dossier(chemin):
+    return os.path.isdir(chemin) and not os.path.islink(chemin)
+
+
+def differences(etc=ETC, defaut=DEFAUT):
+    """Fichiers de /etc différents de l'image : liste de {chemin, etat, categorie}.
+
+    etat : « modifie » (présent dans les deux, différent), « supprime » (dans l'image, absent de /etc),
+    « ajoute » (dans /etc seulement)."""
+    if not os.path.isdir(defaut):
+        # Sans l'image de référence, tout /etc paraîtrait « ajouté » : on ne propose rien plutôt que de tout retirer.
+        raise OSError(f"{defaut} est absent : cet outil ne s'utilise que sur un système NicOS installé.")
+    resultat = []
+    for relatif in sorted(_fichiers(etc) | _fichiers(defaut)):
+        if not concerne(relatif):
+            continue
+        ici, la = os.path.join(etc, relatif), os.path.join(defaut, relatif)
+        if _dossier(ici) or _dossier(la):  # un dossier d'un côté et un fichier de l'autre : trop ambigu
+            continue
+        if os.path.islink(ici) or os.path.islink(la):
+            continue  # les liens portent l'état du système (services, cibles) : jamais proposés
+        existe_ici, existe_la = os.path.lexists(ici), os.path.lexists(la)
+        if existe_ici and existe_la:
+            if _meme(ici, la) is not False:  # identique, ou impossible à savoir
+                continue
+            etat = "modifie"
+        elif existe_la:
+            etat = "supprime"
+        else:
+            etat = "ajoute"
+        resultat.append({"chemin": relatif, "etat": etat, "categorie": categorie(relatif)})
+    return resultat
+
+
+def _chemin_sur(racine, relatif):
+    """Chemin absolu sous `racine`, sans « .. » ni lien qui en sorte ; None sinon."""
+    if not relatif or os.path.isabs(relatif) or ".." in relatif.split("/"):
+        return None
+    complet = os.path.join(racine, relatif)
+    parent = os.path.realpath(os.path.dirname(complet))
+    base = os.path.realpath(racine)
+    return complet if parent == base or parent.startswith(base + os.sep) else None
+
+
+def _copier(source, cible):
+    """Copie `source` (fichier ou lien) vers `cible` de façon atomique, droits et propriétaire conservés."""
+    os.makedirs(os.path.dirname(cible), exist_ok=True)
+    temporaire = cible + ".nicos-tmp"
+    if os.path.lexists(temporaire):
+        os.remove(temporaire)
+    if os.path.islink(source):
+        os.symlink(os.readlink(source), temporaire)
+    else:
+        shutil.copy2(source, temporaire)
+        info = os.stat(source)
+        try:
+            os.chown(temporaire, info.st_uid, info.st_gid)
+        except PermissionError:  # essais sans les droits d'administrateur
+            pass
+    os.replace(temporaire, cible)
+    if shutil.which("restorecon"):
+        subprocess.run(["restorecon", "-F", cible], capture_output=True, check=False)
+
+
+def restaurer(chemins, etc=ETC, defaut=DEFAUT, sauvegardes=SAUVEGARDES, horodatage=None):
+    """Remet `chemins` comme dans l'image. Vérifie tout avant de toucher à quoi que ce soit.
+
+    Renvoie (code, résultat) : 0 et {sauvegarde, faits} ; 2 et un message si un chemin n'est pas réparable."""
+    if not chemins:
+        return 2, "Aucun fichier à réparer."
+    try:
+        a_reparer = {d["chemin"]: d for d in differences(etc, defaut)}
+    except OSError as erreur:
+        return 5, str(erreur)
+    for relatif in chemins:
+        if relatif not in a_reparer or _chemin_sur(etc, relatif) is None:
+            return 2, f"« {relatif} » ne peut pas être réparé par cet outil (inchangé, protégé ou inconnu)."
+    horodatage = horodatage or time.strftime("%Y%m%d-%H%M%S")
+    suffixe = 1
+    while os.path.exists(os.path.join(sauvegardes, horodatage)):  # deux réparations dans la même seconde
+        suffixe += 1
+        horodatage = f"{horodatage.split('+')[0]}+{suffixe}"
+    dossier = os.path.join(sauvegardes, horodatage)
+    os.makedirs(dossier, mode=0o700)
+    os.chmod(sauvegardes, 0o700)
+    faits = []
+    for relatif in chemins:
+        ici, la = os.path.join(etc, relatif), os.path.join(defaut, relatif)
+        avant = os.path.lexists(ici)
+        if avant:  # copie de ce qui va être remplacé ou retiré
+            _copier(ici, os.path.join(dossier, "etc", relatif))
+        if os.path.lexists(la):
+            _copier(la, ici)
+            action = "remis comme dans l'image"
+        else:
+            os.remove(ici)
+            action = "retiré (il n'existe pas dans l'image)"
+        faits.append({"chemin": relatif, "avant": "present" if avant else "absent", "action": action})
+    with open(os.path.join(dossier, "MANIFESTE.json"), "w", encoding="utf-8") as fichier:
+        json.dump({"date": horodatage, "faits": faits}, fichier, ensure_ascii=False, indent=1)
+    _elaguer(sauvegardes)
+    return 0, {"sauvegarde": horodatage, "faits": faits}
+
+
+def _elaguer(sauvegardes):
+    dossiers = sorted(d for d in os.listdir(sauvegardes) if os.path.isfile(os.path.join(sauvegardes, d, "MANIFESTE.json")))
+    for ancien in dossiers[:-CONSERVEES]:
+        shutil.rmtree(os.path.join(sauvegardes, ancien), ignore_errors=True)
+
+
+def liste_sauvegardes(sauvegardes=SAUVEGARDES):
+    """Réparations faites, la plus récente en dernier : {date, fichiers, annulee}."""
+    resultat = []
+    if not os.path.isdir(sauvegardes):
+        return resultat
+    for nom in sorted(os.listdir(sauvegardes)):
+        manifeste = os.path.join(sauvegardes, nom, "MANIFESTE.json")
+        try:
+            with open(manifeste, encoding="utf-8") as fichier:
+                donnees = json.load(fichier)
+        except (OSError, ValueError):
+            continue
+        resultat.append({"date": nom, "fichiers": [f["chemin"] for f in donnees["faits"]],
+                         "annulee": os.path.exists(os.path.join(sauvegardes, nom, "ANNULEE"))})
+    return resultat
+
+
+def annuler(date=None, etc=ETC, sauvegardes=SAUVEGARDES):
+    """Annule une réparation (la dernière non annulée par défaut) : chaque fichier retrouve sa version d'avant."""
+    candidates = [s for s in liste_sauvegardes(sauvegardes) if not s["annulee"]]
+    if date:
+        candidates = [s for s in candidates if s["date"] == date]
+    if not candidates:
+        return 2, "Aucune réparation à annuler."
+    choisie = candidates[-1]
+    dossier = os.path.join(sauvegardes, choisie["date"])
+    with open(os.path.join(dossier, "MANIFESTE.json"), encoding="utf-8") as fichier:
+        faits = json.load(fichier)["faits"]
+    for fait in faits:
+        relatif = fait["chemin"]
+        cible = _chemin_sur(etc, relatif)
+        if cible is None:
+            return 5, f"Chemin inattendu dans la sauvegarde : {relatif}"
+        copie = os.path.join(dossier, "etc", relatif)
+        if fait["avant"] == "present" and os.path.lexists(copie):
+            _copier(copie, cible)
+        elif fait["avant"] == "absent" and os.path.lexists(cible):
+            os.remove(cible)
+    with open(os.path.join(dossier, "ANNULEE"), "w", encoding="utf-8") as fichier:
+        fichier.write(time.strftime("%Y-%m-%d %H:%M:%S\n"))
+    return 0, {"annulee": choisie["date"], "fichiers": choisie["fichiers"]}
+
+
+def main(argv):
+    commande = argv[0] if argv else ""
+    if commande == "liste" and argv[1:] in ([], ["--texte"]):
+        try:
+            changes = differences()
+        except OSError as erreur:
+            print(erreur, file=sys.stderr)
+            return 5
+        if argv[1:]:
+            print("".join(f"{c['etat']:9} {c['chemin']}  ({c['categorie']})\n" for c in changes), end="")
+        else:
+            print(json.dumps(changes, ensure_ascii=False))
+        return 0
+    if commande == "sauvegardes" and len(argv) == 1:
+        print(json.dumps(liste_sauvegardes(), ensure_ascii=False))
+        return 0
+    if commande in ("restaurer", "annuler"):
+        if os.geteuid() != 0:
+            print("Cette commande demande les droits d'administrateur (pkexec).", file=sys.stderr)
+            return 2
+        if commande == "restaurer":
+            code, resultat = restaurer(argv[1:])
+        elif len(argv) in (1, 2):
+            code, resultat = annuler(argv[1] if len(argv) == 2 else None)
+        else:
+            code, resultat = 2, "Usage : annuler [DATE]"
+        if code == 0:
+            print(json.dumps(resultat, ensure_ascii=False))
+        else:
+            print(resultat, file=sys.stderr)
+        return code
+    print(__doc__, file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
