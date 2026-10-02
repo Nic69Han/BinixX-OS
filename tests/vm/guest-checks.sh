@@ -4,6 +4,7 @@
 #   base            premier démarrage du système installé depuis l'ISO
 #   after-update    après `bootc switch` vers l'image de mise à jour et redémarrage
 #   after-rollback  après `bootc rollback` et redémarrage
+#   after-auto-rollback  après une mise à jour défectueuse, retour arrière automatique de greenboot
 
 set -uo pipefail
 
@@ -278,6 +279,10 @@ after-rollback)
     check "applications Flatpak conservées" flatpak info --system org.onlyoffice.desktopeditors
     check "compte et fichiers utilisateur conservés" test -d "${TEST_HOME}/.config"
     run_module_checks after-rollback
+    ;;
+after-auto-rollback)
+    check_system_state
+    run_module_checks after-auto-rollback
     ;;
 *)
     echo "phase inconnue : ${PHASE}" >&2
