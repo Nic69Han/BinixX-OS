@@ -9,9 +9,11 @@ set -ouex pipefail
 case "${NICOS_VARIANT:-}" in
 "") ;;
 nvidia)
+    # Liste d'abord, test ensuite : `grep -q` dans un tube fait échouer rpm (SIGPIPE) sous pipefail
+    nvidia_packages="$(rpm -qa | grep -i nvidia | sort || true)"
     echo "Paquets NVIDIA de la base :"
-    rpm -qa | grep -i nvidia | sort
-    rpm -qa | grep -qi nvidia || {
+    echo "${nvidia_packages}"
+    [[ -n "${nvidia_packages}" ]] || {
         echo "Aucun paquet NVIDIA dans la base : la variante n'a pas de sens" >&2
         exit 1
     }
