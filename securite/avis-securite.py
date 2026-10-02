@@ -11,6 +11,10 @@ Usage (voir `just scan-securite`) :
 
 Sortie : le tableau des avis (gravité, paquet) ; code 0 si aucun avis n'atteint le seuil, 1 sinon, 2 si l'entrée
 n'est pas lisible (un contrôle qui ne comprend pas sa source ne doit jamais répondre « tout va bien »).
+
+Test-témoin (`--temoin`) : lit la liste COMPLÈTE des avis connus (`dnf updateinfo list --security --all`) et exige
+qu'au moins un avis soit compris. Sans lui, « aucun avis en attente » pourrait aussi vouloir dire « format de dnf
+non reconnu » : le témoin prouve que l'analyseur lit la vraie sortie de la version de dnf de l'image.
 Gravités : Critical > Important > Moderate > Low ; « sans gravité » (None, Unspecified) est listée mais ne bloque pas.
 """
 
@@ -95,7 +99,20 @@ def main(argv):
     analyseur = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     analyseur.add_argument("--seuil", default="Critical", choices=GRAVITES, help="gravité minimale qui bloque")
     analyseur.add_argument("--acceptes", help="fichier des avis acceptés, avec la raison")
+    analyseur.add_argument("--temoin", action="store_true", help="vérifie que le format de dnf est compris (au moins un avis lu)")
     args = analyseur.parse_args(argv)
+    if args.temoin:
+        try:
+            avis = lire(sys.stdin)
+        except ValueError as erreur:
+            print(f"Test-témoin : sortie de dnf illisible : {erreur}", file=sys.stderr)
+            return 2
+        if not avis:
+            print("Test-témoin : aucun avis lu dans la liste complète ; le format de dnf n'est pas reconnu.", file=sys.stderr)
+            return 2
+        exemple = avis[0]
+        print(f"Test-témoin : {len(avis)} avis lus dans la liste complète (exemple : {exemple[0]} {exemple[1] or 'sans gravité'} {exemple[2]}).")
+        return 0
     acceptes = set()
     if args.acceptes:
         try:

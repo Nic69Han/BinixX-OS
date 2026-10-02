@@ -127,6 +127,20 @@ class LigneDeCommande(unittest.TestCase):
         self.assertEqual(r.returncode, 2)
         self.assertIn("illisible", r.stderr)
 
+    def test_temoin_reconnait_le_format(self):
+        r = self.lancer(DNF5, "--temoin")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("3 avis lus", r.stdout)
+
+    def test_temoin_echoue_si_rien_n_est_compris(self):
+        for entree in ("", "Updating and loading repositories:\nRepositories loaded.\n"):
+            r = self.lancer(entree, "--temoin")
+            self.assertEqual(r.returncode, 2)
+            self.assertIn("format de dnf n'est pas reconnu", r.stderr)
+
+    def test_temoin_echoue_sur_un_format_inconnu(self):
+        self.assertEqual(self.lancer("FEDORA-2026-1a2b3c4d5e Critical format inconnu\n", "--temoin").returncode, 2)
+
     def test_fichier_d_acceptes_sans_raison_donne_le_code_2(self):
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as fichier:
             fichier.write("FEDORA-2026-1a2b3c4d5e\n")

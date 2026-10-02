@@ -490,13 +490,18 @@ scan-securite $target_image=image_name $tag=default_tag $threshold="Critical":
     #!/usr/bin/env bash
     set -euo pipefail
     image="${target_image}:${tag}"
+    marker='#--temoin--#'
     for attempt in 1 2 3; do
-      if listing="$(podman run --rm --pull=never "${image}" dnf5 --refresh updateinfo list --security)"; then break; fi
+      if listing="$(podman run --rm --pull=never "${image}" sh -c "set -e; dnf5 --refresh updateinfo list --security; echo '${marker}'; dnf5 updateinfo list --security --all")"; then break; fi
       [[ "${attempt}" -lt 3 ]] || { echo "dnf could not read the Fedora advisories after 3 attempts" >&2; exit 1; }
       sleep 20
     done
+    pending="${listing%%"${marker}"*}"
+    full="${listing#*"${marker}"}"
+    # the witness proves the parser reads the real dnf output; without it "no advisory" could mean "format not understood"
+    printf '%s\n' "${full}" | python3 securite/avis-securite.py --temoin
     status=0
-    printf '%s\n' "${listing}" | python3 securite/avis-securite.py --seuil "${threshold}" --acceptes securite/avis-acceptes.txt \
+    printf '%s\n' "${pending}" | python3 securite/avis-securite.py --seuil "${threshold}" --acceptes securite/avis-acceptes.txt \
       | tee avis-securite.txt || status=$?
     exit "${status}"
 

@@ -34,7 +34,7 @@ Le **seuil** se change sans modifier le code : variable de dépôt `CVE_THRESHOL
 Un avis qu'on ne peut pas corriger tout de suite (correctif attendu dans l'image de base) s'inscrit dans
 `securite/avis-acceptes.txt`, **avec sa raison** (une ligne sans raison fait échouer le contrôle) ; on le retire dès que
 le correctif est dans l'image. Les avis « sans gravité » (certains correctifs Fedora n'en déclarent pas) sont listés
-mais ne bloquent jamais. En local : `just sbom` et `just scan-securite`.
+mais ne bloquent jamais. Un **test-témoin** lit la liste complète des avis connus (`--all`) et exige d'en comprendre au moins un : sans lui, « aucun avis en attente » pourrait aussi vouloir dire « format de `dnf` non reconnu ». En local : `just sbom` et `just scan-securite`.
 
 Limites assumées :
 
