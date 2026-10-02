@@ -3,15 +3,23 @@
 # Lancé par nicos-flatpak-install.service. Ne fait rien si la liste n'a pas changé
 # depuis la dernière installation réussie, pour ne pas réinstaller une application
 # que l'utilisateur a volontairement supprimée.
+# Une image dérivée (par exemple celle d'une entreprise, voir entreprise/) ajoute ses applications
+# dans /usr/share/nicos/flatpaks/system-flatpaks.d/*.list sans toucher à la liste de NicOS.
 
 set -euo pipefail
 
 LIST=/usr/share/nicos/flatpaks/system-flatpaks.list
+LIST_DIR=/usr/share/nicos/flatpaks/system-flatpaks.d
 STATE_DIR=/var/lib/nicos
 STAMP="${STATE_DIR}/flatpaks.sha256"
 REMOTE=flathub
 
-list_hash="$(sha256sum "${LIST}" | cut -d' ' -f1)"
+lists=("${LIST}")
+shopt -s nullglob
+lists+=("${LIST_DIR}"/*.list)
+shopt -u nullglob
+
+list_hash="$(cat "${lists[@]}" | sha256sum | cut -d' ' -f1)"
 if [[ -f "${STAMP}" && "$(<"${STAMP}")" == "${list_hash}" ]]; then
     echo "Liste Flatpak inchangée, rien à faire."
     exit 0
@@ -27,7 +35,7 @@ for remote in fedora fedora-testing; do
     fi
 done
 
-mapfile -t wanted < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "${LIST}")
+mapfile -t wanted < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "${lists[@]}" | sort -u)
 mapfile -t installed < <(flatpak list --system --app --columns=application)
 
 missing=()

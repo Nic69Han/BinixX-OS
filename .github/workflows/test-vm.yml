@@ -101,6 +101,12 @@ jobs:
           # podman and skopeo share the root credentials file
           echo "${REGISTRY_TOKEN}" | sudo podman login ghcr.io --username "${ACTOR}" --password-stdin
 
+      # quay.io drops connections to its CDN on some runners (unexpected EOF, for hours on 2026-10-02):
+      # fetch bootc-image-builder first, with resume, so that a failure shows up in a minute and not
+      # after the 10 minutes of image build.
+      - name: Fetch bootc-image-builder
+        run: sudo tests/vm/fetch-bib.sh
+
       - name: Pin the image digest
         if: ${{ !inputs.build }}
         env:

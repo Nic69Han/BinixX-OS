@@ -474,6 +474,22 @@ test-image $target_image=image_name $tag=default_tag:
       "${target_image}:${tag}" \
       bash /tests/check-image.sh
 
+# Build the enterprise template (entreprise/) on top of the image, then check the result
+[group('Test')]
+test-entreprise $target_image=image_name $tag=default_tag:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    base="${target_image}:${tag}"
+    [[ "${base}" == */* ]] || base="localhost/${base}"
+    podman build --pull=never \
+      --build-arg "BASE=${base}" \
+      --tag localhost/nicos-entreprise-test:latest \
+      --file entreprise/Containerfile entreprise
+    podman run --rm --pull=never \
+      --volume "${PWD}/tests/entreprise:/tests:ro,Z" \
+      localhost/nicos-entreprise-test:latest \
+      bash /tests/check.sh
+
 # Install the ISO in a VM, boot it, then test an update and a rollback (needs KVM and root)
 [group('Test')]
 test-vm $target_image=("ghcr.io/" + lowercase(repo_organization) + "/" + image_name) $tag=default_tag:
