@@ -134,13 +134,16 @@ class Page(unittest.TestCase):
         from PySide6.QtWidgets import QLabel
         return " | ".join(label.text() for label in page.findChildren(QLabel))
 
-    def test_les_verifications_sont_montrees_avec_leur_pictogramme(self):
+    def test_les_verifications_sont_montrees_avec_leur_etat(self):
         page = self.windows.build(None)
         textes = self.textes(page)
-        self.assertIn("✖  Virtualisation matérielle désactivée", textes)
-        self.assertIn("✔  Mémoire : 16 Go", textes)
-        self.assertIn("✖  Espace libre : 28 Go", textes)
-        self.assertIn("⚠  Processeur : 2 fils", textes)
+        for titre in ("Virtualisation matérielle désactivée", "Mémoire : 16 Go", "Espace libre : 28 Go",
+                      "Processeur : 2 fils"):
+            self.assertIn(titre, textes)
+        # chaque carte porte son état (vert, orange, rouge) : la page n'en dépend plus que par le pictogramme
+        etats = [carte.etat for carte in page.verifs]
+        self.assertEqual(etats, [v.etat for v in page.verifications])
+        self.assertEqual({v.OK, v.ATTENTION, v.KO}, set(etats))
         if CAPTURES:
             os.makedirs(CAPTURES, exist_ok=True)
             page.resize(1040, 1000)

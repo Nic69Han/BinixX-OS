@@ -3,14 +3,15 @@
 import os
 
 from PySide6.QtCore import QProcess, Qt
-from PySide6.QtWidgets import (QCheckBox, QFrame, QHBoxLayout, QLabel, QProgressBar, QPushButton, QScrollArea,
-                               QVBoxLayout, QWidget)
+from PySide6.QtWidgets import QCheckBox, QFrame, QHBoxLayout, QLabel, QProgressBar, QPushButton, QVBoxLayout, QWidget
 
-from .. import applications, catalogue, launch
+from .. import applications, catalogue, launch, theme, widgets
 
 ORDER = 22
 KEY = "applications"
 TITLE = "Installer des applications"
+ICONE = "download"
+ACCENT = theme.ACCENTS["violet"]
 
 
 class Page(QWidget):
@@ -31,63 +32,62 @@ class Page(QWidget):
         self.proposees = applications.proposees(entrees, catalogue.fournies())
         self.licences = applications.lire_licences()
 
-        contenu = QWidget()
-        page = QVBoxLayout(contenu)
-        page.setContentsMargins(32, 28, 32, 24)
-        page.setSpacing(10)
-        titre = QLabel("Installer des applications")
-        titre.setObjectName("pageTitle")
-        intro = QLabel("Cochez les applications que vous utilisiez sous Windows, ou leur équivalent : NicOS les "
-                       "installe d'un coup depuis <b>Flathub</b>. Elles tournent isolées du système et se mettent à "
-                       "jour toutes seules. Le mot de passe d'un administrateur est demandé une fois. Les applications "
-                       "<b>propriétaires</b> sont signalées : leur code est fermé et leurs conditions sont celles de "
-                       "l'éditeur.")
-        intro.setObjectName("pageLead")
-        intro.setWordWrap(True)
-        page.addWidget(titre)
-        page.addWidget(intro)
+        racine = QVBoxLayout(self)
+        racine.setContentsMargins(0, 0, 0, 0)
+        racine.setSpacing(0)
+        contenu, page = widgets.page_de_cartes()
+        page.addWidget(widgets.entete(
+            "Installer des applications",
+            "Cochez les applications que vous utilisiez sous Windows, ou leur équivalent : NicOS les installe d'un "
+            "coup depuis <b>Flathub</b>.", ICONE, ACCENT))
+        explication = QLabel("Elles tournent isolées du système et se mettent à jour toutes seules. Le mot de passe "
+                             "d'un administrateur est demandé une fois. Les applications <b>propriétaires</b> sont "
+                             "signalées : leur code est fermé et leurs conditions sont celles de l'éditeur.")
+        explication.setObjectName("bandeau")
+        explication.setWordWrap(True)
+        page.addWidget(explication)
         if self.erreur:
             page.addWidget(QLabel(f"Le catalogue n'a pas pu être lu : {self.erreur}"))
 
         installees = launch.installed_flatpaks()
         for categorie, groupe in applications.par_categorie(self.proposees):
-            section = QLabel(categorie)
-            section.setObjectName("sectionTitle")
-            page.addSpacing(6)
-            page.addWidget(section)
+            page.addWidget(widgets.section(categorie, ACCENT))
             for application in groupe:
                 page.addWidget(self._ligne(application, installees))
+        page.addStretch(1)
+        racine.addWidget(widgets.defilante(contenu), 1)
 
-        page.addSpacing(10)
-        barre = QHBoxLayout()
+        # la barre d'action reste visible en bas, quelle que soit la longueur de la liste
+        barre = QFrame()
+        barre.setObjectName("barre")
+        ligne = QHBoxLayout(barre)
+        ligne.setContentsMargins(28, 12, 28, 12)
+        ligne.setSpacing(12)
+        texte = QVBoxLayout()
+        texte.setSpacing(4)
+        self.statut = QLabel("Cochez ce que vous voulez installer.")
+        self.statut.setWordWrap(True)
+        self.progression = QProgressBar()
+        self.progression.setRange(0, 0)
+        self.progression.setMaximumHeight(8)
+        self.progression.setTextVisible(False)
+        self.progression.setVisible(False)
+        texte.addWidget(self.statut)
+        texte.addWidget(self.progression)
+        ligne.addLayout(texte, 1)
+        self.annuler = QPushButton("Annuler")
+        self.annuler.setObjectName("secondaire")
+        self.annuler.setCursor(Qt.PointingHandCursor)
+        self.annuler.setVisible(False)
+        self.annuler.clicked.connect(self.arreter)
         self.bouton = QPushButton("Installer la sélection")
         self.bouton.setObjectName("primary")
         self.bouton.setCursor(Qt.PointingHandCursor)
         self.bouton.clicked.connect(self.installer)
-        self.annuler = QPushButton("Annuler")
-        self.annuler.setVisible(False)
-        self.annuler.clicked.connect(self.arreter)
-        barre.addWidget(self.bouton)
-        barre.addWidget(self.annuler)
-        barre.addStretch(1)
-        page.addLayout(barre)
-        self.progression = QProgressBar()
-        self.progression.setRange(0, 0)
-        self.progression.setVisible(False)
-        page.addWidget(self.progression)
-        self.statut = QLabel()
-        self.statut.setWordWrap(True)
-        page.addWidget(self.statut)
-        page.addStretch(1)
+        ligne.addWidget(self.annuler)
+        ligne.addWidget(self.bouton)
+        racine.addWidget(barre)
         self.mettre_a_jour_bouton()
-
-        zone = QScrollArea()
-        zone.setWidgetResizable(True)
-        zone.setFrameShape(QFrame.NoFrame)
-        zone.setWidget(contenu)
-        racine = QVBoxLayout(self)
-        racine.setContentsMargins(0, 0, 0, 0)
-        racine.addWidget(zone)
 
     # --- la liste ----------------------------------------------------------------------------------------------------
 
@@ -95,7 +95,9 @@ class Page(QWidget):
         cadre = QFrame()
         cadre.setObjectName("card")
         ligne = QHBoxLayout(cadre)
-        ligne.setContentsMargins(16, 8, 16, 8)
+        ligne.setContentsMargins(14, 10, 18, 10)
+        ligne.setSpacing(14)
+        ligne.addWidget(widgets.pastille_label(catalogue.icone_de(application.categorie), ACCENT, 38), 0, Qt.AlignTop)
         case = QCheckBox(application.nom)
         case.setStyleSheet("font-weight: 600;")
         case.toggled.connect(self.mettre_a_jour_bouton)
@@ -109,10 +111,7 @@ class Page(QWidget):
         if applications.est_proprietaire(licence):  # bien visible : code fermé, conditions de l'éditeur
             libelle = f"<span style='color:#b45309; font-weight:600;'>{libelle} (code fermé)</span>"
         morceaux.append(libelle)
-        detail = QLabel("  ·  ".join(morceaux))
-        detail.setStyleSheet("font-size: 9pt;")
-        detail.setEnabled(False)
-        detail.setWordWrap(True)
+        detail = widgets.discret("  ·  ".join(morceaux))
         colonne = QVBoxLayout()
         colonne.setSpacing(2)
         colonne.addWidget(case)
@@ -124,6 +123,7 @@ class Page(QWidget):
             colonne.addWidget(remarque)
         ligne.addLayout(colonne, 1)
         etat = QLabel()
+        etat.setObjectName("installee")
         self.etiquettes[application.identifiant] = etat
         ligne.addWidget(etat, 0, Qt.AlignVCenter)
         self._marquer(application.identifiant, application.identifiant in installees)

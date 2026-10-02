@@ -5,13 +5,15 @@ import os
 
 from PySide6.QtCore import QProcess, Qt
 from PySide6.QtWidgets import (QCheckBox, QFileDialog, QFrame, QHBoxLayout, QLabel, QProgressBar, QPushButton,
-                               QScrollArea, QVBoxLayout, QWidget)
+                               QVBoxLayout, QWidget)
 
-from .. import launch, widgets
+from .. import launch, theme, widgets
 
 ORDER = 15
 KEY = "migration"
 TITLE = "Récupérer mes fichiers"
+ICONE = "folder"
+ACCENT = theme.ACCENTS["vert"]
 
 OUTIL = "/usr/libexec/nicos/nicos-migrer"
 
@@ -50,24 +52,14 @@ class Page(QWidget):
         self.processus = None
         self.tampon = ""
 
-        contenu = QWidget()
-        page = QVBoxLayout(contenu)
-        page.setContentsMargins(32, 28, 32, 24)
-        page.setSpacing(12)
-        titre = QLabel("Récupérer mes fichiers Windows")
-        titre.setObjectName("pageTitle")
-        intro = QLabel("Vos documents, vos photos, votre musique et vos favoris peuvent venir avec vous. NicOS "
-                       "<b>lit</b> l'ancien disque sans jamais y écrire, et <b>ne remplace aucun fichier</b> de ce PC : "
-                       "un fichier de même nom mais différent est gardé à côté, avec « (depuis Windows) » dans son nom.")
-        intro.setObjectName("pageLead")
-        intro.setWordWrap(True)
-        page.addWidget(titre)
-        page.addWidget(intro)
+        contenu, page = widgets.page_de_cartes()
+        page.addWidget(widgets.entete(
+            "Récupérer mes fichiers Windows",
+            "Vos documents, vos photos, votre musique et vos favoris peuvent venir avec vous. NicOS <b>lit</b> "
+            "l'ancien disque sans jamais y écrire, et <b>ne remplace aucun fichier</b> de ce PC : un fichier de même "
+            "nom mais différent est gardé à côté, avec « (depuis Windows) » dans son nom.", ICONE, ACCENT))
 
-        section = QLabel("1. D'où viennent vos fichiers ?")
-        section.setObjectName("sectionTitle")
-        page.addSpacing(6)
-        page.addWidget(section)
+        page.addWidget(widgets.section("1. D'où viennent vos fichiers ?", ACCENT))
         self.liste_sources = QVBoxLayout()
         self.liste_sources.setSpacing(10)
         page.addLayout(self.liste_sources)
@@ -79,6 +71,8 @@ class Page(QWidget):
         dossier = QPushButton("Choisir un dossier…")
         dossier.clicked.connect(self.choisir_un_dossier)
         for bouton in (actualiser, disques, dossier):
+            bouton.setObjectName("secondaire")
+            bouton.setCursor(Qt.PointingHandCursor)
             ligne.addWidget(bouton)
         ligne.addStretch(1)
         page.addLayout(ligne)
@@ -86,19 +80,23 @@ class Page(QWidget):
                       "complètement arrêté (ni veille prolongée, ni démarrage rapide). Un disque protégé par "
                       "BitLocker se déverrouille avec son mot de passe ou la clé de récupération à 48 chiffres. Vous "
                       "pouvez aussi choisir le dossier d'une clé USB ou d'une sauvegarde.")
+        aide.setObjectName("bandeau")
         aide.setWordWrap(True)
-        aide.setEnabled(False)
         page.addWidget(aide)
 
-        self.section_choix = QLabel("2. Que voulez-vous récupérer ?")
-        self.section_choix.setObjectName("sectionTitle")
-        page.addSpacing(8)
+        self.section_choix = widgets.section("2. Que voulez-vous récupérer ?", ACCENT)
         page.addWidget(self.section_choix)
         self.etat_analyse = QLabel("Choisissez d'abord une source.")
         page.addWidget(self.etat_analyse)
-        self.zone_cases = QVBoxLayout()
-        page.addLayout(self.zone_cases)
+        self.cadre_cases = QFrame()  # n'apparaît qu'une fois la source analysée
+        self.cadre_cases.setObjectName("card")
+        self.cadre_cases.setVisible(False)
+        self.zone_cases = QVBoxLayout(self.cadre_cases)
+        self.zone_cases.setContentsMargins(18, 14, 18, 14)
+        self.zone_cases.setSpacing(8)
+        page.addWidget(self.cadre_cases)
         self.notes = QLabel()
+        self.notes.setObjectName("bandeau")
         self.notes.setWordWrap(True)
         self.notes.setVisible(False)
         page.addWidget(self.notes)
@@ -110,6 +108,8 @@ class Page(QWidget):
         self.bouton_copier.clicked.connect(self.lancer_la_copie)
         page.addWidget(self.bouton_copier, 0, Qt.AlignLeft)
         self.progression = QProgressBar()
+        self.progression.setMaximumHeight(8)
+        self.progression.setTextVisible(False)
         self.progression.setVisible(False)
         page.addWidget(self.progression)
         self.resultat = QLabel()
@@ -117,18 +117,14 @@ class Page(QWidget):
         self.resultat.setOpenExternalLinks(False)
         page.addWidget(self.resultat)
         self.bouton_ouvrir = QPushButton("Ouvrir mes Documents")
+        self.bouton_ouvrir.setObjectName("secondaire")
+        self.bouton_ouvrir.setCursor(Qt.PointingHandCursor)
         self.bouton_ouvrir.setVisible(False)
         self.bouton_ouvrir.clicked.connect(lambda: launch.open_folder(os.path.join(os.path.expanduser("~"), "Documents")))
         page.addWidget(self.bouton_ouvrir, 0, Qt.AlignLeft)
         page.addStretch(1)
 
-        zone = QScrollArea()
-        zone.setWidgetResizable(True)
-        zone.setFrameShape(QFrame.NoFrame)
-        zone.setWidget(contenu)
-        racine = QVBoxLayout(self)
-        racine.setContentsMargins(0, 0, 0, 0)
-        racine.addWidget(zone)
+        widgets.remplir(self, contenu)
         self.actualiser()
 
     # --- 1. les sources ---------------------------------------------------------------------------------------------
@@ -149,7 +145,8 @@ class Page(QWidget):
         for source in trouvees:
             carte = widgets.carte(f"Profil « {source['nom']} »", f"Disque {source['disque']} · {source['chemin']}",
                                   f"Récupérer les fichiers de {source['nom']}",
-                                  lambda _=False, c=source["chemin"]: self.choisir_source(c))
+                                  lambda _=False, c=source["chemin"]: self.choisir_source(c),
+                                  icone="hard-drive", couleurs=ACCENT)
             self.liste_sources.addWidget(carte)
 
     def choisir_un_dossier(self):
@@ -179,6 +176,7 @@ class Page(QWidget):
     def _vider_cases(self):
         self.cases = {}
         vider(self.zone_cases)
+        self.cadre_cases.setVisible(False)
         self.notes.setVisible(False)
 
     def _analyse_terminee(self, processus, code):
@@ -206,6 +204,7 @@ class Page(QWidget):
             favoris.toggled.connect(self.mettre_a_jour_bouton)
             self.cases["favoris"] = favoris
             self.zone_cases.addWidget(favoris)
+        self.cadre_cases.setVisible(bool(self.cases))
         notes = []
         if analyse["onedrive"]:
             notes.append("OneDrive : vos fichiers sont déjà dans le nuage ; reconnectez-le avec « OneDrive » du menu "

@@ -3,14 +3,15 @@
 import os
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QVBoxLayout,
-                               QWidget)
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
-from .. import catalogue, launch
+from .. import catalogue, launch, theme, widgets
 
 ORDER = 20
 KEY = "catalogue"
 TITLE = "Mon logiciel Windows"
+ICONE = "search"
+ACCENT = theme.ACCENTS["orange"]
 
 MAX_RESULTATS = 30
 BOTTLES = "com.usebottles.bottles"
@@ -30,48 +31,36 @@ class Page(QWidget):
         self.fournies = catalogue.fournies()
 
         page = QVBoxLayout(self)
-        page.setContentsMargins(32, 28, 32, 20)
+        page.setContentsMargins(28, 24, 28, 18)
         page.setSpacing(12)
-        titre = QLabel("Mon logiciel Windows")
-        titre.setObjectName("pageTitle")
-        intro = QLabel("Tapez le nom du logiciel que vous utilisiez sous Windows (Word, Sage, Photoshop, "
-                       "Teams…) : voici ce qui le remplace sous NicOS.")
-        intro.setObjectName("pageLead")
-        intro.setWordWrap(True)
-        page.addWidget(titre)
-        page.addWidget(intro)
+        hero = widgets.entete("Mon logiciel Windows",
+                              "Tapez le nom du logiciel que vous utilisiez sous Windows (Word, Sage, Photoshop, "
+                              "Teams…) : voici ce qui le remplace sous NicOS.", ICONE, ACCENT)
+        self.recherche = widgets.recherche("Quel logiciel Windows utilisiez-vous ?")
+        self.recherche.textChanged.connect(self.afficher)
+        hero.ajouter(self.recherche)
+        page.addWidget(hero)
 
         self.bandeau = QLabel()
-        self.bandeau.setObjectName("card")
+        self.bandeau.setObjectName("bandeau")
         self.bandeau.setWordWrap(True)
-        self.bandeau.setMargin(12)
         self.bandeau.setVisible(False)
         page.addWidget(self.bandeau)
-
-        self.recherche = QLineEdit()
-        self.recherche.setPlaceholderText("Quel logiciel Windows utilisiez-vous ?")
-        self.recherche.setClearButtonEnabled(True)
-        self.recherche.setMinimumHeight(38)
-        self.recherche.textChanged.connect(self.afficher)
-        page.addWidget(self.recherche)
 
         self.liste = QVBoxLayout()
         self.liste.setSpacing(10)
         contenu = QWidget()
         contenu_layout = QVBoxLayout(contenu)
-        contenu_layout.setContentsMargins(0, 0, 8, 0)
+        contenu_layout.setContentsMargins(0, 2, 8, 2)
         contenu_layout.addLayout(self.liste)
         contenu_layout.addStretch(1)
-        zone = QScrollArea()
-        zone.setWidgetResizable(True)
-        zone.setFrameShape(QFrame.NoFrame)
-        zone.setWidget(contenu)
-        page.addWidget(zone, 1)
+        page.addWidget(widgets.defilante(contenu), 1)
 
         pied = QFrame()
         pied.setObjectName("card")
         pied_layout = QHBoxLayout(pied)
-        pied_layout.setContentsMargins(16, 12, 16, 12)
+        pied_layout.setContentsMargins(18, 14, 18, 14)
+        pied_layout.setSpacing(12)
         texte = QLabel("<b>Si rien ne convient</b> : cherchez une version en ligne chez l'éditeur, essayez la "
                        "compatibilité Windows (résultat non garanti), faites tourner Windows lui-même dans une "
                        "machine virtuelle, ou demandez à votre administrateur de garder un accès Windows pour "
@@ -131,31 +120,9 @@ class Page(QWidget):
 
     def _ligne(self, entree):
         badge, bouton, action = self._etat(entree)
-        carte = QFrame()
-        carte.setObjectName("card")
-        ligne = QHBoxLayout(carte)
-        ligne.setContentsMargins(16, 12, 16, 12)
-        texte = QVBoxLayout()
-        texte.setSpacing(2)
-        haut = QLabel(f"{entree.windows}  →")
-        haut.setStyleSheet("font-size: 9pt;")
-        haut.setEnabled(False)
-        nom = QLabel(f"{entree.remplacant}   <span style='font-weight:400; font-size:9pt;'>· {badge}</span>")
-        nom.setObjectName("cardTitle")
-        texte.addWidget(haut)
-        texte.addWidget(nom)
-        if entree.remarque:
-            remarque = QLabel(entree.remarque)
-            remarque.setWordWrap(True)
-            texte.addWidget(remarque)
-        ligne.addLayout(texte, 1)
-        if bouton:
-            action_bouton = QPushButton(bouton)
-            action_bouton.setObjectName("primary")
-            action_bouton.setCursor(Qt.PointingHandCursor)
-            action_bouton.clicked.connect(action)
-            ligne.addWidget(action_bouton, 0, Qt.AlignVCenter)
-        return carte
+        titre = f"{entree.remplacant}   <span style='font-weight:400; font-size:9pt;'>· {badge}</span>"
+        return widgets.carte(titre, entree.remarque, bouton, action, avant=f"{entree.windows}  →",
+                             icone=catalogue.icone_de(entree.categorie), couleurs=ACCENT)
 
 
 def _echapper(texte):

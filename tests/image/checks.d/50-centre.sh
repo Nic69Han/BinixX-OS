@@ -8,8 +8,18 @@ check "bytecode Python préparé dans l'image" bash -c 'compgen -G "/usr/lib/nic
 rm -rf /tmp/centre-test
 if out="$(QT_QPA_PLATFORM=offscreen /usr/libexec/nicos/nicos-centre --test /tmp/centre-test 2>&1)"; then
     pass "toutes les pages du Centre se construisent (${out##*: })"
+    # chaque page a sa capture : l'en-tête en dégradé, les cartes et la barre latérale se peignent sans erreur
+    for page in $(tr -d ',' <<<"${out##*: }"); do
+        check "capture de la page « ${page} » produite" test -s "/tmp/centre-test/${page}.png"
+    done
 else
     fail "Centre NicOS (--test) : ${out}"
 fi
-check "capture de la page d'accueil produite" test -s /tmp/centre-test/accueil.png
 rm -rf /tmp/centre-test
+if out="$(NICOS_CENTRE=/usr/lib/nicos/centre QT_QPA_PLATFORM=offscreen python3 -m unittest discover -s /tests/centre -p 'test_widgets.py' 2>&1)"; then
+    pass "style commun : tests des cartes, de la grille et des pages (${out##*$'\n'})"
+else
+    fail "style commun : tests des cartes, de la grille et des pages"
+    # shellcheck disable=SC2001  # indentation de chaque ligne du rapport
+    sed 's/^/            /' <<<"${out}"
+fi

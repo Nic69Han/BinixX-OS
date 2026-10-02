@@ -6,14 +6,16 @@ import time
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import (QCheckBox, QDialog, QFileDialog, QFrame, QHBoxLayout, QInputDialog, QLabel,
-                               QLineEdit, QMessageBox, QPushButton, QScrollArea, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QCheckBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QLabel, QLineEdit,
+                               QMessageBox, QPushButton, QVBoxLayout, QWidget)
 
-from .. import launch
+from .. import launch, theme, widgets
 
 ORDER = 40
 KEY = "securite"
 TITLE = "Protéger mes données"
+ICONE = "shield-check"
+ACCENT = theme.ACCENTS["sarcelle"]
 
 CLE_RECUPERATION = "/usr/libexec/nicos/nicos-cle-recuperation"
 
@@ -111,70 +113,30 @@ class Page(QWidget):
     def __init__(self, centre):
         super().__init__()
         self.centre = centre
-        contenu = QWidget()
-        page = QVBoxLayout(contenu)
-        page.setContentsMargins(32, 28, 32, 24)
-        page.setSpacing(12)
-        titre = QLabel("Protéger mes données")
-        titre.setObjectName("pageTitle")
-        intro = QLabel("Si votre PC est perdu ou volé, vos fichiers doivent rester illisibles pour les autres, "
-                       "et vous devez pouvoir les retrouver si vous oubliez un mot de passe.")
-        intro.setObjectName("pageLead")
-        intro.setWordWrap(True)
-        page.addWidget(titre)
-        page.addWidget(intro)
+        contenu, page = widgets.page_de_cartes()
+        page.addWidget(widgets.entete(
+            "Protéger mes données", "Si votre PC est perdu ou volé, vos fichiers doivent rester illisibles pour les "
+                                    "autres, et vous devez pouvoir les retrouver si vous oubliez un mot de passe.",
+            ICONE, ACCENT))
 
-        section = QLabel("Chiffrement du disque")
-        section.setObjectName("sectionTitle")
-        page.addSpacing(6)
-        page.addWidget(section)
+        page.addWidget(widgets.section("Chiffrement du disque", ACCENT))
         self.volumes = QVBoxLayout()
         self.volumes.setSpacing(12)
         page.addLayout(self.volumes)
 
-        section = QLabel("Connexions")
-        section.setObjectName("sectionTitle")
-        page.addSpacing(8)
-        page.addWidget(section)
+        page.addWidget(widgets.section("Connexions", ACCENT))
         page.addWidget(self._carte(
             "Pare-feu", "Aucune connexion entrante n'est acceptée, sauf la découverte du réseau local "
                         "(imprimantes, voisinage Windows). Vous pouvez ouvrir un service précis si besoin.",
-            "Ouvrir le pare-feu", lambda: launch.open_settings("kcm_firewall")))
+            "Ouvrir le pare-feu", lambda: launch.open_settings("kcm_firewall"), "shield"))
         page.addStretch(1)
-
-        zone = QScrollArea()
-        zone.setWidgetResizable(True)
-        zone.setFrameShape(QFrame.NoFrame)
-        zone.setWidget(contenu)
-        racine = QVBoxLayout(self)
-        racine.setContentsMargins(0, 0, 0, 0)
-        racine.addWidget(zone)
+        widgets.remplir(self, contenu)
         self.actualiser()
 
     # --- affichage -------------------------------------------------------------------------------------------
 
-    def _carte(self, titre, texte, bouton, action):
-        carte = QFrame()
-        carte.setObjectName("card")
-        ligne = QHBoxLayout(carte)
-        ligne.setContentsMargins(16, 12, 16, 12)
-        colonne = QVBoxLayout()
-        colonne.setSpacing(3)
-        haut = QLabel(titre)
-        haut.setObjectName("cardTitle")
-        haut.setWordWrap(True)
-        corps = QLabel(texte)
-        corps.setWordWrap(True)
-        colonne.addWidget(haut)
-        colonne.addWidget(corps)
-        ligne.addLayout(colonne, 1)
-        action_bouton = QPushButton(bouton)
-        action_bouton.setObjectName("primary")
-        action_bouton.setCursor(Qt.PointingHandCursor)
-        action_bouton.clicked.connect(action)
-        ligne.addWidget(action_bouton, 0, Qt.AlignVCenter)
-        carte.bouton = action_bouton
-        return carte
+    def _carte(self, titre, texte, bouton, action, icone="lock"):
+        return widgets.carte(titre, texte, bouton, action, icone=icone, couleurs=ACCENT)
 
     def liste_des_volumes(self):
         """Volumes chiffrés du PC (liste de dictionnaires) ; liste vide si on ne peut pas les lire."""

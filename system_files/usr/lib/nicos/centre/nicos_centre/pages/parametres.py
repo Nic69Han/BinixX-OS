@@ -1,34 +1,32 @@
 """Paramètres : tous les réglages du PC au même endroit, classés et nommés comme dans Windows 11."""
 
-from PySide6.QtCore import QByteArray, QRectF, QSize, Qt, Signal
-from PySide6.QtGui import QBrush, QColor, QIcon, QLinearGradient, QPainter, QPainterPath, QPalette, QPixmap
-from PySide6.QtWidgets import (QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-                               QPushButton, QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QIcon, QPalette
+from PySide6.QtWidgets import (QFrame, QGridLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton,
+                               QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
 
-from .. import icones, launch, parametres, theme
-
-try:
-    from PySide6.QtSvg import QSvgRenderer
-except ImportError:  # sans QtSvg, les pastilles gardent leur couleur mais pas leur pictogramme
-    QSvgRenderer = None
+from .. import launch, parametres, theme, widgets
+from ..widgets import glyphe, pastille
 
 ORDER = 11
 KEY = "parametres"
 TITLE = "Paramètres"
+ICONE = "sliders"
+ACCENT = theme.ACCENTS["indigo"]
 
-# Une couleur (dégradé) et un pictogramme par catégorie : on s'y repère d'un coup d'œil
+# Une couleur et un pictogramme par catégorie : on s'y repère d'un coup d'œil
 COULEURS = {
-    "Système": ("#2F5BFF", "#5FB2FF"),
-    "Bluetooth et appareils": ("#7C3AED", "#A78BFA"),
-    "Réseau et Internet": ("#0891B2", "#22D3EE"),
-    "Personnalisation": ("#DB2777", "#F472B6"),
-    "Applications": ("#EA580C", "#FB923C"),
-    "Comptes": ("#059669", "#34D399"),
-    "Heure et langue": ("#D97706", "#FBBF24"),
-    "Jeux": ("#DC2626", "#F87171"),
-    "Accessibilité": ("#4F46E5", "#818CF8"),
-    "Confidentialité et sécurité": ("#0F766E", "#2DD4BF"),
-    "Mises à jour et récupération": ("#1D4ED8", "#60A5FA"),
+    "Système": theme.ACCENTS["bleu"],
+    "Bluetooth et appareils": theme.ACCENTS["violet"],
+    "Réseau et Internet": theme.ACCENTS["cyan"],
+    "Personnalisation": theme.ACCENTS["rose"],
+    "Applications": theme.ACCENTS["orange"],
+    "Comptes": theme.ACCENTS["vert"],
+    "Heure et langue": theme.ACCENTS["ambre"],
+    "Jeux": theme.ACCENTS["rouge"],
+    "Accessibilité": theme.ACCENTS["indigo"],
+    "Confidentialité et sécurité": theme.ACCENTS["sarcelle"],
+    "Mises à jour et récupération": theme.ACCENTS["bleu-fonce"],
 }
 ICONES_CATEGORIES = {
     "Système": "monitor", "Bluetooth et appareils": "bluetooth", "Réseau et Internet": "wifi",
@@ -36,59 +34,13 @@ ICONES_CATEGORIES = {
     "Jeux": "gamepad", "Accessibilité": "accessibility", "Confidentialité et sécurité": "shield",
     "Mises à jour et récupération": "refresh",
 }
-PAR_DEFAUT = ("#2F5BFF", "#5FB2FF")
-_CACHE = {}
+PAR_DEFAUT = theme.ACCENTS["bleu"]
 
 
 def modules_installes():
     """Identifiants des modules de la Configuration du système présents sur ce PC (None : on ne sait pas)."""
     code, sortie = launch.run(["kcmshell6", "--list"], timeout=10)
     return parametres.modules_disponibles(sortie) if code == 0 else None
-
-
-def _rendre(peintre, icone, cadre, couleur="#FFFFFF"):
-    if QSvgRenderer is not None and icone in icones.ICONES:
-        rendu = QSvgRenderer(QByteArray(icones.svg(icone, couleur).encode("utf-8")))
-        rendu.render(peintre, cadre)
-
-
-def pastille(icone, couleurs, taille):
-    """Un carré arrondi en dégradé avec le pictogramme en blanc, net aussi sur un écran haute densité."""
-    cle = ("pastille", icone, couleurs, taille)
-    if cle not in _CACHE:
-        echelle = 2
-        image = QPixmap(taille * echelle, taille * echelle)
-        image.fill(Qt.transparent)
-        image.setDevicePixelRatio(echelle)
-        peintre = QPainter(image)
-        peintre.setRenderHint(QPainter.Antialiasing)
-        degrade = QLinearGradient(0, 0, taille, taille)
-        degrade.setColorAt(0, QColor(couleurs[0]))
-        degrade.setColorAt(1, QColor(couleurs[1]))
-        peintre.setBrush(QBrush(degrade))
-        peintre.setPen(Qt.NoPen)
-        peintre.drawRoundedRect(QRectF(0, 0, taille, taille), taille * 0.30, taille * 0.30)
-        marge = taille * 0.25
-        _rendre(peintre, icone, QRectF(marge, marge, taille - 2 * marge, taille - 2 * marge))
-        peintre.end()
-        _CACHE[cle] = image
-    return _CACHE[cle]
-
-
-def glyphe(icone, couleur, taille):
-    """Le pictogramme seul, dans une couleur (loupe de la recherche, flèche des tuiles)."""
-    cle = ("glyphe", icone, couleur, taille)
-    if cle not in _CACHE:
-        echelle = 2
-        image = QPixmap(taille * echelle, taille * echelle)
-        image.fill(Qt.transparent)
-        image.setDevicePixelRatio(echelle)
-        peintre = QPainter(image)
-        peintre.setRenderHint(QPainter.Antialiasing)
-        _rendre(peintre, icone, QRectF(0, 0, taille, taille), couleur)
-        peintre.end()
-        _CACHE[cle] = image
-    return _CACHE[cle]
 
 
 class Tuile(QFrame):
@@ -181,29 +133,6 @@ class Tuile(QFrame):
         super().keyPressEvent(evenement)
 
 
-class Entete(QFrame):
-    """L'en-tête en dégradé, avec quelques facettes translucides : un clin d'œil à la gemme du logo NicOS."""
-
-    def paintEvent(self, evenement):
-        super().paintEvent(evenement)
-        peintre = QPainter(self)
-        peintre.setRenderHint(QPainter.Antialiasing)
-        decoupe = QPainterPath()
-        decoupe.addRoundedRect(QRectF(self.rect()), 20, 20)
-        peintre.setClipPath(decoupe)
-        largeur, hauteur = self.width(), self.height()
-        for x, y, cote, opacite in ((0.90, 0.30, 1.05, 30), (0.76, 1.00, 0.75, 20), (1.00, 0.95, 0.55, 26)):
-            peintre.save()
-            peintre.translate(largeur * x, hauteur * y)
-            peintre.rotate(45)
-            peintre.setPen(Qt.NoPen)
-            peintre.setBrush(QColor(255, 255, 255, opacite))
-            c = hauteur * cote
-            peintre.drawRoundedRect(QRectF(-c / 2, -c / 2, c, c), c * 0.16, c * 0.16)
-            peintre.restore()
-        peintre.end()
-
-
 class Zone(QScrollArea):
     """Zone défilante qui prévient quand sa largeur change (pour passer de deux colonnes à une)."""
 
@@ -237,28 +166,11 @@ class Page(QWidget):
         racine.setContentsMargins(28, 24, 28, 18)
         racine.setSpacing(16)
 
-        # En-tête : un dégradé aux couleurs de NicOS et une grande barre de recherche arrondie
-        hero = Entete()
-        hero.setObjectName("hero")
-        cadre = QVBoxLayout(hero)
-        cadre.setContentsMargins(30, 24, 30, 26)
-        cadre.setSpacing(4)
-        titre = QLabel("Paramètres")
-        titre.setObjectName("heroTitre")
-        sous_titre = QLabel("Tous les réglages de ce PC, classés comme dans Windows.")
-        sous_titre.setObjectName("heroTexte")
-        cadre.addWidget(titre)
-        cadre.addWidget(sous_titre)
-        cadre.addSpacing(12)
-        self.recherche = QLineEdit()
-        self.recherche.setObjectName("recherche")
-        self.recherche.setPlaceholderText("Rechercher un paramètre : Bluetooth, imprimante, fond d'écran, mot de passe…")
-        self.recherche.setClearButtonEnabled(True)
-        self.recherche.setMinimumHeight(46)
-        self.recherche.setMaximumWidth(680)
-        self.recherche.addAction(QIcon(glyphe("search", theme.BLUE, 20)), QLineEdit.LeadingPosition)
+        # En-tête : un dégradé à la couleur de la page et une grande barre de recherche arrondie
+        hero = widgets.entete("Paramètres", "Tous les réglages de ce PC, classés comme dans Windows.", ICONE, ACCENT)
+        self.recherche = widgets.recherche("Rechercher un paramètre : Bluetooth, imprimante, fond d'écran, mot de passe…")
         self.recherche.textChanged.connect(self.afficher)
-        cadre.addWidget(self.recherche)
+        hero.ajouter(self.recherche)
         racine.addWidget(hero)
 
         corps = QHBoxLayout()
@@ -266,23 +178,22 @@ class Page(QWidget):
         self.liste = QListWidget()
         self.liste.setObjectName("categories")
         self.liste.setFixedWidth(256)
-        self.liste.setIconSize(QSize(32, 32))
-        self.liste.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.liste.setIconSize(QSize(30, 30))
+        self.liste.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         for categorie in parametres.categories(self.reglages):
-            image = pastille(ICONES_CATEGORIES.get(categorie, "sliders"), COULEURS.get(categorie, PAR_DEFAUT), 32)
+            image = pastille(ICONES_CATEGORIES.get(categorie, "sliders"), COULEURS.get(categorie, PAR_DEFAUT), 30)
             icone = QIcon()
             for mode in (QIcon.Normal, QIcon.Active, QIcon.Selected):  # la pastille garde ses couleurs une fois choisie
                 icone.addPixmap(image, mode)
             element = QListWidgetItem(icone, categorie)
-            element.setSizeHint(QSize(0, 46))
+            element.setSizeHint(QSize(0, 38))
             self.liste.addItem(element)
         self.liste.currentRowChanged.connect(lambda _=0: self.afficher())
         corps.addWidget(self.liste)
 
         droite = QVBoxLayout()
         droite.setSpacing(8)
-        self.entete = QLabel()
-        self.entete.setObjectName("sectionTitle")
+        self.entete = widgets.section("", ACCENT)
         self.entete.setStyleSheet("font-size: 16pt;")
         self.compte = QLabel()
         self.compte.setForegroundRole(QPalette.PlaceholderText)
@@ -331,6 +242,7 @@ class Page(QWidget):
             self.liste.blockSignals(False)
             trouves = parametres.chercher(self.reglages, requete)
             self.entete.setText("Résultats")
+            self.entete.colorer(ACCENT)
             self.compte.setText(f"{len(trouves)} résultat(s) pour « {requete} »" if trouves else "")
             self._remplir(trouves, "" if trouves else
                           "Aucun paramètre ne correspond à « " + requete + " ». Essayez un autre mot, ou ouvrez les "
@@ -344,6 +256,7 @@ class Page(QWidget):
             categorie = self.categorie_courante()
         du_groupe = parametres.de_la_categorie(self.reglages, categorie)
         self.entete.setText(categorie)
+        self.entete.colorer(COULEURS.get(categorie, PAR_DEFAUT))
         self.compte.setText(f"{len(du_groupe)} réglage(s)" if du_groupe else "")
         self._remplir(du_groupe, f"Les paramètres n'ont pas pu être lus : {self.erreur}" if self.erreur else "")
 

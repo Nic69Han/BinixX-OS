@@ -20,6 +20,21 @@ BRUIT = {"setup", "install", "installer", "installation", "win", "windows", "win
          "amd", "setups", "web", "stub", "bundle", "set"}
 
 
+# Un pictogramme (voir icones.py) par catégorie du catalogue, pour les pages qui les montrent
+ICONES_CATEGORIES = {
+    "Accès à distance": "monitor", "Bureautique": "file-text", "Communication": "mail",
+    "Compatibilité Windows": "layers", "Comptabilité et gestion": "briefcase", "Documents PDF": "file",
+    "Développement": "code", "Fichiers et cloud": "cloud", "Images et design": "image", "Jeux": "gamepad",
+    "Navigateur": "globe", "Sécurité": "shield", "Technique": "settings", "Utilitaires": "sliders",
+    "Vidéo et audio": "play-circle",
+}
+
+
+def icone_de(categorie):
+    """Le pictogramme d'une catégorie du catalogue (un colis pour une catégorie inconnue)."""
+    return ICONES_CATEGORIES.get(categorie, "package")
+
+
 BADGES = {
     "inclus": "Déjà installé",
     "web": "En ligne",

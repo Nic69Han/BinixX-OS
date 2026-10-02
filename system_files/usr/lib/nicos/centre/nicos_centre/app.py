@@ -10,7 +10,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QApplication, QButtonGroup, QHBoxLayout, QLabel, QPushButton, QStackedWidget,
                                QVBoxLayout, QWidget)
 
-from . import pages, theme
+from . import pages, theme, widgets
 
 PREMIER_DEMARRAGE = os.path.join(os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"),
                                  "nicos", "accueil-vu")
@@ -37,8 +37,8 @@ class Centre(QWidget):
         self.widgets = {}
         self.setWindowTitle("Centre NicOS")
         self.setWindowIcon(QIcon.fromTheme("nicos"))
-        self.resize(1040, 680)
-        self.setMinimumSize(760, 520)
+        self.resize(1120, 720)
+        self.setMinimumSize(880, 560)
 
         racine = QHBoxLayout(self)
         racine.setContentsMargins(0, 0, 0, 0)
@@ -46,10 +46,10 @@ class Centre(QWidget):
 
         barre = QWidget()
         barre.setObjectName("sidebar")
-        barre.setFixedWidth(240)
+        barre.setFixedWidth(264)
         colonne = QVBoxLayout(barre)
-        colonne.setContentsMargins(16, 22, 16, 16)
-        colonne.setSpacing(4)
+        colonne.setContentsMargins(12, 22, 12, 16)
+        colonne.setSpacing(3)
         logo = QLabel()
         logo.setPixmap(QIcon.fromTheme("nicos").pixmap(QSize(56, 56)))
         titre = QLabel("NicOS")
@@ -81,6 +81,9 @@ class Centre(QWidget):
         index = self.pile.addWidget(widget)
         bouton = QPushButton(module.TITLE)
         bouton.setObjectName("nav")
+        bouton.setIcon(QIcon(widgets.pastille(getattr(module, "ICONE", "grid"),
+                                              getattr(module, "ACCENT", theme.ACCENTS["bleu"]), 30, marge_droite=8)))
+        bouton.setIconSize(QSize(38, 30))
         bouton.setCheckable(True)
         bouton.setCursor(Qt.PointingHandCursor)
         bouton.clicked.connect(lambda _=False, i=index: self.pile.setCurrentIndex(i))
