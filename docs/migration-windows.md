@@ -26,6 +26,7 @@ Ce guide s'adresse à la personne qui migre un poste (ou à celle qui l'accompag
 | Barre des tâches, épingler une application | Même principe, mais la barre est **en haut** de l'écran : clic droit sur l'icône → « Épingler au gestionnaire de tâches ». Elle se déplace en bas par clic droit → « Modifier le tableau de bord » |
 | Explorateur de fichiers | Dolphin (Windows + E) |
 | Word, Excel, PowerPoint | OnlyOffice (ouvre et enregistre directement les .docx, .xlsx, .pptx). Avec un abonnement Microsoft 365 : « Word (web) », « Excel (web) », « PowerPoint (web) » dans le menu |
+| Clic droit → Nouveau → Document Word, Classeur Excel, Présentation PowerPoint | Clic droit dans un dossier → **Créer nouveau** → « Document texte », « Classeur », « Présentation » : un fichier .docx, .xlsx ou .pptx vierge (A4, Calibri 11, français), qui s'ouvre dans OnlyOffice |
 | Outlook (nouvel Outlook), OneDrive en ligne | « Outlook (web) » et « Microsoft 365 (web) » dans le menu, ou Thunderbird pour le courriel |
 | Outlook | Thunderbird (courriel, agenda, contacts) |
 | Edge, Chrome | Firefox |
