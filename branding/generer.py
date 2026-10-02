@@ -5,7 +5,7 @@ Tous les fichiers sont produits à partir de ce script, pour pouvoir retoucher l
 (couleurs, proportions) et tout régénérer d'un coup :
 
     pip install fonttools uharfbuzz
-    python3 branding/generer.py [--chromium /chemin/vers/chrome]
+    python3 branding/generer.py [--chromium /chemin/vers/chrome] [--installeur-seulement]
 
 Chromium (ou Chrome) sert à rendre les images matricielles (PNG, JPG) : il gère les
 flous du fond d'écran. Pillow, s'il est installé, ajoute un grain imperceptible au fond
@@ -208,6 +208,75 @@ def wallpaper_html(w, h, dark):
             '</div>')
 
 
+def installer_sidebar_html(w, h):
+    """Panneau latéral de l'installeur : nuit NicOS, halo bleu derrière le logo, gemme discrète.
+    Anaconda l'affiche sans le redimensionner, calé en haut à gauche, sur 15 % de la largeur de
+    l'écran (153 px en 1024x768) : l'essentiel tient dans les 150 premiers pixels et les 700
+    premières lignes ; le bas finit sur la couleur unie du CSS (INK)."""
+    size = 300
+    background = ("radial-gradient(120px 140px at 95px 70px, rgba(47,91,255,.55), transparent),"
+                  "radial-gradient(220px 260px at 70px 600px, rgba(26,38,201,.40), transparent),"
+                  f"linear-gradient(180deg,#10163A,{INK} 70%)")
+    glow = svg_doc(size, size, gem(size / 2, size / 2, size * 0.8, GEM_DARK, highlight=False))
+    shape = svg_doc(size, size, gem(size / 2, size / 2, size * 0.8, GEM_DARK))
+    left, top = 100 - size / 2, 600 - size / 2
+    return (f'<div style="position:relative;width:{w}px;height:{h}px;overflow:hidden;background:{background}">'
+            f'<div style="position:absolute;left:{left}px;top:{top}px;filter:blur(40px);opacity:.55">{glow}</div>'
+            f'<div style="position:absolute;left:{left}px;top:{top}px;opacity:.28">{shape}</div>'
+            '</div>')
+
+
+INSTALLER_CSS = f"""/* Installeur (Anaconda) : logo et couleurs NicOS à la place de ceux de Fedora.
+ * Généré par branding/generer.py ; placé dans images/product.img sur l'ISO par
+ * disk_config/personnaliser-iso.sh. Anaconda charge ce fichier après son propre style et celui de
+ * Fedora (fedora-logos), avec une priorité plus haute.
+ */
+
+/* Panneau latéral : fond, puis logo */
+.logo-sidebar {{
+    background-image: url('/usr/share/anaconda/pixmaps/nicos/sidebar-bg.png');
+    background-color: {INK};
+    background-repeat: no-repeat;
+}}
+
+.logo {{
+    background-image: url('/usr/share/anaconda/pixmaps/nicos/sidebar-logo.png');
+    background-position: 50% 24px;
+    background-repeat: no-repeat;
+    background-color: transparent;
+}}
+
+.product-logo {{
+    background-image: none;
+    background-color: transparent;
+}}
+
+/* Barre du haut des écrans de réglage (disque, clavier, langue…) */
+AnacondaSpokeWindow #nav-box {{
+    background-color: #10163A;
+    background-image: linear-gradient(to right, {INK}, #10163A 60%, #1A2A8F);
+    color: white;
+}}
+"""
+
+
+def installer_assets(wm, renderer):
+    """Images et style de l'installeur, dans branding/installeur/ (arborescence de product.img)."""
+    root = BRANDING / "installeur"
+    pixmaps = root / "usr/share/anaconda/pixmaps/nicos"
+    pixmaps.mkdir(parents=True, exist_ok=True)
+    # Logo horizontal blanc, 130 px de large, centré dans 150 px (le panneau en fait 153 en 1024x768)
+    body, w = lockup_horizontal(wm, 0, 60, 120, GEM_DARK, WHITE)
+    scale = 130 / w
+    logo_h = math.ceil(120 * scale) + 4
+    body = f'<g transform="translate(10 2) scale({scale:.5f})">{body}</g>'
+    renderer.png(svg_doc(150, logo_h, body), 150, logo_h, pixmaps / "sidebar-logo.png", transparent=True)
+    renderer.png(installer_sidebar_html(420, 1200), 420, 1200, pixmaps / "sidebar-bg.png")
+    css = root / "run/install/product/anaconda-gtk.css"
+    css.parent.mkdir(parents=True, exist_ok=True)
+    css.write_text(INSTALLER_CSS)
+
+
 def to_jpeg(png, jpg, quality=90):
     """Grain léger contre les bandes des dégradés, puis JPEG. Sans Pillow : PNG gardé tel quel."""
     try:
@@ -228,8 +297,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--chromium", default=shutil.which("chromium") or shutil.which("google-chrome")
                         or "/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell")
+    parser.add_argument("--installeur-seulement", action="store_true",
+                        help="ne régénérer que l'installeur (le grain des fonds d'écran est aléatoire)")
     args = parser.parse_args()
     wm = Wordmark()
+
+    if args.installeur_seulement:
+        renderer = Renderer(args.chromium)
+        installer_assets(wm, renderer)
+        shutil.rmtree(renderer.tmp)
+        print("Installeur régénéré.")
+        return
 
     # 1. Logos (vectoriels)
     logos = {
@@ -276,6 +354,9 @@ def main():
     shot = renderer.tmp / "screenshot.png"
     renderer.png(wallpaper_html(400, 250, False), 400, 250, shot)
     to_jpeg(shot, wall / "screenshot.jpg", quality=85)
+
+    # 5. Installeur de l'ISO (Anaconda)
+    installer_assets(wm, renderer)
 
     shutil.rmtree(renderer.tmp)
     print("Identité visuelle régénérée.")

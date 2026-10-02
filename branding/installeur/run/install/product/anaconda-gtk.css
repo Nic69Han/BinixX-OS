@@ -1,0 +1,31 @@
+/* Installeur (Anaconda) : logo et couleurs NicOS à la place de ceux de Fedora.
+ * Généré par branding/generer.py ; placé dans images/product.img sur l'ISO par
+ * disk_config/personnaliser-iso.sh. Anaconda charge ce fichier après son propre style et celui de
+ * Fedora (fedora-logos), avec une priorité plus haute.
+ */
+
+/* Panneau latéral : fond, puis logo */
+.logo-sidebar {
+    background-image: url('/usr/share/anaconda/pixmaps/nicos/sidebar-bg.png');
+    background-color: #0B0F1A;
+    background-repeat: no-repeat;
+}
+
+.logo {
+    background-image: url('/usr/share/anaconda/pixmaps/nicos/sidebar-logo.png');
+    background-position: 50% 24px;
+    background-repeat: no-repeat;
+    background-color: transparent;
+}
+
+.product-logo {
+    background-image: none;
+    background-color: transparent;
+}
+
+/* Barre du haut des écrans de réglage (disque, clavier, langue…) */
+AnacondaSpokeWindow #nav-box {
+    background-color: #10163A;
+    background-image: linear-gradient(to right, #0B0F1A, #10163A 60%, #1A2A8F);
+    color: white;
+}

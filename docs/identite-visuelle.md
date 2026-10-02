@@ -22,6 +22,13 @@ Dans l'image :
 | `/usr/share/wallpapers/NicOS/` | Fond d'écran (bureau, verrouillage, connexion), version claire et sombre |
 | `/usr/share/plymouth/themes/nicos/` | Écran de démarrage |
 
+Sur l'ISO, `disk_config/personnaliser-iso.sh` :
+
+- nomme le volume `NicOS-44-x86_64` (nom de la clé USB) au lieu de `Fedora-S-dvd-x86_64-44`, dans
+  les menus de démarrage aussi ;
+- donne à l'installeur (Anaconda) le logo et les couleurs de `branding/installeur/`, par
+  `images/product.img`, qu'il applique au démarrage par-dessus les logos Fedora.
+
 ## Couleurs
 
 | Nom | Valeur | Usage |
@@ -44,13 +51,17 @@ pip install fonttools uharfbuzz pillow
 python3 branding/generer.py   # Chromium ou Chrome nécessaire pour les images PNG et JPG
 ```
 
+`--installeur-seulement` ne régénère que les images de l'installeur : les fonds d'écran ont un
+grain aléatoire et changeraient à chaque fois.
+
 La police Outfit est fournie sous licence SIL Open Font License (`branding/police/OFL.txt`).
 Le texte des logos est converti en tracés : aucune police n'est nécessaire pour les afficher.
 
 ## Où le nom « Fedora » apparaît encore
 
-NicOS remplace le nom et les logos Fedora partout où l'utilisateur les voit : écran de démarrage,
-menu de démarrage du PC (entrée « NicOS »), menu GRUB, connexion, bureau, « À propos ».
+NicOS remplace le nom et les logos Fedora partout où l'utilisateur les voit : clé USB et
+installeur, écran de démarrage, menu de démarrage du PC (entrée « NicOS »), menu GRUB, connexion,
+bureau, « À propos ».
 
 Restent, visibles seulement en ligne de commande ou dans les détails techniques :
 
@@ -59,7 +70,6 @@ Restent, visibles seulement en ligne de commande ou dans les détails techniques
 | Numéro du noyau `…fc44`, aussi dans Configuration du système → À propos (« Version du noyau ») | Changer le noyau obligerait à le recompiler et le signer nous-mêmes ; Secure Boot le refuserait |
 | Dossier `EFI/fedora` sur la partition de démarrage | Les chargeurs signés pour Secure Boot (shim, GRUB) cherchent ce chemin |
 | `ID=fedora`, `/etc/fedora-release`, dépôts et paquets « fedora » | Les outils de mise à jour et les logiciels s'en servent pour reconnaître la base Fedora |
-| Installeur (ISO) | À vérifier au premier build de l'ISO ; si besoin, passer à une ISO « live » (Titanoboa) |
 
 La politique de marque Fedora demande de retirer ses logos d'un système dérivé et permet de dire
 qu'il est « basé sur Fedora » : c'est ce que fait NicOS.
