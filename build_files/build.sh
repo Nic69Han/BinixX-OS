@@ -67,12 +67,49 @@ SECURITY=(
     mokutil
 )
 
+# Français : correcteur orthographique, césure et synonymes pour les applications KDE
+# (l'image de base n'a que l'anglais)
+LANGUAGE=(
+    hunspell-fr
+    langpacks-fr
+)
+
+# OneDrive : client libre de synchronisation, configuré par l'assistant « OneDrive » du menu
+CLOUD=(
+    onedrive
+)
+
+# VPN intégrés à Windows (L2TP/IPsec, IKEv2, SSTP), réglables dans les paramètres réseau.
+# OpenVPN, Cisco AnyConnect (OpenConnect) et WireGuard sont déjà dans l'image de base.
+VPN=(
+    plasma-nm-l2tp
+    plasma-nm-sstp
+    plasma-nm-strongswan
+)
+
+# PME : rejoindre un domaine Active Directory (`realm join`, realmd est dans la base) et
+# ouvrir sa session avec son compte Windows ; le dossier personnel est créé à la 1re connexion
+ENTERPRISE=(
+    adcli
+    krb5-workstation
+    oddjob-mkhomedir
+    sssd-ad
+)
+
 dnf5 -y install \
     "${FONTS[@]}" \
     "${PRINTING[@]}" \
     "${SCANNING[@]}" \
     "${VIDEOCONF[@]}" \
-    "${SECURITY[@]}"
+    "${SECURITY[@]}" \
+    "${LANGUAGE[@]}" \
+    "${CLOUD[@]}" \
+    "${VPN[@]}" \
+    "${ENTERPRISE[@]}"
+
+# Selawik (remplace Segoe UI, voir branding/fabriquer-selawik.sh) vient de system_files :
+# cache de fontconfig régénéré pour l'inclure
+fc-cache -s
 
 ### 3. Bureau Plasma
 # Thème global org.nicos.desktop : copie complète de Breeze (clair), puis nos fichiers

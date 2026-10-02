@@ -19,3 +19,12 @@ application/vnd.oasis.opendocument.text=org.onlyoffice.desktopeditors.desktop
 application/vnd.oasis.opendocument.spreadsheet=org.onlyoffice.desktopeditors.desktop
 application/vnd.oasis.opendocument.presentation=org.onlyoffice.desktopeditors.desktop
 text/csv=org.onlyoffice.desktopeditors.desktop
+
+# Vidéos (dont les formats Windows : AVI, WMV)
+video/mp4=org.kde.haruna.desktop
+video/x-matroska=org.kde.haruna.desktop
+video/webm=org.kde.haruna.desktop
+video/x-msvideo=org.kde.haruna.desktop
+video/x-ms-wmv=org.kde.haruna.desktop
+video/quicktime=org.kde.haruna.desktop
+video/mpeg=org.kde.haruna.desktop

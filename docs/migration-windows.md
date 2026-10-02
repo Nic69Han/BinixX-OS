@@ -28,31 +28,47 @@ Ce guide s'adresse à la personne qui migre un poste (ou à celle qui l'accompag
 | Edge, Chrome | Firefox |
 | Teams, Zoom, Slack | Web apps du même nom dans le menu (fenêtre dédiée, partage d'écran possible) |
 | Lecteur PDF | Okular |
-| OneDrive | Pas de client officiel ; client Nextcloud inclus, OneDrive reste accessible sur le web |
+| OneDrive | « OneDrive » dans le menu : connecte le compte Microsoft et synchronise les fichiers dans le dossier OneDrive (tous les fichiers sont téléchargés : pas de « fichiers à la demande ») |
 | Bloc-notes | KWrite |
 | Outil Capture d'écran | Spectacle (touche Impr. écran) |
 | Photos | Gwenview |
+| Lecteur multimédia, Films et TV | Haruna (ouvre les .mp4, .avi, .wmv…) |
+| Connexion Bureau à distance (mstsc) | Remmina |
+| Historique des fichiers, Sauvegarde | Déjà Dup (« Sauvegardes ») : sur un disque externe ou un service cloud |
 | Calculatrice | KCalc |
 | Paramètres, Panneau de configuration | Configuration du système |
 | Windows Update | Automatique ; suivi dans Discover (« Mises à jour ») |
 | Microsoft Store | Discover |
 | Imprimer en PDF | Imprimante « Imprimante PDF » (fichier enregistré sur le Bureau), ou « Imprimer dans un fichier » |
 | Gestionnaire des tâches (Ctrl + Maj + Échap) | Moniteur système (Ctrl + Échap) |
+| VPN (Paramètres → Réseau → VPN) | Configuration du système → Connexions → « + » : L2TP/IPsec, IKEv2, SSTP, OpenVPN, Cisco AnyConnect, WireGuard |
 
 Raccourcis identiques : Alt + Tab, Ctrl + C / V / X / Z, Windows + L (verrouiller), Windows + D (bureau),
 Alt + F4 (fermer), Windows + flèches (ancrer une fenêtre à gauche ou à droite).
 
 ## Les premiers jours
 
-- **Applications au premier démarrage** : OnlyOffice, Firefox, Thunderbird… se téléchargent pendant les
-  premières minutes, PC connecté à Internet. Si le menu semble incomplet, patienter puis se reconnecter.
-- **Polices** : les documents en Calibri, Cambria, Arial ou Times New Roman s'affichent avec des polices de
-  même largeur, donc même mise en page. Seul le dessin des lettres change légèrement.
+- **Applications au premier démarrage** : OnlyOffice, Thunderbird, Remmina… se téléchargent pendant les
+  premières minutes, PC connecté à Internet (Firefox est déjà là). Si le menu semble incomplet, patienter puis se reconnecter.
+- **Polices** : les documents en Calibri, Cambria, Arial, Times New Roman ou Segoe UI s'affichent avec des
+  polices de même largeur, donc même mise en page. Seul le dessin des lettres change légèrement.
 - **Mises à jour** : elles s'installent en arrière-plan et s'appliquent au redémarrage. En cas de problème
   après une mise à jour, choisir la version précédente dans le menu de démarrage, ou
   `sudo bootc rollback` puis redémarrer.
 - **Installer une application** : Discover, comme un magasin d'applications. Les applications viennent de
   Flathub et fonctionnent isolées du système, qui reste intact.
+
+## En entreprise : domaine Active Directory
+
+Un PC NicOS peut rejoindre le domaine Windows de l'entreprise : chacun ouvre alors sa session avec son
+compte habituel (`prenom.nom@entreprise.local` sur l'écran de connexion) et son dossier personnel est créé
+à la première connexion. Une fois, par l'administrateur, avec un compte autorisé à joindre des PC :
+
+```
+sudo realm join --user=administrateur entreprise.local
+```
+
+`realm list` vérifie la jonction ; `sudo realm leave` l'annule.
 
 ## Obtenir de l'aide
 
