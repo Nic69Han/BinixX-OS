@@ -44,7 +44,7 @@ automatiques testées avec retour arrière, applications isolées (Flatpak), les
 
 | PR | Contenu | Critères d'acceptation |
 | --- | --- | --- |
-| **A1. Choix des applications au premier démarrage** | Comme Ninite : cases à cocher avec les noms connus sous Windows (Chrome, VLC, Spotify, WhatsApp, Discord, Steam, Zoom, Bitwarden, Pinta pour paint.net, LibreOffice, RustDesk, ClamTk…). VLC remplace Haruna (nom connu). | Test VM : sélection par fichier, applications installées, lanceurs présents. |
+| **A1. Choix des applications** | **Livré en grande partie** : page « Installer des applications » du Centre NicOS, comme Ninite : cases à cocher avec les noms connus sous Windows (VLC, LibreOffice, Spotify, Discord, Bitwarden, GIMP, RustDesk…), licence affichée et applications propriétaires signalées, installation d'un coup avec un seul mot de passe ([centre-nicos.md](centre-nicos.md#installer-des-applications)). Reste : la proposer à la première ouverture de session ; sélection par fichier pour les images d'entreprise. | Test VM : la commande de la page installe une vraie application depuis Flathub : **fait**. |
 | **A2. Microsoft 365 en applications** | Lanceurs Outlook, Word, Excel, PowerPoint et OneDrive en ligne, comme les web apps Teams/Zoom. | Lanceurs valides ; ouverture dans une fenêtre dédiée. |
 | **A3. Programmes Windows** | **Livré en grande partie** (« Mon logiciel Windows », lot 6) : au double-clic sur un `.exe` ou un `.msi`, le Centre NicOS cherche l'équivalent connu ; Bottles est proposé **à la demande** (pas préinstallé : compatibilité non garantie, il ne faut pas la promettre). Reste : table des installeurs courants plus large. | Test : un installeur connu propose son équivalent ; un inconnu propose Bottles. |
 
@@ -89,7 +89,7 @@ Pro, Windows Autopilot). Chaque ligne est une pull request, empilée sur le socl
 | **C3. Obtenir de l'aide** (#20) | Sept cas fréquents sans IA, rapport de diagnostic sans secret, bureau réinitialisable. | Livré |
 | **E1. Image d'entreprise** (#17) | Gabarit `entreprise/` (nom, paquets, Flatpak, page d'accueil, proxy), modèles de CI et d'ISO, guide en six étapes. | Livré |
 | **R1. Retour arrière automatique** (#21) | greenboot : trois démarrages en échec, retour à la version précédente ; test VM de bout en bout. | Livré |
-| **G1. Variante NVIDIA** (#22) | Image `nicos-nvidia` construite et testée comme `nicos`. Fusion décidée comme **expérimentale** ; validation sur matériel réel attendue. | En test (lot 8) |
+| **G1. Variante NVIDIA** (#22) | Image `nicos-nvidia` construite et testée comme `nicos`. Fusionnée comme **expérimentale** ; validation sur matériel réel attendue. | Livré (expérimental) |
 | **D1. Créer nouveau** (#23) | Document texte, Classeur, Présentation vierges (.docx, .xlsx, .pptx) dans Dolphin. | Livré |
 
 ## Lot 7 — Études (aucun code livré)
@@ -103,18 +103,18 @@ Pro, Windows Autopilot). Chaque ligne est une pull request, empilée sur le socl
 
 ## Lot 8 — Autour du Centre NicOS (2 octobre 2026)
 
-Ce que les études du lot 7 sont devenues. Chaque ligne est une pull request ; « En test » = construction et test VM en cours.
+Ce que les études du lot 7 sont devenues. Chaque ligne est une pull request ; « Livré » = fusionnée après construction et test VM verts.
 
 | PR | Contenu | État |
 | --- | --- | --- |
 | **K1. Clé de récupération du disque chiffré** (#26) | Page « Protéger mes données » : création et remplacement de la clé (équivalent de celle de BitLocker), testée sur un vrai volume LUKS2. | Livré |
-| **J1. Jeux à la demande** (#27) | Steam, Heroic, Lutris, Prism, ProtonUp-Qt, jeu en streaming : rien d'installé d'office, carte graphique et manettes détectées. | En test |
+| **J1. Jeux à la demande** (#27) | Steam, Heroic, Lutris, Prism, ProtonUp-Qt, jeu en streaming : rien d'installé d'office, carte graphique et manettes détectées. | Livré |
 | **R2. Réparer le système** (#28) | Remet **un réglage** de `/etc` comme dans l'image, avec sauvegarde et annulation ; remplace le « Réinitialiser NicOS » complet, qui aurait effacé comptes et réseaux. | Livré |
 | **W1. Windows complet** (#29) | Le PC est-il prêt (virtualisation, mémoire, espace) ? Boxes, WinBoat (expérimental) ou Windows 365 ; Podman Compose et FreeRDP 3 dans l'image. **WinBoat reste à valider à la main sur un vrai PC.** | Livré |
 | **T1. Test VM : retour arrière** (#30) | Le test n'exige plus d'attraper par SSH la mise à jour défectueuse (créneau de quelques secondes) : il lit un compteur de démarrages. Avait fait échouer `main` et la variante NVIDIA. | Livré |
-| **M1. Récupérer mes fichiers Windows** (#31) | Documents, photos, musique, favoris depuis l'ancien disque, une clé USB ou un dossier, sans rien écraser. | En test |
-| **S3. Chaîne d'approvisionnement** (#32) | SBOM CycloneDX, avis de sécurité Fedora avec seuil bloquant, attestations de provenance. | En test |
-| **G1. Variante NVIDIA** (#22) | Fusion décidée comme **expérimentale** (image séparée `nicos-nvidia`) ; test VM relancé sur `main` à jour. | En test |
+| **M1. Récupérer mes fichiers Windows** (#31) | Documents, photos, musique, favoris depuis l'ancien disque, une clé USB ou un dossier, sans rien écraser. | Livré |
+| **S3. Chaîne d'approvisionnement** (#32) | SBOM CycloneDX, avis de sécurité Fedora avec seuil bloquant, attestations de provenance. | Livré |
+| **G1. Variante NVIDIA** (#22) | Fusionnée comme **expérimentale** (image séparée `nicos-nvidia`) ; tests VM des deux images verts. | Livré (expérimental) |
 
 Reste à faire, sans décision du propriétaire : choix des applications au premier démarrage (A1), notes de version (L2), console
 Active Directory (U3), assistants sans terminal (U2).
