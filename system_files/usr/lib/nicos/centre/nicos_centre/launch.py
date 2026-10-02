@@ -37,3 +37,23 @@ def open_url(url):
     if not url.startswith(("https://", "http://")):
         return False
     return _start(["xdg-open", url])
+
+
+def open_webapp(url):
+    """Ouvre une adresse dans une fenêtre d'application (comme les web apps de NicOS)."""
+    return _start(["/usr/libexec/nicos/nicos-webapp", url])
+
+
+def run(argv, timeout=120):
+    """Exécute un programme de NicOS et renvoie (code de sortie, sortie standard) ; jamais de shell."""
+    try:
+        fini = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False)
+    except (OSError, subprocess.TimeoutExpired) as erreur:
+        return 1, str(erreur)
+    return fini.returncode, fini.stdout
+
+
+def logout_prompt():
+    """Propose de fermer la session (boîte de dialogue de Plasma)."""
+    return _start(["busctl", "--user", "call", "org.kde.LogoutPrompt", "/LogoutPrompt", "org.kde.LogoutPrompt",
+                   "promptLogout"])
