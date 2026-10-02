@@ -6,7 +6,28 @@ Une seule application, `Bienvenue dans NicOS` dans le menu (commande `nicos-cent
 | --- | --- |
 | **Accueil** | Les premiers pas : réseau, OneDrive, applications, apparence, administration ; et « Sous Windows, ici » (Explorateur → Dolphin, Store → Discover…). S'ouvre toute seule **une fois**, à la première ouverture de session ; le menu permet de la rouvrir. |
 
-D'autres pages s'y ajoutent (catalogue « Mon logiciel Windows », aide) : voir la feuille de route.
+| **Mon logiciel Windows** | Une recherche (« Word », « Sage », « Photoshop », « tableur »…) renvoie l'équivalent sous NicOS : déjà installé (bouton *Ouvrir*), à installer (bouton *Installer*, qui ouvre Discover sur la bonne application), version en ligne, ou « pas d'équivalent direct » avec les pistes pour s'en sortir. En bas, « Essayer avec Bottles » pour la compatibilité Windows, sans garantie. |
+
+D'autres pages s'y ajoutent (aide) : voir la feuille de route.
+
+## Quand on ouvre un .exe ou un .msi
+
+NicOS n'exécute pas les programmes Windows directement. Un double-clic sur un `.exe` ou un `.msi`
+ouvre « Mon logiciel Windows », avec une explication et une recherche déjà remplie d'après le nom du
+fichier (`Setup_Sage100_v2023.exe` → « Sage »). Le fichier n'est **jamais** exécuté ni lu par le Centre :
+seul son nom sert. Le lanceur est `nicos-windows-program.desktop`, associé aux types MIME
+`application/vnd.microsoft.portable-executable`, `application/x-msi` et leurs variantes
+(`etc/xdg/kde-mimeapps.list`).
+
+## Compléter le catalogue
+
+Le catalogue est un simple fichier : `system_files/usr/share/nicos/catalogue-windows/catalogue.tsv`
+(une ligne par logiciel, colonnes décrites en tête de fichier). Après une modification :
+
+- `python3 -m unittest discover -s tests/image/centre` (lecture et recherche) ;
+- `tests/centre/verifier_flathub.py` : vérifie sur Flathub que chaque identifiant existe et affiche sa
+  licence (réseau nécessaire) ;
+- la CI vérifie aussi que chaque logiciel « inclus » a son lanceur dans l'image.
 
 ## Pourquoi pas le Centre de bienvenue de KDE ?
 

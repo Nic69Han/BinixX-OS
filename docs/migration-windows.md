@@ -17,6 +17,9 @@ Ce guide s'adresse à la personne qui migre un poste (ou à celle qui l'accompag
 
 ## Où retrouver ses habitudes
 
+> Pour un logiciel précis (Word, Sage, Photoshop…), l'application **« Mon logiciel Windows »** (menu, ou
+> double-clic sur un `.exe` ou un `.msi`) donne l'équivalent sous NicOS : voir [centre-nicos.md](centre-nicos.md).
+
 | Sous Windows | Sous NicOS |
 | --- | --- |
 | Menu Démarrer, touche Windows | Logo NicOS en haut à gauche, touche Windows (même comportement, recherche comprise) |
