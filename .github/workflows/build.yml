@@ -23,8 +23,21 @@ concurrency:
 
 jobs:
   build_push:
-    name: Build and push image
+    name: Build and push image (${{ matrix.variant }})
     runs-on: ubuntu-26.04
+    # NicOS: two images from the same sources. `nicos` is the standard one; `nicos-nvidia` has the same
+    # content on Universal Blue's NVIDIA base (docs/nvidia.md). Pull requests only build the standard one.
+    # A failure of the NVIDIA build never fails the workflow: the standard image keeps being tested and
+    # promoted (test-vm.yml starts when this workflow succeeds).
+    continue-on-error: ${{ matrix.variant == 'nvidia' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: ${{ fromJSON(github.event_name == 'pull_request' && '["main"]' || '["main","nvidia"]') }}
+    env:
+      IMAGE_NAME: ${{ matrix.variant == 'nvidia' && 'nicos-nvidia' || 'nicos' }}
+      BASE_IMAGE: ${{ matrix.variant == 'nvidia' && 'ghcr.io/ublue-os/kinoite-nvidia:44' || '' }}
+      NICOS_VARIANT: ${{ matrix.variant == 'nvidia' && 'nvidia' || '' }}
 
     permissions:
       contents: read

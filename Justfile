@@ -99,6 +99,9 @@ build $target_image=image_name $tag=default_tag:
     set -euox pipefail
 
     BUILD_ARGS=()
+    # Variante de l'image (CI : matrice de build.yml) ; sans ces variables, image NicOS standard
+    [[ -z "${BASE_IMAGE:-}" ]] || BUILD_ARGS+=(--build-arg "BASE_IMAGE=${BASE_IMAGE}")
+    [[ -z "${NICOS_VARIANT:-}" ]] || BUILD_ARGS+=(--build-arg "NICOS_VARIANT=${NICOS_VARIANT}")
     LABELS=()
     if [[ -z "$(git status -s)" ]]; then
         GIT_SHA=$(git rev-parse --short HEAD)

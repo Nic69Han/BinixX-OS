@@ -28,6 +28,12 @@ on:
         required: false
         default: false
         type: boolean
+      variant:
+        description: "Image variant to test: main (nicos) or nvidia (nicos-nvidia)"
+        required: false
+        default: main
+        type: choice
+        options: [main, nvidia]
       promote:
         description: "Promote the tested image to stable and latest if the test passes"
         required: false
@@ -39,15 +45,21 @@ permissions:
   packages: write  # promotion: new tags on the existing image
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.variant }}
   cancel-in-progress: true
 
 jobs:
   vm-test:
-    name: Install, boot, update and rollback in a VM
+    name: Install, boot, update and rollback in a VM (${{ matrix.image }})
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-26.04
     timeout-minutes: 300
+    # NicOS: after a build of main, both images (nicos and nicos-nvidia) are tested and promoted on their
+    # own: a failure of one never blocks the other. By hand, one image: the `variant` input.
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(github.event_name == 'workflow_run' && '["nicos","nicos-nvidia"]' || (inputs.variant == 'nvidia' && '["nicos-nvidia"]' || '["nicos"]')) }}
 
     steps:
       - name: Checkout
@@ -94,8 +106,9 @@ jobs:
         env:
           INPUT_IMAGE: ${{ inputs.image }}
           OWNER: ${{ github.repository_owner }}
+          IMAGE_NAME: ${{ matrix.image }}
         run: |
-          image="${INPUT_IMAGE:-ghcr.io/${OWNER,,}/nicos:testing}"
+          image="${INPUT_IMAGE:-ghcr.io/${OWNER,,}/${IMAGE_NAME}:testing}"
           if [[ "${image}" == *@* ]]; then repo="${image%@*}"; else repo="${image%:*}"; fi
           digest="$(sudo skopeo inspect --format '{{.Digest}}' "docker://${image}")"
           echo "Testing ${repo}@${digest} (from ${image})"
@@ -110,9 +123,14 @@ jobs:
         if: ${{ inputs.build }}
         env:
           OWNER: ${{ github.repository_owner }}
+          IMAGE_NAME: ${{ matrix.image }}
         run: |
-          sudo podman build --pull=newer --tag localhost/nicos:vm-test --file Containerfile .
-          echo "TEST_REPO=ghcr.io/${OWNER,,}/nicos" >> "${GITHUB_ENV}"
+          build_args=()
+          if [[ "${IMAGE_NAME}" == nicos-nvidia ]]; then
+            build_args=(--build-arg BASE_IMAGE=ghcr.io/ublue-os/kinoite-nvidia:44 --build-arg NICOS_VARIANT=nvidia)
+          fi
+          sudo podman build "${build_args[@]}" --pull=newer --tag localhost/nicos:vm-test --file Containerfile .
+          echo "TEST_REPO=ghcr.io/${OWNER,,}/${IMAGE_NAME}" >> "${GITHUB_ENV}"
           echo "TEST_IMAGE=localhost/nicos:vm-test" >> "${GITHUB_ENV}"
 
       - name: Run VM test
@@ -138,7 +156,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: vm-test-logs
+          name: vm-test-logs-${{ matrix.image }}
           path: tests/vm/_work/logs/
           if-no-files-found: warn
           retention-days: 14
