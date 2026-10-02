@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Paramètres
+GenericName=Réglages du PC
+Comment=Tous les réglages au même endroit, classés comme dans Windows : affichage, son, réseau, comptes, mises à jour…
+Exec=/usr/libexec/nicos/nicos-centre --page parametres
+Icon=preferences-system
+Terminal=false
+Categories=Settings;
+Keywords=paramètres;réglages;panneau de configuration;configuration;options;préférences;windows i;
+X-KDE-Shortcuts=Meta+I
+StartupNotify=true
+StartupWMClass=nicos-centre

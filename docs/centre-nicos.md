@@ -5,6 +5,7 @@ Une seule application, `Bienvenue dans NicOS` dans le menu (commande `nicos-cent
 | Page | Rôle |
 | --- | --- |
 | **Accueil** | Les premiers pas : réseau, OneDrive, applications, apparence, administration ; et « Sous Windows, ici » (Explorateur → Dolphin, Store → Discover…). S'ouvre toute seule **une fois**, à la première ouverture de session ; le menu permet de la rouvrir. |
+| **Paramètres** | Tous les réglages du PC au même endroit, **classés et nommés comme dans Windows 11** (Système, Bluetooth et appareils, Réseau et Internet, Personnalisation, Applications, Comptes, Heure et langue, Accessibilité, Confidentialité et sécurité, Mises à jour et récupération), avec une recherche (« Bluetooth », « fond d'écran », « mot de passe », « Panneau de configuration »). Touche **Windows + I** : [ci-dessous](#paramètres). |
 | **Mon logiciel Windows** | Une recherche (« Word », « Sage », « Photoshop », « tableur »…) renvoie l'équivalent sous NicOS : déjà installé (bouton *Ouvrir*), à installer (bouton *Installer*, qui ouvre Discover sur la bonne application), version en ligne, ou « pas d'équivalent direct » avec les pistes pour s'en sortir. En bas, « Essayer avec Bottles » pour la compatibilité Windows, sans garantie. |
 | **Windows complet** | Pour le logiciel indispensable sans équivalent : le PC est-il prêt (virtualisation, mémoire, espace, processeur) ? Boxes, WinBoat ou Windows 365 : [windows-vm.md](windows-vm.md). |
 | **Récupérer mes fichiers** | Copie documents, photos, musique, vidéos et favoris depuis l'ancien disque Windows, une clé USB ou un dossier, **sans rien écraser** ni écrire sur l'ancien disque : [migration-windows.md](migration-windows.md#récupérer-ses-fichiers--récupérer-mes-fichiers-windows). |
@@ -22,6 +23,27 @@ fichier (`Setup_Sage100_v2023.exe` → « Sage »). Le fichier n'est **jamais** 
 seul son nom sert. Le lanceur est `nicos-windows-program.desktop`, associé aux types MIME
 `application/vnd.microsoft.portable-executable`, `application/x-msi` et leurs variantes
 (`etc/xdg/kde-mimeapps.list`).
+
+## Paramètres
+
+La page **Paramètres** (menu NicOS, favori du menu de démarrage, ou touche Windows + I) est l'équivalent de
+l'application Paramètres de Windows 11. Elle ne réécrit aucun réglage : elle met devant ceux de KDE (la
+Configuration du système) un classement et des noms que l'on reconnaît.
+
+- **Un fichier de données** : `usr/share/nicos/parametres/parametres.tsv`. Une ligne par réglage : catégorie, nom, mots de
+  recherche (« fond d'écran », « arrière-plan »…), explication, type et cible. Les types : `kcm` (un module de la
+  Configuration du système), `page` (une autre page du Centre), `app` (un lanceur de l'image), `flatpak`, `discover`
+  (mises à jour, applications installées), `info` (une explication, rien à ouvrir : « Barre des tâches »).
+- **Recherche** sans accents ni majuscules, tous les mots doivent correspondre, le nom exact d'abord : « wifi »,
+  « Wi-Fi » et « WIFI » donnent la même réponse ; « mot de passe » met « Votre compte » en premier.
+- **Jamais de bouton mort** : un module KDE absent de ce PC est masqué (la liste vient de `kcmshell6 --list`) ; à l'inverse, la CI
+  vérifie à **chaque build** que tous les modules cités existent dans l'image, et affiche la liste complète. Un module renommé par une mise à jour de Plasma fait
+  échouer le build au lieu de laisser un bouton qui n'ouvre rien.
+- **Réglages avancés** : le bouton du bas ouvre la Configuration du système complète.
+- **Ajouter ou corriger un réglage** : une ligne dans `parametres.tsv` ; `kcmshell6 --list` (sur un poste NicOS) donne les
+  identifiants des modules.
+- **Touche Windows + I** : `usr/share/applications/nicos-parametres.desktop` (`X-KDE-Shortcuts`) et `etc/xdg/kglobalshortcutsrc`.
+  Le test VM vérifie que KDE l'a enregistrée, en simple avertissement : si KDE l'ignorait, le menu et la recherche restent là.
 
 ## Compléter le catalogue
 

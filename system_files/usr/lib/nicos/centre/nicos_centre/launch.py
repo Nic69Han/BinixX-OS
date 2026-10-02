@@ -32,6 +32,13 @@ def open_discover(appstream_id=""):
     return _start(["plasma-discover", "--application", appstream_id] if appstream_id else ["plasma-discover"])
 
 
+def open_discover_mode(mode):
+    """Ouvre Discover sur ses mises à jour (« update »), ses applications installées (« installed ») ou le catalogue."""
+    if mode not in ("update", "installed", "browse"):
+        return False
+    return _start(["plasma-discover", "--mode", mode])
+
+
 def open_url(url):
     """Ouvre une adresse web dans le navigateur par défaut (http et https seulement)."""
     if not url.startswith(("https://", "http://")):

@@ -30,7 +30,7 @@ CARTES = [
 EQUIVALENCES = [
     ("Menu Démarrer", "Le bouton NicOS, en haut à gauche"),
     ("Explorateur de fichiers", "Dolphin (barre en haut de l'écran)"),
-    ("Paramètres, Panneau de configuration", "Configuration du système"),
+    ("Paramètres, Panneau de configuration", "Paramètres (menu NicOS) ; les réglages avancés : Configuration du système"),
     ("Microsoft Store, Windows Update", "Discover"),
     ("Gestionnaire des tâches (Ctrl+Maj+Échap)", "Moniteur système (Ctrl+Échap)"),
     ("Outil Capture d'écran", "Spectacle (touche Impr. écran)"),
