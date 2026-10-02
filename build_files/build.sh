@@ -183,7 +183,17 @@ systemctl enable plasma-setup.service
 # (usr/lib/systemd/system/cockpit.socket.d/50-nicos-localhost.conf)
 systemctl enable cockpit.socket
 
-### 7. Initramfs
+### 7. Sécurité
+# Pare-feu : zone nicos par défaut (usr/lib/firewalld/zones/nicos.xml) au lieu de
+# FedoraWorkstation, qui accepte les connexions entrantes sur les ports 1025 à 65535.
+# --check-config fait échouer le build si la zone ou un de ses services est invalide.
+firewall-offline-cmd --set-default-zone=nicos
+firewall-offline-cmd --check-config
+# Pas de serveur SSH par défaut : l'administrateur l'active au besoin (docs/securite.md)
+systemctl disable sshd.service
+# Noyau : usr/lib/sysctl.d/60-nicos-durcissement.conf ; Firefox : etc/firefox/policies/
+
+### 8. Initramfs
 # Le thème de démarrage est chargé depuis l'initramfs : on le régénère en dernier,
 # avec la même commande que l'image de base Universal Blue.
 KERNEL_VERSION="$(rpm -q --queryformat='%{evr}.%{arch}' kernel-core)"

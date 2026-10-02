@@ -15,7 +15,7 @@ la liste Flatpak, les lanceurs de web apps et l'activation des services.
 
 1. Génère une ISO d'installation **automatique** (`iso-unattended.toml.in`, qui efface le disque de la VM).
 2. Installe NicOS sur un disque vierge, sans intervention (critère MVP n°1).
-3. Démarre le système installé en UEFI **avec Secure Boot** et lance `guest-checks.sh` dans la VM :
+3. Démarre le système installé en UEFI **avec Secure Boot**, sur la configuration minimale (2 cœurs, 4 Go) et lance `guest-checks.sh` dans la VM :
    état des services, SELinux, `/usr` en lecture seule, son, réseau, imprimante PDF (un vrai PDF est
    produit), session Plasma et disposition du panneau, installation des Flatpak.
 4. Publie une « mise à jour » (`update/Containerfile` : l'image + un fichier témoin) dans un registre local,

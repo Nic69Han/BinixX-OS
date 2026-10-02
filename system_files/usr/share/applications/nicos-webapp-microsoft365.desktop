@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Microsoft 365 (web)
+GenericName=Accueil Microsoft 365 et OneDrive (web)
+Comment=Tous les fichiers et applications Microsoft 365, dont OneDrive, dans leur propre fenêtre
+Exec=/usr/libexec/nicos/nicos-webapp https://m365.cloud.microsoft/
+Icon=folder-cloud
+Terminal=false
+Categories=Office;
+Keywords=microsoft;365;office;onedrive;sharepoint;
+StartupNotify=true
+# Classe de fenêtre de Chromium en mode application, pour grouper la fenêtre sous cette icône
+StartupWMClass=chrome-m365.cloud.microsoft__-Default

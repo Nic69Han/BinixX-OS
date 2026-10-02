@@ -108,7 +108,7 @@ for app in org.onlyoffice.desktopeditors org.mozilla.firefox org.mozilla.thunder
 done
 
 section "Web apps"
-for webapp in teams zoom slack; do
+for webapp in teams zoom slack outlook word excel powerpoint microsoft365; do
     check "lanceur ${webapp} valide" desktop-file-validate "/usr/share/applications/nicos-webapp-${webapp}.desktop"
 done
 check "lanceur de web apps exécutable" test -x /usr/libexec/nicos/nicos-webapp
@@ -122,6 +122,28 @@ check "centre d'administration démarré à la demande (cockpit.socket)" test "$
 check "centre d'administration limité au PC lui-même" \
     grep -qx 'ListenStream=127.0.0.1:9090' /usr/lib/systemd/system/cockpit.socket.d/50-nicos-localhost.conf
 check "lanceur « Administration du PC » valide" desktop-file-validate /usr/share/applications/nicos-administration.desktop
+
+section "Sécurité"
+zone="$(firewall-offline-cmd --get-default-zone 2>/dev/null)"
+if [[ "${zone}" == nicos ]]; then pass "pare-feu : zone par défaut nicos"; else fail "pare-feu : zone par défaut '${zone}' (attendu : nicos)"; fi
+services="$(firewall-offline-cmd --zone=nicos --list-services 2>/dev/null | tr ' ' '\n' | sort | tr '\n' ' ')"
+if [[ "${services}" == "dhcpv6-client kdeconnect mdns samba-client " ]]; then
+    pass "pare-feu : seuls le réseau local et KDE Connect peuvent entrer"
+else
+    fail "pare-feu : services ouverts '${services}'"
+fi
+check "pare-feu : aucun port ouvert en plus" test -z "$(firewall-offline-cmd --zone=nicos --list-ports 2>/dev/null)"
+state="$(systemctl is-enabled sshd.service 2>/dev/null)"
+if [[ "${state}" != enabled ]]; then pass "serveur SSH désactivé par défaut (${state})"; else fail "serveur SSH activé par défaut"; fi
+for setting in 'kernel.dmesg_restrict = 1' 'kernel.yama.ptrace_scope = 1' 'net.ipv4.conf.all.accept_redirects = 0'; do
+    check "noyau : ${setting}" grep -qx "${setting}" /usr/lib/sysctl.d/60-nicos-durcissement.conf
+done
+check "Firefox : uBlock Origin installé d'office, mode HTTPS uniquement" python3 -c '
+import json
+p = json.load(open("/etc/firefox/policies/policies.json"))["policies"]
+assert p["HttpsOnlyMode"] == "enabled" and p["DisableTelemetry"] is True
+assert p["ExtensionSettings"]["uBlock0@raymondhill.net"]["installation_mode"] == "normal_installed"
+'
 
 section "Services"
 for unit in nicos-flatpak-install.service nicos-pdf-printer.service plasma-setup.service; do
