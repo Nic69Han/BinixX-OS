@@ -194,10 +194,11 @@ reboot_vm() {
     done
 }
 
-guest_checks() { # guest_checks <phase> : lance guest-checks.sh dans la VM, garde journal et rapport
-    ssh_vm 'cat > /tmp/guest-checks.sh' <"${TEST_DIR}/guest-checks.sh"
+guest_checks() { # guest_checks <phase> : lance guest-checks.sh (et checks.d/) dans la VM, garde journal et rapport
+    tar -C "${TEST_DIR}" -cf - guest-checks.sh checks.d |
+        ssh_vm 'rm -rf /tmp/nicos-tests && mkdir /tmp/nicos-tests && tar -C /tmp/nicos-tests -xf -'
     local status=0
-    ssh_vm sudo bash /tmp/guest-checks.sh "$1" "${SECURE_BOOT}" </dev/null 2>&1 | tee "${LOGS}/checks-$1.log" || status=$?
+    ssh_vm sudo bash /tmp/nicos-tests/guest-checks.sh "$1" "${SECURE_BOOT}" </dev/null 2>&1 | tee "${LOGS}/checks-$1.log" || status=$?
     ssh_vm sudo journalctl -b --no-pager >"${LOGS}/journal-$1.log" 2>&1 || true
     ssh_vm sudo bootc status >"${LOGS}/bootc-status-$1.txt" 2>&1 || true
     return "${status}"

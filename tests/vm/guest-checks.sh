@@ -88,26 +88,6 @@ check_system_state() {
     if [[ "${image}" == *nicos* ]]; then pass "image démarrée : ${image}"; else fail "image démarrée : '${image}'"; fi
 }
 
-check_administration() {
-    section "Centre d'administration (Cockpit)"
-    check "console joignable depuis le PC" curl -fsS -o /dev/null --max-time 30 http://127.0.0.1:9090/
-    local listen
-    listen="$(ss -Hltn 'sport = :9090' | awk '{print $4}' | sort | tr '\n' ' ')"
-    if [[ "${listen}" == "127.0.0.1:9090 [::1]:9090 " ]]; then
-        pass "console fermée au réseau (écoute : ${listen})"
-    else
-        fail "console : adresses d'écoute '${listen}' (attendu : 127.0.0.1 et ::1)"
-    fi
-    local modules
-    modules="$(runuser -u "${TEST_USER}" -- cockpit-bridge --packages 2>/dev/null | awk '{print $1}' | sort | tr '\n' ' ')"
-    # Noms déclarés dans les manifest.json : updates = cockpit-ostree, network = cockpit-networkmanager,
-    # storage = cockpit-storaged
-    local module
-    for module in updates network storage selinux files; do
-        if grep -qw "${module}" <<<"${modules}"; then pass "module « ${module} » chargé"; else fail "module « ${module} » absent (${modules})"; fi
-    done
-}
-
 check_security() {
     section "Sécurité"
     check "pare-feu actif" systemctl is-active firewalld.service
@@ -255,15 +235,31 @@ PYEOF
         "[[ \"\$(runuser -u '${TEST_USER}' -- kreadconfig6 --file kwinrc --group Windows --key Placement)\" == Centered ]]"
 }
 
+# Vérifications par fonctionnalité : un fichier par chantier dans checks.d/ (ordre alphabétique).
+# Il définit une fonction et l'inscrit à une phase : register_check <base|after-update|after-rollback> <fonction>
+declare -A PHASE_CHECKS=()
+register_check() { PHASE_CHECKS[$1]+=" $2"; }
+run_module_checks() { # run_module_checks <phase>
+    local fn
+    for fn in ${PHASE_CHECKS[$1]:-}; do "${fn}"; done
+}
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+shopt -s nullglob
+for module in "${HERE}"/checks.d/*.sh; do
+    # shellcheck source=/dev/null
+    . "${module}"
+done
+shopt -u nullglob
+
 case "${PHASE}" in
 base)
     check_system_state
     check_security
-    check_administration
     check_hardware_and_network
     check_printing
     check_plasma_desktop
     check_flatpaks
+    run_module_checks base
     check "pas de fichier témoin de mise à jour avant la mise à jour" test ! -e "${UPDATE_MARKER}"
     ;;
 after-update)
@@ -273,6 +269,7 @@ after-update)
     check "image de mise à jour démarrée" bash -c "bootc status --format=json | grep -q 'update-test'"
     check "applications Flatpak conservées" flatpak info --system org.onlyoffice.desktopeditors
     check "compte et fichiers utilisateur conservés" test -d "${TEST_HOME}/.config"
+    run_module_checks after-update
     ;;
 after-rollback)
     check_system_state
@@ -280,6 +277,7 @@ after-rollback)
     check "fichier témoin absent : ancienne version démarrée" test ! -e "${UPDATE_MARKER}"
     check "applications Flatpak conservées" flatpak info --system org.onlyoffice.desktopeditors
     check "compte et fichiers utilisateur conservés" test -d "${TEST_HOME}/.config"
+    run_module_checks after-rollback
     ;;
 *)
     echo "phase inconnue : ${PHASE}" >&2

@@ -316,7 +316,17 @@ firewall-offline-cmd --check-config
 systemctl disable sshd.service
 # Noyau : usr/lib/sysctl.d/60-nicos-durcissement.conf ; Firefox : etc/firefox/policies/
 
-### 8. Initramfs
+### 8. Modules
+# Un fichier build_files/modules.d/NN-nom.sh par fonctionnalité, exécuté dans l'ordre (voir
+# modules.d/README.md). Les chantiers s'y ajoutent sans toucher aux sections ci-dessus.
+for module in /ctx/modules.d/*.sh; do
+    [[ -e "${module}" ]] || continue
+    echo "::group::module ${module##*/}"
+    bash "${module}"
+    echo "::endgroup::"
+done
+
+### 9. Initramfs
 # Le thème de démarrage est chargé depuis l'initramfs : on le régénère en dernier,
 # avec la même commande que l'image de base Universal Blue.
 KERNEL_VERSION="$(rpm -q --queryformat='%{evr}.%{arch}' kernel-core)"

@@ -178,16 +178,6 @@ check "service de synchronisation OneDrive (utilisateur)" test -f /usr/lib/syste
 check "Haruna lit les vidéos par défaut" grep -qx 'video/mp4=org.kde.haruna.desktop' /etc/xdg/kde-mimeapps.list
 check "jonction à un domaine Active Directory (realm)" bash -c 'command -v realm'
 
-section "Administration à la souris"
-for pkg in cockpit cockpit-files cockpit-networkmanager cockpit-ostree cockpit-selinux cockpit-storaged \
-    plasma-firewall plasma-firewall-firewalld; do
-    check "${pkg} installé" rpm -q "${pkg}"
-done
-check "centre d'administration démarré à la demande (cockpit.socket)" test "$(systemctl is-enabled cockpit.socket 2>/dev/null)" = enabled
-check "centre d'administration limité au PC lui-même" \
-    grep -qx 'ListenStream=127.0.0.1:9090' /usr/lib/systemd/system/cockpit.socket.d/50-nicos-localhost.conf
-check "lanceur « Administration du PC » valide" desktop-file-validate /usr/share/applications/nicos-administration.desktop
-
 section "Sécurité"
 zone="$(firewall-offline-cmd --get-default-zone 2>/dev/null)"
 if [[ "${zone}" == nicos ]]; then pass "pare-feu : zone par défaut nicos"; else fail "pare-feu : zone par défaut '${zone}' (attendu : nicos)"; fi
@@ -222,6 +212,16 @@ check "syntaxe des unités systemd NicOS" \
     /usr/lib/systemd/system/nicos-flatpak-install.service /usr/lib/systemd/system/nicos-pdf-printer.service
 check "pilote de l'imprimante PDF (PPD)" test -f /usr/share/cups/model/CUPS-PDF_noopt.ppd
 check "backend CUPS de l'imprimante PDF" test -x /usr/lib/cups/backend/cups-pdf
+
+# Vérifications par fonctionnalité : un fichier par chantier dans checks.d/ (ordre alphabétique),
+# avec les fonctions pass, fail, check et section ci-dessus. Aucune ligne à ajouter ici.
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+shopt -s nullglob
+for module in "${HERE}"/checks.d/*.sh; do
+    # shellcheck source=/dev/null
+    . "${module}"
+done
+shopt -u nullglob
 
 printf '\n'
 if [[ ${failures} -gt 0 ]]; then
