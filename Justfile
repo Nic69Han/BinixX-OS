@@ -471,6 +471,35 @@ test-image $target_image=image_name $tag=default_tag:
       "${target_image}:${tag}" \
       bash /tests/check-image.sh
 
+# Software bill of materials of the image (CycloneDX, see docs/securite.md): writes sbom.cdx.json
+[group('Test')]
+sbom $target_image=image_name $tag=default_tag:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    image="${target_image}:${tag}"
+    os_release="$(mktemp)"
+    trap 'rm -f "${os_release}"' EXIT
+    podman run --rm --pull=never "${image}" cat /etc/os-release >"${os_release}"
+    podman run --rm --pull=never "${image}" rpm -qa --qf "$(python3 securite/sbom.py --format-rpm)" \
+      | python3 securite/sbom.py --nom "${target_image##*/}" --version "${tag}" --os-release "${os_release}" >sbom.cdx.json
+    echo "sbom.cdx.json written"
+
+# Fedora security advisories pending for the packages of the image; fails at or above the threshold
+[group('Test')]
+scan-securite $target_image=image_name $tag=default_tag $threshold="Critical":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    image="${target_image}:${tag}"
+    for attempt in 1 2 3; do
+      if listing="$(podman run --rm --pull=never "${image}" dnf5 --refresh updateinfo list --security)"; then break; fi
+      [[ "${attempt}" -lt 3 ]] || { echo "dnf could not read the Fedora advisories after 3 attempts" >&2; exit 1; }
+      sleep 20
+    done
+    status=0
+    printf '%s\n' "${listing}" | python3 securite/avis-securite.py --seuil "${threshold}" --acceptes securite/avis-acceptes.txt \
+      | tee avis-securite.txt || status=$?
+    exit "${status}"
+
 # Build the enterprise template (entreprise/) on top of the image, then check the result
 [group('Test')]
 test-entreprise $target_image=image_name $tag=default_tag:
