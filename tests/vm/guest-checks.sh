@@ -213,7 +213,23 @@ PYEOF
         fail "disposition du panneau"
     fi
     check "thème global appliqué (kdedefaults)" grep -qx 'org.nicos.desktop' "${TEST_HOME}/.config/kdedefaults/package"
-    check "thème clair appliqué" grep -q '^ColorScheme=BreezeLight' "${TEST_HOME}/.config/kdedefaults/kdeglobals"
+    check "couleurs NicOS clair appliquées" grep -q '^ColorScheme=NicOSClair' "${TEST_HOME}/.config/kdedefaults/kdeglobals"
+    # Plasma n'écrit « floating » que s'il diffère de son réglage par défaut (flottant)
+    local shellrc="${TEST_HOME}/.config/plasmashellrc"
+    if [[ ! -f "${shellrc}" ]]; then
+        fail "${shellrc} absent"
+    elif grep -q '^floating=0' "${shellrc}"; then
+        fail "barre des tâches non flottante"
+    else
+        pass "barre des tâches flottante"
+    fi
+    local uid kwin
+    uid="$(id -u "${TEST_USER}")"
+    kwin="$(runuser -u "${TEST_USER}" -- env XDG_RUNTIME_DIR="/run/user/${uid}" \
+        busctl --user call org.kde.KWin /Scripting org.kde.kwin.Scripting isScriptLoaded s kde-snap-overlay 2>&1)"
+    if [[ "${kwin}" == "b true" ]]; then pass "dispositions de fenêtres (kde-snap-overlay) chargées par KWin"; else fail "kde-snap-overlay non chargé : ${kwin}"; fi
+    check "nouvelles fenêtres centrées" bash -c \
+        "[[ \"\$(runuser -u '${TEST_USER}' -- kreadconfig6 --file kwinrc --group Windows --key Placement)\" == Centered ]]"
 }
 
 case "${PHASE}" in
