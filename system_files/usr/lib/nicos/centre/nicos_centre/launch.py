@@ -44,6 +44,12 @@ def open_webapp(url):
     return _start(["/usr/libexec/nicos/nicos-webapp", url])
 
 
+def executer(action):
+    """Exécute une action du catalogue : (« app » | « url » | « flatpak » | « discover », cible)."""
+    genre, cible = action
+    return {"app": open_app, "url": open_url, "flatpak": run_flatpak, "discover": open_discover}[genre](cible)
+
+
 def run(argv, timeout=120):
     """Exécute un programme de NicOS et renvoie (code de sortie, sortie standard) ; jamais de shell."""
     try:

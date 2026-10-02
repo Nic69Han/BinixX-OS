@@ -65,7 +65,16 @@ Bureau à distance Windows (RDP)	rdp;mstsc;bureau à distance;connexion bureau	A
 VPN d'entreprise	vpn;cisco;anyconnect;openvpn;wireguard	Accès à distance	inclus	systemsettings	Configuration du système → Réseaux	Prend en charge OpenVPN, WireGuard, L2TP, SSTP et IPsec.
 Visual Studio Code	vscode;code;programmation;développement	Développement	flatpak	com.visualstudio.code	Visual Studio Code	
 Git (GitHub Desktop)	git;github;gitlab	Développement	flatpak	io.github.shiftey.Desktop	GitHub Desktop	
-Steam	steam;jeux	Jeux	flatpak	com.valvesoftware.Steam	Steam	Beaucoup de jeux Windows fonctionnent grâce à Proton.
+Steam	steam;jeux;valve	Jeux	flatpak	com.valvesoftware.Steam	Steam	Des milliers de jeux Windows fonctionnent grâce à Proton, intégré à Steam : activez-le dans les réglages de Steam si un jeu ne démarre pas.
+Epic Games Store	epic;epic games;fortnite;rocket league	Jeux	flatpak	com.heroicgameslauncher.hgl	Heroic Games Launcher	Se connecte à votre compte Epic, GOG ou Amazon Games ; les jeux Windows passent par Proton.
+GOG Galaxy	gog;galaxy;good old games;witcher	Jeux	flatpak	com.heroicgameslauncher.hgl	Heroic Games Launcher	Se connecte à votre compte GOG, Epic ou Amazon Games ; les jeux Windows passent par Proton.
+Battle.net	battle net;blizzard;diablo;overwatch;warcraft	Jeux	flatpak	net.lutris.Lutris	Lutris	Lutris propose des scripts d'installation pour Battle.net et d'autres boutiques ; le résultat varie selon les jeux, sans garantie.
+EA app (Origin)	ea;origin;ea app;fifa;sims	Jeux	flatpak	net.lutris.Lutris	Lutris	Lutris propose des scripts d'installation pour la boutique EA ; le résultat varie selon les jeux, sans garantie.
+Ubisoft Connect	ubisoft;uplay;assassin;far cry	Jeux	flatpak	net.lutris.Lutris	Lutris	Lutris propose des scripts d'installation pour Ubisoft Connect ; le résultat varie selon les jeux, sans garantie.
+Minecraft Launcher	minecraft;minecraft java;mojang	Jeux	flatpak	org.prismlauncher.PrismLauncher	Prism Launcher	Gère plusieurs installations de Minecraft Java ; un compte Minecraft acheté reste nécessaire.
+Jeux Windows : compatibilité Proton	proton;protondb;ge-proton;jeu qui ne démarre pas	Jeux	flatpak	net.davidotek.pupgui2	ProtonUp-Qt	Installe d'autres versions de Proton (GE-Proton) pour les jeux qui refusent de démarrer avec celle de Steam.
+Xbox Game Pass (jeux sur PC)	xbox;game pass;xbox cloud;xcloud	Jeux	web	https://www.xbox.com/play	Xbox Cloud Gaming (dans le navigateur)	Jeu en streaming, sans installation ; il faut un abonnement Game Pass Ultimate.
+NVIDIA GeForce NOW	geforce now;nvidia;cloud gaming	Jeux	web	https://play.geforcenow.com	GeForce NOW (dans le navigateur)	Jeu en streaming, sans installation ; vos jeux Steam, Epic ou Ubisoft doivent être pris en charge par le service.
 AutoCAD	autocad;dwg;dao;plans	Technique	flatpak	org.freecad.FreeCAD	FreeCAD	Pas d'équivalent exact : FreeCAD (3D) ou LibreCAD (2D) ; les .dwg se lisent, sans garantie.
 Sage, EBP, Ciel, Cegid (comptabilité, gestion)	sage;ebp;ciel;cegid;quadratus;compta;comptabilité;paie;facturation	Comptabilité et gestion	windows		Souvent une version en ligne	Beaucoup d'éditeurs proposent une version en ligne : vérifiez sur leur site. Sinon, voir « Windows complet » (Windows dans une machine virtuelle) ou « Compatibilité Windows ».
 QuickBooks	quickbooks;comptabilité	Comptabilité et gestion	web	https://quickbooks.intuit.com/	QuickBooks en ligne	La version de bureau n'existe que pour Windows.

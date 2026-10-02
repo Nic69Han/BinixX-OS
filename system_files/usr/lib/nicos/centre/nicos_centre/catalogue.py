@@ -20,6 +20,14 @@ BRUIT = {"setup", "install", "installer", "installation", "win", "windows", "win
          "amd", "setups", "web", "stub", "bundle", "set"}
 
 
+BADGES = {
+    "inclus": "Déjà installé",
+    "web": "En ligne",
+    "info": "Bon à savoir",
+    "windows": "Pas d'équivalent direct",
+}
+
+
 @dataclass(frozen=True)
 class Entree:
     windows: str
@@ -127,3 +135,40 @@ def fournies(listes=LISTES_FLATPAK):
                 if ligne:
                     identifiants.add(ligne)
     return identifiants
+
+
+def etat(entree, installees, fournies):
+    """(texte du badge, libellé du bouton ou None, action ou None) ; l'action est (genre, cible), voir launch.executer."""
+    if entree.type == "inclus":
+        return BADGES["inclus"], "Ouvrir", ("app", entree.cible)
+    if entree.type == "web":
+        return BADGES["web"], "Ouvrir le site", ("url", entree.cible)
+    if entree.type == "flatpak":
+        if entree.cible in installees:
+            return "Installé", "Ouvrir", ("flatpak", entree.cible)
+        if entree.cible in fournies:
+            return "Installé au premier démarrage", "Voir dans Discover", ("discover", entree.cible)
+        return "À installer depuis Flathub", "Installer", ("discover", entree.cible)
+    return BADGES[entree.type], None, None
+
+
+@dataclass(frozen=True)
+class Remplacant:
+    """Une application qui remplace plusieurs logiciels Windows (Heroic : Epic Games Store et GOG Galaxy)."""
+    nom: str
+    entree: Entree  # la première entrée qui la propose : type, cible et remarque
+    remplace: tuple
+
+
+def remplacants(entrees, categorie):
+    """Applications de la catégorie, chacune avec les logiciels Windows qu'elle remplace (ordre du catalogue)."""
+    trouves = {}
+    for entree in entrees:
+        if entree.categorie != categorie:
+            continue
+        cle = (entree.type, entree.cible)
+        if cle in trouves:
+            trouves[cle] = Remplacant(trouves[cle].nom, trouves[cle].entree, trouves[cle].remplace + (entree.windows,))
+        else:
+            trouves[cle] = Remplacant(entree.remplacant, entree, (entree.windows,))
+    return list(trouves.values())
