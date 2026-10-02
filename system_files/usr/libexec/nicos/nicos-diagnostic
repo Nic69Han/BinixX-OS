@@ -69,4 +69,7 @@ run lpstat -p
 section "Applications Flatpak installées"
 run flatpak list --app --columns=application,version
 
+section "Réglages du système modifiés depuis l'installation (noms des fichiers seulement)"
+run /usr/libexec/nicos/nicos-reparer-systeme liste --texte
+
 printf '\nFin du rapport.\n'
