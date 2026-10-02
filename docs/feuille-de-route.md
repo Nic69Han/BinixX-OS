@@ -84,13 +84,13 @@ Pro, Windows Autopilot). Chaque ligne est une pull request, empilée sur le socl
 
 | PR | Contenu | État |
 | --- | --- | --- |
-| **C1. Centre NicOS : Accueil** (#18) | Application PySide6 à pages ; accueil en français pour qui vient de Windows, ouvert une fois à la première session ; Centre de bienvenue de KDE désactivé. | Test VM en cours |
-| **C2. Mon logiciel Windows** (#19) | Catalogue de 64 équivalents (Word, Excel, Sage, Photoshop…), recherche sans accents, ouverture des `.exe` / `.msi` ; Bottles à la demande. | Test VM en cours |
-| **C3. Obtenir de l'aide** (#20) | Sept cas fréquents sans IA, rapport de diagnostic sans secret, bureau réinitialisable. | Test VM en cours |
-| **E1. Image d'entreprise** (#17) | Gabarit `entreprise/` (nom, paquets, Flatpak, page d'accueil, proxy), modèles de CI et d'ISO, guide en six étapes. | Test VM en cours |
-| **R1. Retour arrière automatique** (#21) | greenboot : trois démarrages en échec, retour à la version précédente ; test VM de bout en bout. | Test VM en cours |
+| **C1. Centre NicOS : Accueil** (#18) | Application PySide6 à pages ; accueil en français pour qui vient de Windows, ouvert une fois à la première session ; Centre de bienvenue de KDE désactivé. | Livré |
+| **C2. Mon logiciel Windows** (#19) | Catalogue de 64 équivalents (Word, Excel, Sage, Photoshop…), recherche sans accents, ouverture des `.exe` / `.msi` ; Bottles à la demande. | Livré |
+| **C3. Obtenir de l'aide** (#20) | Sept cas fréquents sans IA, rapport de diagnostic sans secret, bureau réinitialisable. | Livré |
+| **E1. Image d'entreprise** (#17) | Gabarit `entreprise/` (nom, paquets, Flatpak, page d'accueil, proxy), modèles de CI et d'ISO, guide en six étapes. | Livré |
+| **R1. Retour arrière automatique** (#21) | greenboot : trois démarrages en échec, retour à la version précédente ; test VM de bout en bout. | Livré |
 | **G1. Variante NVIDIA** (#22) | Image `nicos-nvidia` construite et testée comme `nicos`. **Validation sur matériel réel attendue**, fusion non automatique. | Brouillon |
-| **D1. Créer nouveau** (#23) | Document texte, Classeur, Présentation vierges (.docx, .xlsx, .pptx) dans Dolphin. | Test VM en cours |
+| **D1. Créer nouveau** (#23) | Document texte, Classeur, Présentation vierges (.docx, .xlsx, .pptx) dans Dolphin. | Livré |
 
 ## Lot 7 — Études (aucun code livré)
 
