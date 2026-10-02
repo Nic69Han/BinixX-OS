@@ -35,6 +35,17 @@ Journaux, rapports et captures d'écran (dont `bureau.png`) : `tests/vm/_work/lo
   Pour tester une pull request avant de la fusionner : lancer « Test VM » sur sa branche avec l'option
   `build` cochée. L'image est alors construite depuis la branche, et jamais promue.
 
+## Ajouter les vérifications d'une fonctionnalité
+
+Une fonctionnalité apporte ses propres fichiers, sans modifier les scripts communs (ce qui évite les
+conflits entre pull requests) :
+
+| Quoi | Où |
+| --- | --- |
+| Paquets et réglages de l'image | `build_files/modules.d/NN-nom.sh` ([README](../build_files/modules.d/README.md)) |
+| Contenu de l'image (niveau 1) | `tests/image/checks.d/NN-nom.sh` ([README](image/checks.d/README.md)) |
+| Système démarré en VM (niveau 2) | `tests/vm/checks.d/NN-nom.sh` ([README](vm/checks.d/README.md)) |
+
 ## 3. ISO publique : `tests/iso/boot-installer.sh`
 
 L'ISO de l'étape 2 installe toute seule, mais ce n'est pas celle que téléchargent les utilisateurs.
