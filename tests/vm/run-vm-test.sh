@@ -366,19 +366,19 @@ EOF
         ssh_vm sudo bootc switch "${BAD_UPDATE_REF}" </dev/null 2>&1 | tee "${LOGS}/bootc-switch-bad.log" ||
             die "bootc switch vers la mise à jour défectueuse"
         ssh_vm sudo systemctl reboot || true
-        # Trois démarrages en échec (compteur de greenboot), puis retour à la version précédente
+        # Trois démarrages en échec (compteur de greenboot), puis retour à la version précédente.
+        # Chaque démarrage défectueux ne dure qu'une vingtaine de secondes : on ne compte pas sur le fait de
+        # l'attraper par SSH. Le contrôle de la mise à jour défectueuse écrit une ligne par démarrage dans
+        # /var/log/nicos-test-boots (partagé avec la version précédente) : « version d'origine de nouveau
+        # démarrée et fichier non vide » prouve qu'elle a démarré, échoué, puis qu'on est revenu en arrière.
         deadline=$((SECONDS + 1800))
-        saw_bad=0
         rolled_back=0
         while [[ ${rolled_back} -eq 0 ]]; do
             vm_running || die "la VM s'est arrêtée pendant le retour arrière automatique"
             [[ ${SECONDS} -lt ${deadline} ]] || die "pas de retour arrière automatique en 30 minutes (voir ${LOGS}/boot-serial.log)"
             sleep 10
-            marker="$(ssh_vm 'test -e /usr/share/nicos/update-bad-marker && echo bad || echo good' 2>/dev/null || true)"
-            case "${marker}" in
-            bad) saw_bad=1 ;;
-            good) [[ ${saw_bad} -eq 1 ]] && rolled_back=1 ;;
-            esac
+            state="$(ssh_vm 'if test -e /usr/share/nicos/update-bad-marker; then echo bad; elif test -s /var/log/nicos-test-boots; then echo rolled-back; else echo good; fi' 2>/dev/null || true)"
+            [[ ${state} == "rolled-back" ]] && rolled_back=1
         done
         log "Retour arrière automatique effectué"
         guest_checks after-auto-rollback || die "vérifications après le retour arrière automatique"

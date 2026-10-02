@@ -79,15 +79,21 @@ class Page(QWidget):
         pied_layout = QHBoxLayout(pied)
         pied_layout.setContentsMargins(16, 12, 16, 12)
         texte = QLabel("<b>Si rien ne convient</b> : cherchez une version en ligne chez l'éditeur, essayez la "
-                       "compatibilité Windows (résultat non garanti), ou demandez à votre administrateur de "
-                       "garder un accès Windows pour ce logiciel.")
+                       "compatibilité Windows (résultat non garanti), faites tourner Windows lui-même dans une "
+                       "machine virtuelle, ou demandez à votre administrateur de garder un accès Windows pour "
+                       "ce logiciel.")
         texte.setWordWrap(True)
         bottles = QPushButton("Essayer avec Bottles")
         bottles.setObjectName("primary")
         bottles.setCursor(Qt.PointingHandCursor)
         bottles.clicked.connect(lambda: launch.open_discover(BOTTLES))
+        windows = QPushButton("Windows complet")
+        windows.setObjectName("primary")
+        windows.setCursor(Qt.PointingHandCursor)
+        windows.clicked.connect(lambda: self.centre.show_page("windows") if self.centre else None)
         pied_layout.addWidget(texte, 1)
         pied_layout.addWidget(bottles)
+        pied_layout.addWidget(windows)
         page.addWidget(pied)
 
         self.afficher("")
