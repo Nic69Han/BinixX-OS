@@ -34,6 +34,7 @@ class Centre(QWidget):
         self.options = options or {}
         self.errors = []
         self.keys = []
+        self.widgets = {}
         self.setWindowTitle("Centre NicOS")
         self.setWindowIcon(QIcon.fromTheme("nicos"))
         self.resize(1040, 680)
@@ -86,6 +87,7 @@ class Centre(QWidget):
         self.boutons.addButton(bouton, index)
         colonne.addWidget(bouton)
         self.keys.append(module.KEY)
+        self.widgets[module.KEY] = widget
         if index == 0:
             bouton.setChecked(True)
 
@@ -102,6 +104,8 @@ class Centre(QWidget):
 def parse(argv):
     parser = argparse.ArgumentParser(prog="nicos-centre", description="Centre NicOS")
     parser.add_argument("--page", default="accueil", help="page à ouvrir (accueil, catalogue, aide…)")
+    parser.add_argument("--programme", metavar="FICHIER",
+                        help="fichier Windows (.exe, .msi) ouvert par l'utilisateur : cherche son équivalent")
     parser.add_argument("--premier-demarrage", action="store_true",
                         help="n'ouvre la fenêtre qu'à la première ouverture de session")
     parser.add_argument("--test", metavar="DOSSIER",
@@ -118,6 +122,9 @@ def main(argv=None):
     app.setDesktopFileName("nicos-centre")
     app.setStyleSheet(theme.STYLE)
     centre = Centre()
+    if args.programme:
+        args.page = "catalogue"
+        centre.widgets["catalogue"].ouvrir_fichier(args.programme)
     centre.show_page(args.page)
 
     if args.test:

@@ -7,6 +7,6 @@ Exec=/usr/libexec/nicos/nicos-centre
 Icon=nicos
 Terminal=false
 Categories=System;
-Keywords=bienvenue;accueil;démarrer;premiers pas;windows;aide;
+Keywords=bienvenue;accueil;démarrer;premiers pas;windows;logiciel windows;équivalent;catalogue;aide;
 StartupNotify=true
 StartupWMClass=nicos-centre

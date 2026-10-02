@@ -12,3 +12,4 @@ else
     fail "Centre NicOS (--test) : ${out}"
 fi
 check "capture de la page d'accueil produite" test -s /tmp/centre-test/accueil.png
+rm -rf /tmp/centre-test
