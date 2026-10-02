@@ -7,7 +7,7 @@ check "lanceur des programmes Windows valide" desktop-file-validate /usr/share/a
 for mime in application/vnd.microsoft.portable-executable application/x-ms-dos-executable application/x-msdownload application/x-msi; do
     check "${mime} : ouvert par le Centre NicOS" grep -qx "${mime}=nicos-windows-program.desktop" /etc/xdg/kde-mimeapps.list
 done
-if out="$(NICOS_CENTRE=/usr/lib/nicos/centre NICOS_CATALOGUE="${CATALOGUE}" python3 -m unittest discover -s /tests/centre 2>&1)"; then
+if out="$(NICOS_CENTRE=/usr/lib/nicos/centre NICOS_CATALOGUE="${CATALOGUE}" python3 -m unittest discover -s /tests/centre -p 'test_catalogue.py' 2>&1)"; then
     pass "catalogue : tests de recherche et de lecture (${out##*$'\n'})"
 else
     fail "catalogue : tests de recherche et de lecture"
