@@ -100,8 +100,10 @@ check_administration() {
     fi
     local modules
     modules="$(runuser -u "${TEST_USER}" -- cockpit-bridge --packages 2>/dev/null | awk '{print $1}' | sort | tr '\n' ' ')"
+    # Noms déclarés dans les manifest.json : updates = cockpit-ostree, network = cockpit-networkmanager,
+    # storage = cockpit-storaged
     local module
-    for module in cockpit-ostree networkmanager storaged selinux files; do
+    for module in updates network storage selinux files; do
         if grep -qw "${module}" <<<"${modules}"; then pass "module « ${module} » chargé"; else fail "module « ${module} » absent (${modules})"; fi
     done
 }
