@@ -95,6 +95,28 @@ for csv in "${boot_csvs[@]}"; do
     [[ "${label}" == *",NicOS,"* && "${label}" != *Fedora* ]] || boot_csv_ok=0
 done
 if [[ ${boot_csv_ok} -eq 1 ]]; then pass "entrée de démarrage du firmware : NicOS (${#boot_csvs[@]} fichier(s) BOOT*.CSV)"; else fail "entrée de démarrage du firmware : BOOT*.CSV absent ou encore « Fedora »"; fi
+fedora_names="$(python3 - <<'PYEOF'
+import json, pathlib
+for folder in ("/usr/share/plasma/look-and-feel", "/usr/share/wallpapers"):
+    for meta in pathlib.Path(folder).glob("*/metadata.json"):
+        if meta.parent.is_symlink():  # Default -> F44 : seul le dossier réel compte
+            continue
+        name = json.loads(meta.read_text()).get("KPlugin", {}).get("Name", "")
+        if "fedora" in name.lower():
+            print(f"{meta.parent.name} ({name})", end=" ")
+PYEOF
+)"
+if [[ -z "${fedora_names}" ]]; then pass "aucun thème ni fond d'écran nommé « Fedora »"; else fail "thèmes ou fonds d'écran « Fedora » : ${fedora_names}"; fi
+check "fond d'écran « par défaut » de KDE : NicOS" test "$(readlink -f /usr/share/wallpapers/Default)" = /usr/share/wallpapers/NicOS
+check "Firefox : « À propos » sans Fedora" bash -c '! grep -qi fedora /usr/lib64/firefox/distribution/distribution.ini'
+check "Firefox : ni page d'accueil ni raccourci Fedora" \
+    bash -c '! grep -q fedoraproject /usr/lib64/firefox/browser/defaults/preferences/firefox-redhat-default-prefs.js'
+state="$(systemctl is-enabled flatpak-add-fedora-repos.service 2>/dev/null || true)"
+if [[ -z "${state}" || "${state}" == masked ]]; then
+    pass "pas de source d'applications Fedora ajoutée au démarrage (${state:-service absent})"
+else
+    fail "flatpak-add-fedora-repos.service : '${state}' (attendu : masked ou absent)"
+fi
 
 section "Applications Flatpak"
 LIST=/usr/share/nicos/flatpaks/system-flatpaks.list

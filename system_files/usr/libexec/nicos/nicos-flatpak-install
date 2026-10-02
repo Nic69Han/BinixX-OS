@@ -20,6 +20,13 @@ fi
 # Normalement ajouté par flatpak-add-flathub-repos.service (image de base Universal Blue)
 flatpak remote-add --system --if-not-exists "${REMOTE}" https://dl.flathub.org/repo/flathub.flatpakrepo
 
+# Seule source d'applications : Flathub (pas de source « Fedora » dans Discover)
+for remote in fedora fedora-testing; do
+    if flatpak remotes --system --columns=name | grep -qxF "${remote}"; then
+        flatpak remote-delete --system "${remote}" || echo "Source ${remote} conservée : des applications en dépendent"
+    fi
+done
+
 mapfile -t wanted < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "${LIST}")
 mapfile -t installed < <(flatpak list --system --app --columns=application)
 
