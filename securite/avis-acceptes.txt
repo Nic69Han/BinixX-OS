@@ -1,0 +1,5 @@
+# Avis de sécurité Fedora acceptés temporairement : l'analyse (`just scan-securite`) ne bloque pas le build pour eux.
+# Un avis par ligne, suivi de « # » et de la RAISON (obligatoire : un avis accepté sans raison fait échouer l'analyse).
+# Exemple :
+#   FEDORA-2026-0123456789  # le paquet n'est pas utilisé sur un poste de bureau ; correctif attendu dans la base le 12/10
+# Retirer la ligne dès que le correctif est dans l'image.

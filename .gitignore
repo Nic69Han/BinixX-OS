@@ -11,3 +11,7 @@ tests/iso/_work/
 /README.md
 
 __pycache__/
+
+# Produits par `just sbom` et `just scan-securite`
+/sbom.cdx.json
+/avis-securite.txt
