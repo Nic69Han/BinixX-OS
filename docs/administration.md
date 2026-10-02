@@ -40,3 +40,5 @@ Il n'écoute que sur le PC lui-même (adresses `127.0.0.1` et `::1`) : personne 
 depuis le réseau. Pour administrer un poste à distance, l'administrateur ouvre explicitement le
 service « cockpit » dans le pare-feu et change les adresses d'écoute (voir le commentaire de
 `/usr/lib/systemd/system/cockpit.socket.d/50-nicos-localhost.conf`).
+
+Pour une PME qui équipe plusieurs postes : [image-entreprise.md](image-entreprise.md).

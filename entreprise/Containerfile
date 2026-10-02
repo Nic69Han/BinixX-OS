@@ -1,0 +1,21 @@
+# Image de l'entreprise : NicOS + ses logiciels, ses réglages, son nom.
+# Construction : `podman build -t ghcr.io/<votre-organisation>/<nom-image>:stable entreprise/`
+# (ou la CI : voir github-actions.yml.modele). Guide : docs/image-entreprise.md
+
+# Image NicOS de départ. `stable` n'est publiée qu'après le test complet en VM.
+ARG BASE=ghcr.io/nic69han/nicos:stable
+
+# Contexte de build : ces fichiers servent pendant le build sans être copiés tels quels dans l'image
+FROM scratch AS ctx
+COPY build.sh entreprise.conf /
+COPY system_files /system_files
+COPY flatpaks /flatpaks
+
+FROM ${BASE}
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build.sh
+
+RUN bootc container lint

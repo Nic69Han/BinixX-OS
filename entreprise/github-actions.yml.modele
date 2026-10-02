@@ -1,0 +1,52 @@
+# Modèle de construction automatique de l'image de l'entreprise (GitHub Actions).
+# À copier dans .github/workflows/build.yml du dépôt de l'entreprise. Guide : docs/image-entreprise.md
+#
+# L'image est reconstruite à chaque modification et chaque nuit : elle reprend ainsi les correctifs de
+# sécurité de NicOS (étiquette `stable`, publiée seulement après le test complet de NicOS) sans rien faire.
+name: Image de l'entreprise
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/nicos-entreprise
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Construire l'image
+        run: |
+          IMAGE_LC="${IMAGE,,}"
+          podman build --tag "${IMAGE_LC}:testing" entreprise/
+          echo "IMAGE_LC=${IMAGE_LC}" >> "${GITHUB_ENV}"
+
+      - name: Se connecter au registre
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Publiée sous `stable` : c'est l'étiquette que suivent les postes de l'entreprise.
+      # Pour valider une version avant de la déployer, publier d'abord sous `testing`,
+      # essayer sur un poste pilote, puis ne promouvoir que ce qui est bon : docs/image-entreprise.md
+      - name: Publier
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          podman tag "${IMAGE_LC}:testing" "${IMAGE_LC}:stable"
+          podman push "${IMAGE_LC}:testing"
+          podman push "${IMAGE_LC}:stable"
