@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Excel (web)
+GenericName=Tableur Microsoft 365 (web)
+Comment=Classeurs Excel en ligne, enregistrés sur OneDrive
+Exec=/usr/libexec/nicos/nicos-webapp https://excel.cloud.microsoft/
+Icon=x-office-spreadsheet
+Terminal=false
+Categories=Office;
+Keywords=excel;microsoft;365;tableur;xlsx;
+StartupNotify=true
+# Classe de fenêtre de Chromium en mode application, pour grouper la fenêtre sous cette icône
+StartupWMClass=chrome-excel.cloud.microsoft__-Default

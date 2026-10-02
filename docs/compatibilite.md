@@ -27,6 +27,7 @@ Légende : ✅ vérifié · 🟡 attendu, à vérifier · ⚠️ partiel ou avec
 | Usage | Logiciel | État | Remarques |
 | --- | --- | --- | --- |
 | Courriel IMAP/SMTP, Gmail, Microsoft 365 | Thunderbird | 🟡 | Microsoft 365 via OAuth (connexion Microsoft dans Thunderbird) |
+| Microsoft 365 en ligne (Outlook, Word, Excel, PowerPoint, OneDrive) | Web apps du menu (Chromium) | 🟡 | Mêmes fonctions que dans le navigateur ; l'édition à plusieurs se fait ici |
 | Exchange sur site (EWS) | Thunderbird | ⚠️ | Selon la version de Thunderbird et la configuration du serveur |
 | Microsoft Teams | Web app (Chromium) | 🟡 | Version web de Teams : quelques fonctions du client Windows manquent |
 | Zoom | Web app (Chromium) | 🟡 | Client web Zoom : fonctions avancées (arrière-plans virtuels…) limitées |
@@ -39,6 +40,8 @@ Légende : ✅ vérifié · 🟡 attendu, à vérifier · ⚠️ partiel ou avec
 | Prise en main à distance du PC par le support | KRdp (Plasma) | 🟡 | À activer dans Configuration du système → Bureau à distance ; se pilote depuis mstsc |
 
 ## Matériel
+
+**Configuration minimale** : PC 64 bits (x86_64) avec UEFI, 2 cœurs, 4 Go de mémoire, 64 Go de disque. C'est la configuration du test en VM, qui installe et utilise NicOS à chaque version : un PC refusé par Windows 11 (processeur trop ancien, pas de TPM 2.0) convient le plus souvent.
 
 | Matériel | État | Remarques |
 | --- | --- | --- |
