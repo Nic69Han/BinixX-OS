@@ -28,3 +28,10 @@ video/x-msvideo=org.kde.haruna.desktop
 video/x-ms-wmv=org.kde.haruna.desktop
 video/quicktime=org.kde.haruna.desktop
 video/mpeg=org.kde.haruna.desktop
+
+# Programmes Windows (.exe, .msi) : NicOS ne les exécute pas ; il propose l'équivalent (Centre NicOS)
+application/vnd.microsoft.portable-executable=nicos-windows-program.desktop
+application/x-ms-dos-executable=nicos-windows-program.desktop
+application/x-msdownload=nicos-windows-program.desktop
+application/x-msi=nicos-windows-program.desktop
+application/x-dosexec=nicos-windows-program.desktop
