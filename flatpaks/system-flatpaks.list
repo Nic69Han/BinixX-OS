@@ -1,10 +1,10 @@
 # Applications Flatpak installées au premier démarrage (depuis Flathub, pour tout le système).
 # Un identifiant Flathub par ligne. Les lignes vides et les commentaires (#) sont ignorés.
 # Quand cette liste change, les applications manquantes sont installées au démarrage suivant.
+# Firefox n'y est pas : il est déjà dans l'image de base (paquet RPM, navigateur par défaut).
 
 # Bureautique
 org.onlyoffice.desktopeditors
-org.mozilla.firefox
 # Thunderbird ESR (version longue durée) ; l'ancien identifiant org.mozilla.Thunderbird est en fin de vie
 org.mozilla.thunderbird_esr
 org.kde.okular
@@ -13,6 +13,14 @@ com.nextcloud.desktopclient.nextcloud
 # Web apps (Teams, Zoom, Slack) : Chromium sert de moteur en mode « application »
 org.chromium.Chromium
 
+# Connexion Bureau à distance vers un PC ou un serveur Windows (RDP)
+org.remmina.Remmina
+
+# Sauvegarde des fichiers (comme « Historique des fichiers » de Windows)
+org.gnome.DejaDup
+
 # Utilitaires qu'un utilisateur Windows s'attend à trouver
 org.kde.gwenview
 org.kde.kcalc
+# Lecteur vidéo et audio
+org.kde.haruna

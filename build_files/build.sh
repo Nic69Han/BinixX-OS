@@ -81,13 +81,50 @@ ADMINISTRATION=(
     plasma-firewall-firewalld
 )
 
+# Français : correcteur orthographique, césure et synonymes pour les applications KDE
+# (l'image de base n'a que l'anglais)
+LANGUAGE=(
+    hunspell-fr
+    langpacks-fr
+)
+
+# OneDrive : client libre de synchronisation, configuré par l'assistant « OneDrive » du menu
+CLOUD=(
+    onedrive
+)
+
+# VPN intégrés à Windows (L2TP/IPsec, IKEv2, SSTP), réglables dans les paramètres réseau.
+# OpenVPN, Cisco AnyConnect (OpenConnect) et WireGuard sont déjà dans l'image de base.
+VPN=(
+    plasma-nm-l2tp
+    plasma-nm-sstp
+    plasma-nm-strongswan
+)
+
+# PME : rejoindre un domaine Active Directory (`realm join`, realmd est dans la base) et
+# ouvrir sa session avec son compte Windows ; le dossier personnel est créé à la 1re connexion
+ENTERPRISE=(
+    adcli
+    krb5-workstation
+    oddjob-mkhomedir
+    sssd-ad
+)
+
 dnf5 -y install \
     "${ADMINISTRATION[@]}" \
     "${FONTS[@]}" \
     "${PRINTING[@]}" \
     "${SCANNING[@]}" \
     "${VIDEOCONF[@]}" \
-    "${SECURITY[@]}"
+    "${SECURITY[@]}" \
+    "${LANGUAGE[@]}" \
+    "${CLOUD[@]}" \
+    "${VPN[@]}" \
+    "${ENTERPRISE[@]}"
+
+# Selawik (remplace Segoe UI, voir branding/fabriquer-selawik.sh) vient de system_files :
+# cache de fontconfig régénéré pour l'inclure
+fc-cache -s
 
 ### 3. Bureau Plasma
 # Thème global org.nicos.desktop : copie complète de Breeze (clair), puis nos fichiers
@@ -167,6 +204,45 @@ for csv in "${boot_csvs[@]}"; do
     cat /tmp/boot.csv >"${csv}"
     rm -f /tmp/boot.csv
 done
+
+# Plus de « Fedora » visible dans le bureau. plasma-workspace et plasma-setup imposent ces
+# paquets : on retire seulement ce qui s'affiche.
+# - Thèmes globaux « Fedora », « Fedora Dark », « Fedora Light » (Configuration du système) et
+#   fond d'écran « Fedora Forty-Four » (choix du fond d'écran) : repérés par leur nom affiché.
+# - Le fond d'écran « par défaut » de KDE (lien Default) devient celui de NicOS.
+python3 - <<'PYEOF'
+import json, pathlib, shutil
+for folder in ("/usr/share/plasma/look-and-feel", "/usr/share/wallpapers"):
+    for meta in sorted(pathlib.Path(folder).glob("*/metadata.json")):
+        if meta.parent.is_symlink():  # Default -> F44 : seul le dossier réel compte
+            continue
+        name = json.loads(meta.read_text()).get("KPlugin", {}).get("Name", "")
+        if "fedora" in name.lower():
+            print(f"Retiré : {meta.parent} ({name})")
+            shutil.rmtree(meta.parent)
+PYEOF
+ln -sfn NicOS /usr/share/wallpapers/Default
+
+# Firefox (paquet de Fedora) : page d'accueil et raccourci épinglé « Fedora Project - Start
+# Page », « Mozilla Firefox for Fedora » dans « À propos ». Page d'accueil de Firefox, et NicOS.
+FIREFOX_DIR=/usr/lib64/firefox
+sed -i '/start\.fedoraproject\.org/d' "${FIREFOX_DIR}/browser/defaults/preferences/firefox-redhat-default-prefs.js"
+cat >"${FIREFOX_DIR}/distribution/distribution.ini" <<'INIEOF'
+[Global]
+id=nicos
+version=1.0
+about=Mozilla Firefox pour NicOS
+
+[Preferences]
+app.distributor=nicos
+app.distributor.channel=nicos
+INIEOF
+
+# Discover ne propose que Flathub : pas de source d'applications « Fedora »
+# (nicos-flatpak-install retire aussi une source déjà ajoutée)
+if [[ -f /usr/lib/systemd/system/flatpak-add-fedora-repos.service ]]; then
+    systemctl mask flatpak-add-fedora-repos.service
+fi
 
 ### 5. Applications Flatpak
 # La liste est installée au premier démarrage par nicos-flatpak-install.service

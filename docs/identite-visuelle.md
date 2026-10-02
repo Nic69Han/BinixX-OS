@@ -56,13 +56,21 @@ Restent, visibles seulement en ligne de commande ou dans les détails techniques
 
 | Trace | Pourquoi elle reste |
 | --- | --- |
-| Numéro du noyau `…fc44` | Changer le noyau obligerait à le recompiler et le signer nous-mêmes ; Secure Boot le refuserait |
+| Numéro du noyau `…fc44`, aussi dans Configuration du système → À propos (« Version du noyau ») | Changer le noyau obligerait à le recompiler et le signer nous-mêmes ; Secure Boot le refuserait |
 | Dossier `EFI/fedora` sur la partition de démarrage | Les chargeurs signés pour Secure Boot (shim, GRUB) cherchent ce chemin |
 | `ID=fedora`, `/etc/fedora-release`, dépôts et paquets « fedora » | Les outils de mise à jour et les logiciels s'en servent pour reconnaître la base Fedora |
 | Installeur (ISO) | À vérifier au premier build de l'ISO ; si besoin, passer à une ISO « live » (Titanoboa) |
 
 La politique de marque Fedora demande de retirer ses logos d'un système dérivé et permet de dire
 qu'il est « basé sur Fedora » : c'est ce que fait NicOS.
+
+Retirés du bureau par `build_files/build.sh` (et vérifiés par `tests/image/check-image.sh`) :
+
+- les thèmes globaux « Fedora », « Fedora Dark » et « Fedora Light » ; le fond d'écran « Fedora
+  Forty-Four » (le fond « par défaut » de KDE devient celui de NicOS) ;
+- dans Firefox (paquet de Fedora) : la page d'accueil et le raccourci « Fedora Project - Start
+  Page », et « Mozilla Firefox for Fedora » dans « À propos » (« pour NicOS ») ;
+- une source d'applications « Fedora » dans Discover : seule Flathub reste.
 
 ## À vérifier avant une diffusion publique
 

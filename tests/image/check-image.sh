@@ -22,7 +22,8 @@ section "Paquets"
 for pkg in google-carlito-fonts google-crosextra-caladea-fonts liberation-sans-fonts \
     liberation-serif-fonts liberation-mono-fonts cups cups-pdf hplip gutenprint-cups \
     sane-backends sane-airscan ipp-usb skanpage pipewire xdg-desktop-portal-kde mokutil \
-    plasma-setup; do
+    plasma-setup langpacks-fr hunspell-fr onedrive plasma-nm-l2tp plasma-nm-sstp plasma-nm-strongswan \
+    adcli sssd-ad oddjob-mkhomedir krb5-workstation firefox; do
     check "${pkg} installé" rpm -q "${pkg}"
 done
 
@@ -37,6 +38,9 @@ expect_font Cambria Caladea
 expect_font Arial "Liberation Sans"
 expect_font "Times New Roman" "Liberation Serif"
 expect_font "Courier New" "Liberation Mono"
+expect_font "Segoe UI" Selawik
+expect_font "Segoe UI Semibold" Selawik
+check "licence de Selawik fournie avec la police" test -s /usr/share/fonts/selawik/LICENSE.txt
 
 section "Bureau Plasma"
 LNF=/usr/share/plasma/look-and-feel/org.nicos.desktop
@@ -95,6 +99,28 @@ for csv in "${boot_csvs[@]}"; do
     [[ "${label}" == *",NicOS,"* && "${label}" != *Fedora* ]] || boot_csv_ok=0
 done
 if [[ ${boot_csv_ok} -eq 1 ]]; then pass "entrée de démarrage du firmware : NicOS (${#boot_csvs[@]} fichier(s) BOOT*.CSV)"; else fail "entrée de démarrage du firmware : BOOT*.CSV absent ou encore « Fedora »"; fi
+fedora_names="$(python3 - <<'PYEOF'
+import json, pathlib
+for folder in ("/usr/share/plasma/look-and-feel", "/usr/share/wallpapers"):
+    for meta in pathlib.Path(folder).glob("*/metadata.json"):
+        if meta.parent.is_symlink():  # Default -> F44 : seul le dossier réel compte
+            continue
+        name = json.loads(meta.read_text()).get("KPlugin", {}).get("Name", "")
+        if "fedora" in name.lower():
+            print(f"{meta.parent.name} ({name})", end=" ")
+PYEOF
+)"
+if [[ -z "${fedora_names}" ]]; then pass "aucun thème ni fond d'écran nommé « Fedora »"; else fail "thèmes ou fonds d'écran « Fedora » : ${fedora_names}"; fi
+check "fond d'écran « par défaut » de KDE : NicOS" test "$(readlink -f /usr/share/wallpapers/Default)" = /usr/share/wallpapers/NicOS
+check "Firefox : « À propos » sans Fedora" bash -c '! grep -qi fedora /usr/lib64/firefox/distribution/distribution.ini'
+check "Firefox : ni page d'accueil ni raccourci Fedora" \
+    bash -c '! grep -q fedoraproject /usr/lib64/firefox/browser/defaults/preferences/firefox-redhat-default-prefs.js'
+state="$(systemctl is-enabled flatpak-add-fedora-repos.service 2>/dev/null || true)"
+if [[ -z "${state}" || "${state}" == masked ]]; then
+    pass "pas de source d'applications Fedora ajoutée au démarrage (${state:-service absent})"
+else
+    fail "flatpak-add-fedora-repos.service : '${state}' (attendu : masked ou absent)"
+fi
 
 section "Applications Flatpak"
 LIST=/usr/share/nicos/flatpaks/system-flatpaks.list
@@ -102,16 +128,26 @@ check "liste Flatpak installée dans l'image" test -f "${LIST}"
 if [[ -f /flatpaks/system-flatpaks.list ]]; then
     check "liste Flatpak identique à celle du dépôt" cmp -s "${LIST}" /flatpaks/system-flatpaks.list
 fi
-for app in org.onlyoffice.desktopeditors org.mozilla.firefox org.mozilla.thunderbird_esr org.kde.okular \
-    com.nextcloud.desktopclient.nextcloud org.chromium.Chromium; do
+for app in org.onlyoffice.desktopeditors org.mozilla.thunderbird_esr org.kde.okular \
+    com.nextcloud.desktopclient.nextcloud org.chromium.Chromium org.remmina.Remmina org.gnome.DejaDup \
+    org.kde.haruna; do
     check "${app} dans la liste" grep -qx "${app}" "${LIST}"
 done
+# Firefox vient de l'image (navigateur par défaut de Fedora) : pas de second Firefox en Flatpak
+check "pas de Firefox en double dans la liste Flatpak" bash -c "! grep -qx org.mozilla.firefox '${LIST}'"
 
 section "Web apps"
 for webapp in teams zoom slack outlook word excel powerpoint microsoft365; do
     check "lanceur ${webapp} valide" desktop-file-validate "/usr/share/applications/nicos-webapp-${webapp}.desktop"
 done
 check "lanceur de web apps exécutable" test -x /usr/libexec/nicos/nicos-webapp
+
+section "OneDrive, vidéo, entreprise"
+check "lanceur OneDrive valide" desktop-file-validate /usr/share/applications/nicos-onedrive.desktop
+check "assistant OneDrive exécutable" test -x /usr/libexec/nicos/nicos-onedrive-setup
+check "service de synchronisation OneDrive (utilisateur)" test -f /usr/lib/systemd/user/onedrive.service
+check "Haruna lit les vidéos par défaut" grep -qx 'video/mp4=org.kde.haruna.desktop' /etc/xdg/kde-mimeapps.list
+check "jonction à un domaine Active Directory (realm)" bash -c 'command -v realm'
 
 section "Administration à la souris"
 for pkg in cockpit cockpit-files cockpit-networkmanager cockpit-ostree cockpit-selinux cockpit-storaged \
