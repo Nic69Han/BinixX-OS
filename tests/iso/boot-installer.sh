@@ -222,8 +222,9 @@ done
 sleep 20 # fin des animations d'ouverture
 
 # Une seule ligne : l'écho des lignes suivantes se mêlerait sinon à la sortie.
+# L'installeur n'a pas pgrep : on compte les processus dans /proc ([b] évite de compter grep lui-même).
 # shellcheck disable=SC2016  # les $(…) s'évaluent dans l'installeur, pas ici
-report="$(console 'echo "Produit (.buildstamp) : $(sed -n s/^Product=//p /.buildstamp)"; echo "Version (.buildstamp) : $(sed -n s/^Version=//p /.buildstamp)"; echo "Secure Boot : $(od -An -tu1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c | tr -s " " "\n" | tail -n 1)"; echo "Processus anaconda : $(pgrep -fc bin/anaconda)"; echo "--- /tmp/anaconda.log (mode d affichage, erreurs)"; grep -iE "display mode|wayland|traceback" /tmp/anaconda.log | tail -n 20' || true)"
+report="$(console 'echo "Secure Boot : $(od -An -tu1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c | tr -s " " "\n" | tail -n 1)"; echo "Processus anaconda : $(grep -las "[b]in/anaconda" /proc/[0-9]*/cmdline | wc -l)"; echo "--- Nom du produit"; grep -iE "^(product|version|name|pretty_name) *=" /.buildstamp /etc/os-release 2>&1; echo "--- /tmp/anaconda.log (mode d affichage, erreurs)"; grep -iE "display mode|wayland|traceback" /tmp/anaconda.log | tail -n 20' || true)"
 printf '%s\n' "${report}" | tee "${LOGS}/installeur.txt"
 screenshot installeur
 
