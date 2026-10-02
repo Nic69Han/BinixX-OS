@@ -82,3 +82,15 @@ def installed_flatpaks():
     except (OSError, subprocess.TimeoutExpired):
         return set()
     return {ligne.strip() for ligne in sortie.splitlines() if ligne.strip()}
+
+
+def open_folder(chemin):
+    """Ouvre un dossier dans le gestionnaire de fichiers ; False s'il n'existe pas."""
+    if not os.path.isdir(chemin):
+        return False
+    return _start(["xdg-open", chemin])
+
+
+def open_devices():
+    """Ouvre la liste des disques et clés (Dolphin, « Périphériques »), où un clic monte un disque."""
+    return _start(["dolphin", "devices:/"])

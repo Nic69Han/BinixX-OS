@@ -52,7 +52,7 @@ automatiques testées avec retour arrière, applications isolées (Flatpak), les
 
 | PR | Contenu | Critères d'acceptation |
 | --- | --- | --- |
-| **M1. Assistant de migration** | Récupère Documents, Bureau, Images, Musique, Vidéos et favoris du navigateur depuis l'ancien disque Windows ou une clé USB. | Test VM avec un faux profil Windows : fichiers et favoris retrouvés. |
+| **M1. Assistant de migration** | **Livré** (« Récupérer mes fichiers Windows ») : Documents, Bureau, Images, Musique, Vidéos, Téléchargements et favoris du navigateur depuis l'ancien disque Windows, une clé USB ou un dossier, sans rien écraser : [migration-windows.md](migration-windows.md#récupérer-ses-fichiers--récupérer-mes-fichiers-windows). Reste : lire une sauvegarde « Historique des fichiers », importer les mots de passe. | Test VM avec un faux profil Windows : fichiers et favoris retrouvés. |
 | **M2. Vieux PC** | Cible 4 Go de mémoire : le test VM tourne avec 4 Go ; services d'arrière-plan allégés si besoin. | Test VM complet vert à 4 Go. |
 | **M3. Essayer sans installer** | ISO « live » : NicOS démarre depuis la clé USB, sans toucher au disque, avec un bouton « Installer ». | Test de démarrage de l'ISO live jusqu'au bureau. |
 
