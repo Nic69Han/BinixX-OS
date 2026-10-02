@@ -187,16 +187,18 @@ trap cleanup EXIT
 
 start_vm() { # start_vm <journal série> [paramètres du noyau] : démarre l'ISO, disque vierge
     local serial="$1" append="${2:-}"
-    local boot=(-drive "file=${ISO},if=none,id=cd0,media=cdrom,readonly=on" -device "ide-cd,drive=cd0,bootindex=0")
+    local boot=(-drive "file=${ISO},if=none,id=cd0,media=cdrom,readonly=on")
     if [[ -n "${append}" ]]; then
         # Noyau de l'ISO démarré directement, avec d'autres paramètres : sans Secure Boot, qui
-        # ne vérifierait pas ce noyau (shim et GRUB sont testés par le démarrage normal)
+        # ne vérifierait pas ce noyau (shim et GRUB sont testés par le démarrage normal).
+        # QEMU démarre alors sur le noyau : l'ISO ne doit pas avoir de priorité de démarrage.
         cp "${OVMF_VARS}" "${VARS}"
-        boot+=(-kernel "${WORK}/iso-boot/vmlinuz" -initrd "${WORK}/iso-boot/initrd.img" -append "${append}")
-    elif [[ ${SECURE_BOOT} -eq 1 ]]; then
-        cp "${OVMF_VARS_SECURE_BOOT}" "${VARS}"
+        boot+=(-device "ide-cd,drive=cd0"
+            -kernel "${WORK}/iso-boot/vmlinuz" -initrd "${WORK}/iso-boot/initrd.img" -append "${append}")
     else
-        cp "${OVMF_VARS}" "${VARS}"
+        # Démarrage par le firmware sur l'ISO (shim, GRUB), comme sur un vrai PC
+        boot+=(-device "ide-cd,drive=cd0,bootindex=0")
+        if [[ ${SECURE_BOOT} -eq 1 ]]; then cp "${OVMF_VARS_SECURE_BOOT}" "${VARS}"; else cp "${OVMF_VARS}" "${VARS}"; fi
     fi
     # Disque vierge : l'installeur doit trouver une destination, comme sur un vrai PC
     rm -f "${DISK}" "${QMP_SOCK}" "${CONSOLE_SOCK}"
