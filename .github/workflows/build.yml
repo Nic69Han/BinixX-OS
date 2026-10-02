@@ -122,6 +122,13 @@ jobs:
             "${IMAGE_NAME}" \
             "${DEFAULT_TAG}"
 
+      # NicOS: the enterprise template (entreprise/) must keep building on top of this image
+      - name: Test enterprise image template
+        run: |
+          just test-entreprise \
+            "${IMAGE_NAME}" \
+            "${DEFAULT_TAG}"
+
       # These `if` statements are so that pull requests for your custom images do not make it publish any packages under your name without you knowing
       # They also check if the runner is on the default branch so that things like the merge queue (if you enable it), are going to work
       - name: Login to GitHub Container Registry

@@ -3,6 +3,7 @@ FROM scratch AS ctx
 COPY build_files /
 COPY system_files /system_files
 COPY flatpaks /flatpaks
+COPY entreprise /entreprise
 
 # Image de base : Fedora Kinoite (KDE Plasma) préparée par Universal Blue
 # (codecs, pilotes, Flathub, mises à jour automatiques déjà configurés).
