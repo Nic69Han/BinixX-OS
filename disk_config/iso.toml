@@ -7,8 +7,9 @@
 # demandé au premier démarrage par l'assistant KDE « Plasma Setup », comme l'accueil
 # de Windows. Activer ici le module Users ferait créer le compte deux fois.
 #
-# Logo et couleurs NicOS de l'installeur : ajoutés après coup par
-# disk_config/personnaliser-iso.sh (bootc-image-builder n'a pas d'option pour cela).
+# Nom du volume (« NicOS-44-x86_64 », nom de la clé USB) et logo NicOS de l'installeur :
+# appliqués après coup par disk_config/personnaliser-iso.sh (bootc-image-builder n'a pas
+# d'option pour cela).
 
 [customizations.installer.kickstart]
 contents = """

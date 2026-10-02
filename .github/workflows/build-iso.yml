@@ -74,14 +74,15 @@ jobs:
           types: anaconda-iso
           additional-args: --use-librepo=True
 
-      # bootc-image-builder builds the installer from Fedora packages (Fedora logo) and has no
-      # branding option: add images/product.img with the NicOS logo and colors (see the script).
-      - name: Brand the installer
+      # bootc-image-builder names the volume "Fedora-S-dvd-…" and builds the installer from Fedora
+      # packages (Fedora logo), with no option for either: rename the volume "NicOS-…" everywhere
+      # the boot menus use it, and add images/product.img with the NicOS logo (see the script).
+      - name: Brand the ISO
         env:
           OUTPUT_DIR: ${{ steps.build.outputs.output-directory }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xorriso cpio isomd5sum
+          sudo apt-get install -y --no-install-recommends xorriso mtools cpio isomd5sum
           iso="$(find "${OUTPUT_DIR}" -name '*.iso' -print -quit)"
           disk_config/personnaliser-iso.sh "${iso}"
 

@@ -1,8 +1,9 @@
 #!/usr/bin/bash
 # Démarre l'ISO d'installation publique dans une VM KVM, comme sur un vrai PC : firmware UEFI
 # avec Secure Boot (clés Microsoft), puis shim, GRUB et l'installeur graphique de l'ISO.
-# N'installe rien. Vérifie que l'installeur graphique démarre, avec l'écran de choix de la langue
-# et le logo NicOS (disk_config/personnaliser-iso.sh), et en fait une capture d'écran.
+# N'installe rien. Vérifie que l'installeur graphique démarre depuis le volume « NicOS-… », avec
+# l'écran de choix de la langue et le logo NicOS (disk_config/personnaliser-iso.sh), et en fait une
+# capture d'écran.
 # Second démarrage, la langue demandée au lancement (inst.lang, français par défaut) : vérifie que
 # l'installeur s'affiche dans cette langue et en fait une capture.
 #
@@ -256,7 +257,7 @@ installer_report() { # état de l'installeur, lu par son shell root
     # L'installeur n'a pas pgrep : on compte les processus dans /proc ([b] évite de compter grep
     # lui-même). La langue est la dernière choisie par Anaconda (journal).
     # shellcheck disable=SC2016  # les $(…) s'évaluent dans l'installeur, pas ici
-    console 'echo "Secure Boot : $(od -An -tu1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c | tr -s " " "\n" | tail -n 1)"; echo "Processus anaconda : $(grep -las "[b]in/anaconda" /proc/[0-9]*/cmdline | wc -l)"; echo "Module de langue : $(grep -las "[p]yanaconda.modules.localization" /proc/[0-9]*/cmdline | wc -l)"; echo "Langue : $(grep -o "setting locale to: .*" /tmp/anaconda.log | tail -n 1 | cut -d " " -f 4)"; echo "Logo : $(md5sum </usr/share/anaconda/pixmaps/nicos/sidebar-logo.png | cut -c 1-32)"; echo "Style : $(test -s /run/install/product/anaconda-gtk.css && echo NicOS)"; echo "--- Nom du produit"; grep -iE "^(product|version|name|pretty_name) *=" /.buildstamp /etc/os-release 2>&1; echo "--- /tmp/anaconda.log (mode d affichage, langue, erreurs)"; grep -iE "display mode|wayland|setting locale|setlocale failed|traceback" /tmp/anaconda.log | tail -n 20' || true
+    console 'echo "Secure Boot : $(od -An -tu1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c | tr -s " " "\n" | tail -n 1)"; echo "Processus anaconda : $(grep -las "[b]in/anaconda" /proc/[0-9]*/cmdline | wc -l)"; echo "Module de langue : $(grep -las "[p]yanaconda.modules.localization" /proc/[0-9]*/cmdline | wc -l)"; echo "Langue : $(grep -o "setting locale to: .*" /tmp/anaconda.log | tail -n 1 | cut -d " " -f 4)"; echo "Logo : $(md5sum </usr/share/anaconda/pixmaps/nicos/sidebar-logo.png | cut -c 1-32)"; echo "Style : $(test -s /run/install/product/anaconda-gtk.css && echo NicOS)"; echo "Volume : $(sed -n "s/.*inst.stage2=hd:LABEL=\([^ ]*\).*/\1/p" /proc/cmdline)"; echo "--- Nom du produit"; grep -iE "^(product|version|name|pretty_name) *=" /.buildstamp /etc/os-release 2>&1; echo "--- /tmp/anaconda.log (mode d affichage, langue, erreurs)"; grep -iE "display mode|wayland|setting locale|setlocale failed|traceback" /tmp/anaconda.log | tail -n 20' || true
 }
 
 failures=0
@@ -283,6 +284,7 @@ fi
 expect "écran « Bienvenue » : choix de la langue (module Localization)" 'Module de langue : [1-9][0-9]*' "${report}"
 expect "logo NicOS (product.img) à la place de celui de Fedora" "Logo : ${logo_md5}" "${report}"
 expect "couleurs NicOS (anaconda-gtk.css)" 'Style : NicOS' "${report}"
+expect "installeur trouvé sur le volume NicOS (nom de la clé USB)" 'Volume : NicOS-[^ ]+' "${report}"
 if grep -qi 'wayland startup failed' <<<"${report}"; then
     echo "ÉCHEC     l'installeur est passé en mode texte" && failures=$((failures + 1))
 fi
