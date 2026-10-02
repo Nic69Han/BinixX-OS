@@ -16,13 +16,15 @@ droits = {n.tagName: n.firstChild.data for n in action.getElementsByTagName("def
 assert droits == {"allow_any": "no", "allow_inactive": "no", "allow_active": "auth_admin"}, droits
 PYEOF
 # Les dossiers pris en charge par l'outil existent bien dans l'image : un nom mal écrit passerait inaperçu
-check "dossiers de réglages pris en charge présents dans l'image" python3 - <<'PYEOF'
+check "dossiers de réglages pris en charge : connus de l'outil et présents dans l'image" python3 - <<'PYEOF'
 import importlib.machinery, importlib.util, os
 chargeur = importlib.machinery.SourceFileLoader("r", "/usr/libexec/nicos/nicos-reparer-systeme")
 module = importlib.util.module_from_spec(importlib.util.spec_from_loader("r", chargeur))
 chargeur.exec_module(module)
-for prefixe in ("sddm.conf.d/", "xdg/", "profile.d/", "sysctl.d/", "systemd/"):
+# Dossiers que l'image de base fournit toujours (sddm.conf.d n'en fait pas partie : on le crée au besoin)
+for prefixe in ("xdg/", "profile.d/", "sysctl.d/", "systemd/"):
     assert os.path.isdir("/etc/" + prefixe.rstrip("/")), prefixe
+for prefixe in ("sddm.conf.d/", "xdg/", "profile.d/", "sysctl.d/", "systemd/"):
     assert module.categorie(prefixe + "x") is not None, prefixe
 assert module.categorie("passwd") is None and module.categorie("ssh/sshd_config") is None
 PYEOF
