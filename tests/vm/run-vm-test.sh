@@ -4,10 +4,12 @@
 #   2. installe NicOS sur un disque vierge, sans aucune intervention ;
 #   3. démarre le système installé (UEFI + Secure Boot) et le vérifie (guest-checks.sh) ;
 #   4. le met à jour depuis un registre local, redémarre et vérifie, puis revient en arrière
-#      avec `bootc rollback`, redémarre et vérifie de nouveau.
+#      avec `bootc rollback`, redémarre et vérifie de nouveau ;
+#   5. lui impose une mise à jour défectueuse (plus d'écran de connexion) : il doit revenir tout seul
+#      à la version précédente après trois démarrages (greenboot, retour arrière automatique).
 #
 # Usage : sudo tests/vm/run-vm-test.sh --image ghcr.io/nic69han/nicos:testing
-#         [--switch-ref REF] [--workdir DIR] [--no-secure-boot] [--skip-update]
+#         [--switch-ref REF] [--workdir DIR] [--no-secure-boot] [--skip-update] [--skip-auto-rollback]
 #
 # --image accepte une étiquette ou une empreinte (…/nicos@sha256:…), pour tester exactement
 # l'image qui sera promue. --switch-ref est l'image que le système installé suivra ensuite
@@ -28,6 +30,7 @@ SWITCH_REF=""
 WORK="${TEST_DIR}/_work"
 SECURE_BOOT=1
 RUN_UPDATE=1
+RUN_AUTO_ROLLBACK=1
 while [[ $# -gt 0 ]]; do
     case "$1" in
     --image) IMAGE="$2" && shift 2 ;;
@@ -35,6 +38,7 @@ while [[ $# -gt 0 ]]; do
     --workdir) WORK="$2" && shift 2 ;;
     --no-secure-boot) SECURE_BOOT=0 && shift ;;
     --skip-update) RUN_UPDATE=0 && shift ;;
+    --skip-auto-rollback) RUN_AUTO_ROLLBACK=0 && shift ;;
     -h | --help) sed -n '2,21p' "${BASH_SOURCE[0]}" && exit 0 ;;
     *) echo "Option inconnue : $1" >&2 && exit 2 ;;
     esac
@@ -53,6 +57,7 @@ SSH_PORT="${SSH_PORT:-2222}"
 BIB_IMAGE="${BIB_IMAGE:-quay.io/centos-bootc/bootc-image-builder:latest}"
 REGISTRY_PORT=5000
 UPDATE_REF="10.0.2.2:${REGISTRY_PORT}/nicos:update-test" # 10.0.2.2 = l'hôte, vu depuis la VM
+BAD_UPDATE_REF="10.0.2.2:${REGISTRY_PORT}/nicos:update-bad"
 TEST_USER=testeur
 
 LOGS="${WORK}/logs"
@@ -348,6 +353,34 @@ EOF
         die "bootc rollback"
     reboot_vm
     guest_checks after-rollback || die "vérifications après le retour arrière"
+
+    ### 5. Mise à jour défectueuse : retour arrière automatique (greenboot) ---------------
+
+    if [[ ${RUN_AUTO_ROLLBACK} -eq 1 ]]; then
+        log "Mise à jour défectueuse : l'écran de connexion ne démarre plus"
+        podman build --pull=never --build-arg "BASE_IMAGE=${CANDIDATE}" \
+            -t localhost/nicos-update-bad:latest "${TEST_DIR}/update-bad"
+        podman push --tls-verify=false localhost/nicos-update-bad:latest "localhost:${REGISTRY_PORT}/nicos:update-bad"
+        ssh_vm sudo bootc switch "${BAD_UPDATE_REF}" </dev/null 2>&1 | tee "${LOGS}/bootc-switch-bad.log" ||
+            die "bootc switch vers la mise à jour défectueuse"
+        ssh_vm sudo systemctl reboot || true
+        # Trois démarrages en échec (compteur de greenboot), puis retour à la version précédente
+        deadline=$((SECONDS + 1800))
+        saw_bad=0
+        rolled_back=0
+        while [[ ${rolled_back} -eq 0 ]]; do
+            vm_running || die "la VM s'est arrêtée pendant le retour arrière automatique"
+            [[ ${SECONDS} -lt ${deadline} ]] || die "pas de retour arrière automatique en 30 minutes (voir ${LOGS}/boot-serial.log)"
+            sleep 10
+            marker="$(ssh_vm 'test -e /usr/share/nicos/update-bad-marker && echo bad || echo good' 2>/dev/null || true)"
+            case "${marker}" in
+            bad) saw_bad=1 ;;
+            good) [[ ${saw_bad} -eq 1 ]] && rolled_back=1 ;;
+            esac
+        done
+        log "Retour arrière automatique effectué"
+        guest_checks after-auto-rollback || die "vérifications après le retour arrière automatique"
+    fi
 fi
 
 log "Test VM réussi : installation, démarrage$([[ ${RUN_UPDATE} -eq 1 ]] && echo ', mise à jour et retour arrière') validés"

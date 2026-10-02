@@ -37,6 +37,34 @@ sudo bootc switch ghcr.io/nic69han/nicos:stable    # revenir au canal stable
 
 La version précédente est aussi proposée dans le menu de démarrage.
 
+## Retour arrière automatique
+
+Si une mise à jour empêche l'écran de connexion de démarrer, le PC **revient tout seul à la version
+précédente** : l'utilisateur voit le PC redémarrer deux ou trois fois, puis retrouve son bureau, sans
+rien faire. C'est [greenboot](https://github.com/fedora-iot/greenboot-rs) (licence BSD-3-Clause, conçu
+pour bootc) :
+
+1. après une mise à jour, le chargeur de démarrage compte les essais (trois au plus) ;
+2. à chaque démarrage, greenboot lance les contrôles de `/etc/greenboot/check/required.d/` ; le seul
+   contrôle de NicOS est `10-nicos-connexion.sh` : le service de l'écran de connexion
+   (`display-manager.service`) doit démarrer ;
+3. contrôle réussi : le démarrage est déclaré bon, la mise à jour est adoptée ; contrôle en échec : le PC
+   redémarre ; au troisième échec, il démarre la version précédente.
+
+Choix de prudence :
+
+- **un seul contrôle, celui qui rend le PC inutilisable.** Pas de test du réseau : un portable qui démarre
+  hors connexion ne doit jamais revenir en arrière à tort. Les contrôles « par défaut » de greenboot
+  (résolution DNS des dépôts) ne sont donc pas installés ;
+- un PC volontairement sans bureau (cible par défaut autre que `graphical.target`) n'est pas contrôlé ;
+- on attend jusqu'à 4 minutes que l'écran de connexion démarre, pour ne pas pénaliser un vieux PC ;
+- une panne qui n'empêche pas l'écran de connexion de démarrer ne déclenche pas le retour arrière :
+  le retour manuel reste possible (`sudo bootc rollback`, ou Administration du PC).
+
+Le test en VM le vérifie de bout en bout : une « mise à jour défectueuse » (sans écran de connexion) est
+publiée dans un registre local, la VM doit redémarrer trois fois puis revenir seule à la version
+précédente (`tests/vm/update-bad/`, phase `after-auto-rollback`).
+
 ## Changer de version de Fedora
 
 L'image de base est épinglée sur Fedora 44 (`kinoite-main:44` dans le `Containerfile`) : le
