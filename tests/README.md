@@ -31,7 +31,7 @@ Journaux, rapports et captures d'écran (dont `bureau.png`) : `tests/vm/_work/lo
 - En CI : `test-vm.yml`, après chaque build réussi de `main` ou à la main depuis l'onglet Actions.
   Il fige l'empreinte de l'image `testing`, la teste et, **si tout passe, la promeut en `stable`**,
   le canal que suivent les postes installés (voir [docs/mises-a-jour.md](../docs/mises-a-jour.md)).
-  Compter 1 à 2 heures ; les journaux sont joints au run (artefact `vm-test-logs`).
+  Compter 1 à 2 heures ; les journaux sont joints au run (artefact `vm-test-logs-nicos`, et `vm-test-logs-nicos-nvidia` pour la variante NVIDIA).
   Pour tester une pull request avant de la fusionner : lancer « Test VM » sur sa branche avec l'option
   `build` cochée. L'image est alors construite depuis la branche, et jamais promue.
 
