@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Accueil NicOS
+Comment=Ouvre le Centre NicOS à la première ouverture de session
+Exec=/usr/libexec/nicos/nicos-centre --premier-demarrage
+OnlyShowIn=KDE;
+NoDisplay=true

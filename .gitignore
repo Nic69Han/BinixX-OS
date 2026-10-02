@@ -9,3 +9,5 @@ tests/iso/_work/
 
 # README public en préparation : gardé en local, hors du dépôt
 /README.md
+
+__pycache__/
