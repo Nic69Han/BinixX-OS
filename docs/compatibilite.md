@@ -26,6 +26,7 @@ Légende : ✅ vérifié · 🟡 attendu, à vérifier · ⚠️ partiel ou avec
 | Usage | Logiciel | État | Remarques |
 | --- | --- | --- | --- |
 | Courriel IMAP/SMTP, Gmail, Microsoft 365 | Thunderbird | 🟡 | Microsoft 365 via OAuth (connexion Microsoft dans Thunderbird) |
+| Microsoft 365 en ligne (Outlook, Word, Excel, PowerPoint, OneDrive) | Web apps du menu (Chromium) | 🟡 | Mêmes fonctions que dans le navigateur ; l'édition à plusieurs se fait ici |
 | Exchange sur site (EWS) | Thunderbird | ⚠️ | Selon la version de Thunderbird et la configuration du serveur |
 | Microsoft Teams | Web app (Chromium) | 🟡 | Version web de Teams : quelques fonctions du client Windows manquent |
 | Zoom | Web app (Chromium) | 🟡 | Client web Zoom : fonctions avancées (arrière-plans virtuels…) limitées |
