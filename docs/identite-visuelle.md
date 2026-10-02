@@ -37,6 +37,14 @@ Sur l'ISO, `disk_config/personnaliser-iso.sh` :
 | Dégradé sombre | `#8CCBFF` → `#5A7DFF` → `#3A3FE0` | Gemme sur fond sombre |
 | Bleu NicOS | `#2F5BFF` | Couleur unie quand le dégradé n'est pas possible |
 | Encre | `#0B0F1A` | Texte, fonds sombres |
+| Accent clair | `#2F5BFF` (liens `#2248E0`) | Sélection, survol, focus, dans les couleurs « NicOS clair » |
+| Accent sombre | `#5A7DFF` (liens `#8CAAFF`) | Même rôle dans « NicOS sombre » |
+
+Deux thèmes globaux, appariés dans Configuration du système → Thème global (bascule automatique
+selon l'heure possible) : **NicOS** (clair, par défaut) et **NicOS sombre**. Même disposition :
+barre des tâches flottante en haut de l'écran, aux coins arrondis, comme Zorin OS 18. Les couleurs
+sont celles de Brise, avec le bleu NicOS comme couleur d'accent ; `build_files/build.sh` les
+régénère depuis les fichiers de Brise à chaque construction de l'image.
 
 Le nom s'écrit **NicOS** (N et OS en majuscules), en Outfit SemiBold. Le point du « i » est
 une petite gemme.

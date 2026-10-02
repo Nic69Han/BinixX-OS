@@ -2,10 +2,10 @@
 widgetStyle=Breeze
 
 [kdeglobals][General]
-ColorScheme=NicOSClair
+ColorScheme=NicOSSombre
 
 [kdeglobals][Icons]
-Theme=breeze
+Theme=breeze-dark
 
 [plasmarc][Theme]
 name=default

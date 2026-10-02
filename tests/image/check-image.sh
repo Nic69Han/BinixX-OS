@@ -48,7 +48,27 @@ check "thème global org.nicos.desktop présent" test -f "${LNF}/metadata.json"
 check "identifiant du thème global correct" grep -q '"Id": "org.nicos.desktop"' "${LNF}/metadata.json"
 check "disposition du panneau présente" test -f "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
 check "écran de démarrage hérité de Breeze" test -f "${LNF}/contents/splash/Splash.qml"
-check "thème clair (BreezeLight)" grep -qx 'ColorScheme=BreezeLight' "${LNF}/contents/defaults"
+check "couleurs NicOS clair dans le thème NicOS" grep -qx 'ColorScheme=NicOSClair' "${LNF}/contents/defaults"
+LNF_DARK=/usr/share/plasma/look-and-feel/org.nicos.dark.desktop
+check "thème global NicOS sombre présent" grep -q '"Id": "org.nicos.dark.desktop"' "${LNF_DARK}/metadata.json"
+check "thème NicOS sombre : même disposition que NicOS" \
+    cmp "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js" "${LNF_DARK}/contents/layouts/org.kde.plasma.desktop-layout.js"
+check "thème NicOS sombre : couleurs NicOS sombre" grep -qx 'ColorScheme=NicOSSombre' "${LNF_DARK}/contents/defaults"
+check "thème NicOS sombre : aperçus hérités de Brise sombre" \
+    test -f "${LNF_DARK}/contents/previews/preview.png" -a -f "${LNF_DARK}/contents/previews/fullscreenpreview.jpg"
+for scheme in NicOSClair NicOSSombre; do
+    colors="/usr/share/color-schemes/${scheme}.colors"
+    selection="$(kreadconfig6 --file "${colors}" --group Colors:Selection --key BackgroundNormal 2>/dev/null)"
+    if [[ "${selection}" == 47,91,255 || "${selection}" == 90,125,255 ]] && grep -q "^ColorScheme=${scheme}$" "${colors}"; then
+        pass "couleurs ${scheme} : sélection en bleu NicOS (${selection})"
+    else
+        fail "couleurs ${scheme} : sélection '${selection}'"
+    fi
+done
+for pair in DefaultLightLookAndFeel=org.nicos.desktop DefaultDarkLookAndFeel=org.nicos.dark.desktop; do
+    value="$(kreadconfig6 --file /etc/xdg/kdeglobals --group KDE --key "${pair%=*}")"
+    if [[ "${value}" == "${pair#*=}" ]]; then pass "thème ${pair%LookAndFeel=*} : ${value}"; else fail "${pair%=*}='${value}'"; fi
+done
 check "panneau sans sélecteur de bureaux virtuels" \
     bash -c "! grep -q 'org.kde.plasma.pager' '${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js'"
 lnf="$(kreadconfig6 --file /etc/xdg/kdeglobals --group KDE --key LookAndFeelPackage)"
@@ -65,6 +85,15 @@ check "OnlyOffice associé aux .docx" \
 
 check "barre des tâches en haut de l'écran" \
     grep -q 'panel.location = "top"' "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
+check "barre des tâches flottante" \
+    grep -q 'panel.floating = true' "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
+placement="$(kreadconfig6 --file /etc/xdg/kwinrc --group Windows --key Placement)"
+if [[ "${placement}" == Centered ]]; then pass "nouvelles fenêtres centrées"; else fail "placement des fenêtres : '${placement}'"; fi
+SNAP=/usr/share/kwin/scripts/kde-snap-overlay
+check "dispositions de fenêtres (kde-snap-overlay) installées" grep -q '"Id": "kde-snap-overlay"' "${SNAP}/metadata.json"
+check "kde-snap-overlay : licence et attribution fournies" test -s "${SNAP}/LICENSE" -a -s "${SNAP}/NOTICE"
+snap="$(kreadconfig6 --file /etc/xdg/kwinrc --group Plugins --key kde-snap-overlayEnabled)"
+if [[ "${snap}" == true ]]; then pass "kde-snap-overlay activé par défaut"; else fail "kde-snap-overlayEnabled='${snap}'"; fi
 check "logo NicOS sur le bouton Démarrer" \
     grep -q 'writeConfig("icon", "nicos")' "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
 

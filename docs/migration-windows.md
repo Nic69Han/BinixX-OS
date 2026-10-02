@@ -46,6 +46,11 @@ Ce guide s'adresse à la personne qui migre un poste (ou à celle qui l'accompag
 Raccourcis identiques : Alt + Tab, Ctrl + C / V / X / Z, Windows + L (verrouiller), Windows + D (bureau),
 Alt + F4 (fermer), Windows + flèches (ancrer une fenêtre à gauche ou à droite).
 
+Dispositions de fenêtres, comme les « Snap Layouts » de Windows 11 : faire glisser une fenêtre
+vers le haut de l'écran fait apparaître trois dispositions (deux colonnes, deux lignes, quatre
+quarts) ; la lâcher sur une case l'y range. La lâcher tout en haut l'agrandit, comme sous
+Windows.
+
 ## Les premiers jours
 
 - **Applications au premier démarrage** : OnlyOffice, Thunderbird, Remmina… se téléchargent pendant les

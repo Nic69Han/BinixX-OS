@@ -117,6 +117,41 @@ fc-cache -s
 # fichier déjà présent, donc nos defaults et notre disposition du panneau sont conservés.
 LNF_DIR=/usr/share/plasma/look-and-feel
 cp -a --update=none "${LNF_DIR}/org.kde.breeze.desktop/." "${LNF_DIR}/org.nicos.desktop/"
+# Thème global sombre org.nicos.dark.desktop : même disposition, reste copié de Brise sombre
+cp -a "${LNF_DIR}/org.nicos.desktop/contents/layouts" "${LNF_DIR}/org.nicos.dark.desktop/contents/"
+cp -a --update=none "${LNF_DIR}/org.kde.breezedark.desktop/." "${LNF_DIR}/org.nicos.dark.desktop/"
+
+# Couleurs NicOS clair et sombre : celles de Brise, avec le bleu NicOS comme couleur d'accent
+# (sélection, survol, focus, liens), comme les couleurs d'accent de Zorin OS 18. Générées
+# depuis les fichiers de Brise de l'image, pour suivre ses mises à jour.
+python3 - <<'PYEOF'
+SCHEMES = {
+    # Brise : (fichier NicOS, nom affiché, couleurs remplacées)
+    "BreezeLight": ("NicOSClair", "NicOS clair",
+                    {"61,174,233": "47,91,255", "41,128,185": "34,72,224", "29,153,243": "90,125,255"}),
+    "BreezeDark": ("NicOSSombre", "NicOS sombre",
+                   {"61,174,233": "90,125,255", "29,153,243": "140,170,255"}),
+}
+for source, (scheme, name, colors) in SCHEMES.items():
+    lines, replaced = [], 0
+    with open(f"/usr/share/color-schemes/{source}.colors", encoding="utf-8") as f:
+        for line in f:
+            key, sep, value = line.rstrip("\n").partition("=")
+            if key.startswith("Name["):  # noms traduits de Brise
+                continue
+            if sep and value in colors:
+                line, replaced = f"{key}={colors[value]}\n", replaced + 1
+            elif key == "Name":
+                line = f"Name={name}\n"
+            elif key == "ColorScheme":
+                line = f"ColorScheme={scheme}\n"
+            lines.append(line)
+    if replaced < 20:  # Brise a changé de couleurs : à revoir
+        raise SystemExit(f"{source}.colors : {replaced} couleurs d'accent remplacées seulement")
+    with open(f"/usr/share/color-schemes/{scheme}.colors", "w", encoding="utf-8") as f:
+        f.writelines(lines)
+    print(f"{scheme}.colors : {replaced} couleurs d'accent NicOS")
+PYEOF
 
 # Thème global par défaut pour tous les utilisateurs.
 # Fedora le définit dans kde-settings (priorité plus basse que /etc/xdg) : on corrige les deux.
@@ -125,6 +160,18 @@ KDE_SETTINGS_GLOBALS=/usr/share/kde-settings/kde-profile/default/xdg/kdeglobals
 if [[ -f "${KDE_SETTINGS_GLOBALS}" ]]; then
     sed -i 's/^LookAndFeelPackage=.*/LookAndFeelPackage=org.nicos.desktop/' "${KDE_SETTINGS_GLOBALS}"
 fi
+# Paire clair / sombre proposée par Configuration du système → Thème global (bascule
+# automatique selon l'heure possible)
+kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key DefaultLightLookAndFeel org.nicos.desktop
+kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key DefaultDarkLookAndFeel org.nicos.dark.desktop
+
+# Fenêtres, comme Zorin OS 18 :
+# - les nouvelles fenêtres s'ouvrent au centre de l'écran ;
+# - glisser une fenêtre vers le haut de l'écran propose des dispositions (deux colonnes, deux
+#   lignes, quatre quarts), comme les « Snap Layouts » de Windows 11 : script KWin
+#   kde-snap-overlay (usr/share/kwin/scripts/), qui s'appuie sur l'ancrage natif de KWin.
+kwriteconfig6 --file /etc/xdg/kwinrc --group Windows --key Placement Centered
+kwriteconfig6 --file /etc/xdg/kwinrc --group Plugins --key kde-snap-overlayEnabled true
 
 # Pavé numérique activé à l'ouverture de session, comme sous Windows (0 = activé)
 kwriteconfig6 --file /etc/xdg/kcminputrc --group Keyboard --key NumLock 0
