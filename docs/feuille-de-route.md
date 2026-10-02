@@ -44,7 +44,7 @@ automatiques testées avec retour arrière, applications isolées (Flatpak), les
 
 | PR | Contenu | Critères d'acceptation |
 | --- | --- | --- |
-| **A1. Choix des applications au premier démarrage** | Comme Ninite : cases à cocher avec les noms connus sous Windows (Chrome, VLC, Spotify, WhatsApp, Discord, Steam, Zoom, Bitwarden, Pinta pour paint.net, LibreOffice, RustDesk, ClamTk…). VLC remplace Haruna (nom connu). | Test VM : sélection par fichier, applications installées, lanceurs présents. |
+| **A1. Choix des applications** | **Livré en grande partie** : page « Installer des applications » du Centre NicOS, comme Ninite : cases à cocher avec les noms connus sous Windows (VLC, LibreOffice, Spotify, Discord, Bitwarden, GIMP, RustDesk…), licence affichée et applications propriétaires signalées, installation d'un coup avec un seul mot de passe ([centre-nicos.md](centre-nicos.md#installer-des-applications)). Reste : la proposer à la première ouverture de session ; sélection par fichier pour les images d'entreprise. | Test VM : la commande de la page installe une vraie application depuis Flathub : **fait**. |
 | **A2. Microsoft 365 en applications** | Lanceurs Outlook, Word, Excel, PowerPoint et OneDrive en ligne, comme les web apps Teams/Zoom. | Lanceurs valides ; ouverture dans une fenêtre dédiée. |
 | **A3. Programmes Windows** | **Livré en grande partie** (« Mon logiciel Windows », lot 6) : au double-clic sur un `.exe` ou un `.msi`, le Centre NicOS cherche l'équivalent connu ; Bottles est proposé **à la demande** (pas préinstallé : compatibilité non garantie, il ne faut pas la promettre). Reste : table des installeurs courants plus large. | Test : un installeur connu propose son équivalent ; un inconnu propose Bottles. |
 
