@@ -5,7 +5,8 @@ check_parametres() {
     section "Paramètres (écran unique des réglages)"
     local uid out
     uid="$(id -u "${TEST_USER}")"
-    check "kcmshell6 liste les modules sans session graphique" bash -c "kcmshell6 --list | grep -q '^ *kcm_kscreen'"
+    # kcmshell6 a besoin d'une plate-forme Qt : « offscreen » suffit pour lister les modules (la page, elle, tourne dans la session)
+    check "kcmshell6 liste les modules (kcm_kscreen)" bash -c "QT_QPA_PLATFORM=offscreen kcmshell6 --list | grep -q '^ *kcm_kscreen'"
     out="$(runuser -u "${TEST_USER}" -- env XDG_RUNTIME_DIR="/run/user/${uid}" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${uid}/bus" \
         busctl --user call org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel allComponents 2>&1 || true)"
     if grep -q 'nicos-parametres' <<<"${out}" || grep -q 'nicos_parametres' <<<"${out}"; then
