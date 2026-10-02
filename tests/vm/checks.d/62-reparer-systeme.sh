@@ -17,10 +17,15 @@ check_reparer_systeme() {
 
     out="$(runuser -u "${TEST_USER}" -- "${outil}" liste --texte 2>&1)"
     code=$?
-    if [[ ${code} -eq 0 ]]; then pass "liste des réglages modifiés produite sans droits particuliers ($(wc -l <<<"${out}") ligne(s) avant l'essai)"; else
+    if [[ ${code} -eq 0 ]]; then pass "liste des réglages modifiés produite sans droits particuliers ($(grep -c . <<<"${out}") ligne(s) avant l'essai)"; else
         fail "liste impossible (code ${code}) : ${out}"
         return
     fi
+    # Constaté sur un poste neuf : le système écrit lui-même ces fichiers ; les proposer serait dangereux
+    # (retirer default.target ferait démarrer sans bureau, retirer 00-keyboard.conf change le clavier)
+    for danger in default.target 00-keyboard.conf system.control tuned.conf; do
+        if grep -q "${danger}" <<<"${out}"; then fail "${danger} proposé à la réparation (écrit par le système)"; else pass "${danger} jamais proposé"; fi
+    done
     echo "${out}" | sed 's/^/        avant l essai : /' | head -30
     for interdit in passwd shadow group hostname machine-id; do
         if grep -qE " ${interdit}( |$)" <<<"${out}"; then fail "${interdit} proposé à la réparation"; else pass "${interdit} jamais proposé"; fi

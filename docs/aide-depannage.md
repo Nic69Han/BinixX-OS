@@ -41,7 +41,10 @@ Le bouton *Voir les réglages modifiés* compare les deux et liste ce qui diffè
   connexion, valeurs par défaut du bureau, variables d'environnement, noyau, pilotes, règles des
   périphériques, services, son, pare-feu, options réseau, polices…). **Jamais touchés** : comptes et mots de
   passe, clés SSH, connexions réseau et Wi-Fi, disques (`fstab`, `crypttab`), imprimantes, domaine Active
-  Directory, identité de la machine ; ni les services activés ou désactivés (liens `*.wants`).
+  Directory, identité de la machine ; ni **aucun lien symbolique** (services activés ou désactivés, cible de
+  démarrage `default.target`), ni ce que le système écrit lui-même (clavier choisi à l'installation, réglages
+  dynamiques de systemd, `tuned`). Ces exclusions viennent d'un constat sur un poste neuf pendant le test VM : sans
+  elles, l'outil aurait proposé de « retirer » des réglages essentiels.
 - Sans `/usr/etc` (conteneur, poste de développement), l'outil refuse de travailler : sans l'image de
   référence, tout aurait l'air « ajouté ».
 - Le rapport de diagnostic liste aussi ces fichiers (noms seulement) : le support voit d'un coup d'œil ce
