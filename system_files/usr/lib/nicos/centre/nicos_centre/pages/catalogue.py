@@ -14,12 +14,6 @@ TITLE = "Mon logiciel Windows"
 
 MAX_RESULTATS = 30
 BOTTLES = "com.usebottles.bottles"
-BADGES = {
-    "inclus": "Déjà installé",
-    "web": "En ligne",
-    "info": "Bon à savoir",
-    "windows": "Pas d'équivalent direct",
-}
 
 
 class Page(QWidget):
@@ -126,17 +120,8 @@ class Page(QWidget):
 
     def _etat(self, entree):
         """(texte du badge, libellé du bouton ou None, action)."""
-        if entree.type == "inclus":
-            return BADGES["inclus"], "Ouvrir", lambda: launch.open_app(entree.cible)
-        if entree.type == "web":
-            return BADGES["web"], "Ouvrir le site", lambda: launch.open_url(entree.cible)
-        if entree.type == "flatpak":
-            if entree.cible in self.installees:
-                return "Installé", "Ouvrir", lambda: launch.run_flatpak(entree.cible)
-            if entree.cible in self.fournies:
-                return "Installé au premier démarrage", "Voir dans Discover", lambda: launch.open_discover(entree.cible)
-            return "À installer depuis Flathub", "Installer", lambda: launch.open_discover(entree.cible)
-        return BADGES[entree.type], None, None
+        badge, bouton, action = catalogue.etat(entree, self.installees, self.fournies)
+        return badge, bouton, (lambda: launch.executer(action)) if action else None
 
     def _ligne(self, entree):
         badge, bouton, action = self._etat(entree)
