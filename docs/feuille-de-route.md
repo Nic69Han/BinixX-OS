@@ -1,6 +1,6 @@
 # Feuille de route
 
-État au 1er octobre 2026. Une ligne = une pull request.
+État au 2 octobre 2026. Une ligne = une pull request.
 
 ## Objectif
 
@@ -46,7 +46,7 @@ automatiques testées avec retour arrière, applications isolées (Flatpak), les
 | --- | --- | --- |
 | **A1. Choix des applications au premier démarrage** | Comme Ninite : cases à cocher avec les noms connus sous Windows (Chrome, VLC, Spotify, WhatsApp, Discord, Steam, Zoom, Bitwarden, Pinta pour paint.net, LibreOffice, RustDesk, ClamTk…). VLC remplace Haruna (nom connu). | Test VM : sélection par fichier, applications installées, lanceurs présents. |
 | **A2. Microsoft 365 en applications** | Lanceurs Outlook, Word, Excel, PowerPoint et OneDrive en ligne, comme les web apps Teams/Zoom. | Lanceurs valides ; ouverture dans une fenêtre dédiée. |
-| **A3. Programmes Windows** | Bottles préinstallé ; au double-clic sur un `.exe` ou `.msi`, un assistant propose l'équivalent Linux connu (table des installeurs courants) ou l'installation dans Bottles. | Test : un installeur connu propose son équivalent ; un inconnu propose Bottles. |
+| **A3. Programmes Windows** | **Livré en grande partie** (« Mon logiciel Windows », lot 6) : au double-clic sur un `.exe` ou un `.msi`, le Centre NicOS cherche l'équivalent connu ; Bottles est proposé **à la demande** (pas préinstallé : compatibilité non garantie, il ne faut pas la promettre). Reste : table des installeurs courants plus large. | Test : un installeur connu propose son équivalent ; un inconnu propose Bottles. |
 
 ## Lot 3 — Migration et matériel
 
@@ -77,6 +77,30 @@ doit se faire à la souris ; la documentation donne d'abord le chemin graphique.
 Hors dépôt : lancement sur LinuxFr.org, Reddit, Hacker News et DistroWatch ; campagne End of 10 et
 repair cafés ; reconditionneurs de PC ; prestataires informatiques des PME.
 
+## Lot 6 — Accueil, aide et entreprise
+
+Proposés le 2 octobre 2026 à partir des idées inspirées d'autres distributions (Zorin, Bazzite, Ubuntu
+Pro, Windows Autopilot). Chaque ligne est une pull request, empilée sur le socle `modules.d` / `checks.d`.
+
+| PR | Contenu | État |
+| --- | --- | --- |
+| **C1. Centre NicOS : Accueil** (#18) | Application PySide6 à pages ; accueil en français pour qui vient de Windows, ouvert une fois à la première session ; Centre de bienvenue de KDE désactivé. | Test VM en cours |
+| **C2. Mon logiciel Windows** (#19) | Catalogue de 64 équivalents (Word, Excel, Sage, Photoshop…), recherche sans accents, ouverture des `.exe` / `.msi` ; Bottles à la demande. | Test VM en cours |
+| **C3. Obtenir de l'aide** (#20) | Sept cas fréquents sans IA, rapport de diagnostic sans secret, bureau réinitialisable. | Test VM en cours |
+| **E1. Image d'entreprise** (#17) | Gabarit `entreprise/` (nom, paquets, Flatpak, page d'accueil, proxy), modèles de CI et d'ISO, guide en six étapes. | Test VM en cours |
+| **R1. Retour arrière automatique** (#21) | greenboot : trois démarrages en échec, retour à la version précédente ; test VM de bout en bout. | Test VM en cours |
+| **G1. Variante NVIDIA** (#22) | Image `nicos-nvidia` construite et testée comme `nicos`. **Validation sur matériel réel attendue**, fusion non automatique. | Brouillon |
+| **D1. Créer nouveau** (#23) | Document texte, Classeur, Présentation vierges (.docx, .xlsx, .pptx) dans Dolphin. | Test VM en cours |
+
+## Lot 7 — Études (aucun code livré)
+
+| Étude | Document | Décision attendue |
+| --- | --- | --- |
+| Solutions libres à intégrer (MIT ou permissives) | [solutions-mit.md](solutions-mit.md) | Lesquelles entrent dans le catalogue ou l'image |
+| Copilote IA (expliquer, agir avec confirmation, administrer) | [ia-copilote.md](ia-copilote.md) | Moteur par défaut, niveau de départ |
+| Gestion d'un parc de PC | [gestion-de-flotte.md](gestion-de-flotte.md) | Besoin réel des PME visées |
+| À instruire | Clé de récupération du disque chiffré (assistant autour de `systemd-cryptenroll --recovery-key`), pack jeux (Steam, Proton, Lutris, gestion des cartes graphiques), « Réinitialiser NicOS » complet (réinstallation en gardant ses fichiers), Windows en machine virtuelle (WinBoat) pour les logiciels indispensables | Priorité |
+
 ## Décisions et actions du propriétaire
 
 1. Créer la clé de signature (S2) : `cosign generate-key-pair`, contenu de `cosign.key` dans le secret
@@ -85,3 +109,5 @@ repair cafés ; reconditionneurs de PC ; prestataires informatiques des PME.
 3. Suite bureautique par défaut : OnlyOffice (meilleure fidélité Microsoft) ou LibreOffice (choix des
    administrations européennes) ; l'autre reste proposée dans A1.
 4. Publication du README et du site (L1).
+5. Variante NVIDIA (G1) : essai sur une vraie carte, puis décision sur l'assistant de passage.
+6. Copilote IA : moteur par défaut (« aucun » recommandé), niveau de départ ; Coucou : réécriture pour Plasma ou idée seulement.
