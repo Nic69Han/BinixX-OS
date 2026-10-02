@@ -31,9 +31,14 @@ l'application Paramètres de Windows 11. Elle ne réécrit aucun réglage : elle
 Configuration du système) un classement et des noms que l'on reconnaît.
 
 - **Un fichier de données** : `usr/share/nicos/parametres/parametres.tsv`. Une ligne par réglage : catégorie, nom, mots de
-  recherche (« fond d'écran », « arrière-plan »…), explication, type et cible. Les types : `kcm` (un module de la
+  recherche (« fond d'écran », « arrière-plan »…), explication, icône, type et cible. Les types : `kcm` (un module de la
   Configuration du système), `page` (une autre page du Centre), `app` (un lanceur de l'image), `flatpak`, `discover`
   (mises à jour, applications installées), `info` (une explication, rien à ouvrir : « Barre des tâches »).
+- **Présentation** : un en-tête en dégradé aux couleurs de NicOS (avec la grande barre de recherche arrondie), un menu de
+  catégories à pastilles colorées, des **tuiles** cliquables à la souris comme au clavier (Tab, Entrée, Espace), sur deux
+  colonnes (une seule si la fenêtre est étroite). Chaque catégorie a sa couleur et son pictogramme ; les pictogrammes sont des
+  traits fins embarqués en SVG (`nicos_centre/icones.py`, dans le style des icônes Feather, licence MIT), donc indépendants
+  du thème d'icônes du PC. Une explication sans réglage à ouvrir (« Barre des tâches ») a un cadre en pointillés.
 - **Recherche** sans accents ni majuscules, tous les mots doivent correspondre, le nom exact d'abord : « wifi »,
   « Wi-Fi » et « WIFI » donnent la même réponse ; « mot de passe » met « Votre compte » en premier.
 - **Jamais de bouton mort** : un module KDE absent de ce PC est masqué (la liste vient de `kcmshell6 --list`) ; à l'inverse, la CI

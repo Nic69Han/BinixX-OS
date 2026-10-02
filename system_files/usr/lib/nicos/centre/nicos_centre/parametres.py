@@ -7,7 +7,7 @@ import os
 import re
 from dataclasses import dataclass
 
-from . import catalogue
+from . import catalogue, icones
 
 PARAMETRES = "/usr/share/nicos/parametres/parametres.tsv"
 TYPES = ("kcm", "page", "app", "flatpak", "discover", "info")
@@ -24,6 +24,7 @@ class Reglage:
     nom: str
     alias: tuple
     explication: str
+    icone: str
     type: str
     cible: str
 
@@ -40,11 +41,13 @@ def charger(chemin=None):
             if not ligne or ligne.startswith("#"):
                 continue
             champs = ligne.split("\t")
-            if len(champs) == 5 and champs[4] == "info":  # la cible vide peut ne pas avoir sa tabulation
+            if len(champs) == 6 and champs[5] == "info":  # la cible vide peut ne pas avoir sa tabulation
                 champs.append("")
-            if len(champs) != 6:
-                raise ValueError(f"{chemin}:{numero} : {len(champs)} colonnes au lieu de 6")
-            categorie, nom, alias, explication, type_, cible = champs
+            if len(champs) != 7:
+                raise ValueError(f"{chemin}:{numero} : {len(champs)} colonnes au lieu de 7")
+            categorie, nom, alias, explication, icone, type_, cible = champs
+            if icone not in icones.ICONES:
+                raise ValueError(f"{chemin}:{numero} : icône « {icone} » inconnue")
             controle = {"kcm": KCM, "page": CLE_PAGE, "app": LANCEUR, "flatpak": FLATPAK}.get(type_)
             if type_ not in TYPES:
                 raise ValueError(f"{chemin}:{numero} : type « {type_} » inconnu")
@@ -56,7 +59,7 @@ def charger(chemin=None):
                 raise ValueError(f"{chemin}:{numero} : une ligne « info » n'a pas de cible")
             if not categorie or not nom or not explication:
                 raise ValueError(f"{chemin}:{numero} : catégorie, réglage et explication sont obligatoires")
-            reglages.append(Reglage(categorie, nom, tuple(a for a in alias.split(";") if a), explication, type_, cible))
+            reglages.append(Reglage(categorie, nom, tuple(a for a in alias.split(";") if a), explication, icone, type_, cible))
     return reglages
 
 

@@ -87,6 +87,21 @@ class Fichier(unittest.TestCase):
             if reglage.type == "flatpak":
                 self.assertIn(reglage.cible, connues, reglage.cible)
 
+    def test_chaque_reglage_a_une_icone_dessinee(self):
+        from nicos_centre import icones
+        for reglage in self.reglages:
+            self.assertIn(reglage.icone, icones.ICONES, reglage.nom)
+
+    def test_les_icones_sont_du_svg_bien_forme(self):
+        import xml.etree.ElementTree as ET
+        from nicos_centre import icones
+        for nom in icones.ICONES:
+            racine = ET.fromstring(icones.svg(nom, "#123456"))
+            self.assertTrue(racine.tag.endswith("svg"), nom)
+            self.assertEqual(racine.get("stroke"), "#123456")
+        with self.assertRaises(KeyError):
+            icones.svg("inconnue")
+
     def test_les_modules_kde_ont_un_identifiant_valide(self):
         modules = [r for r in self.reglages if r.type == "kcm"]
         self.assertGreaterEqual(len(modules), 30)
@@ -108,20 +123,22 @@ class Lecture(unittest.TestCase):
         self.assertIn(morceau, str(erreur.exception))
 
     def test_ligne_valide_et_info_sans_tabulation_finale(self):
-        reglages = p.charger(self.ecrire("# commentaire\n\nC\tA\tx;y\tExplication.\tkcm\tkcm_a\nC\tB\tz\tTexte.\tinfo\n"))
-        self.assertEqual([(r.nom, r.type, r.cible) for r in reglages], [("A", "kcm", "kcm_a"), ("B", "info", "")])
+        reglages = p.charger(self.ecrire("# commentaire\n\nC\tA\tx;y\tExplication.\tmonitor\tkcm\tkcm_a\nC\tB\tz\tTexte.\tinfo\tinfo\n"))
+        self.assertEqual([(r.nom, r.icone, r.type, r.cible) for r in reglages],
+                         [("A", "monitor", "kcm", "kcm_a"), ("B", "info", "info", "")])
 
     def test_lignes_refusees(self):
-        self.refuse("C\tA\tx\tE.\tkcm", "colonnes")
-        self.refuse("C\tA\tx\tE.\tinconnu\tz", "type")
-        self.refuse("C\tA\tx\tE.\tkcm\tkcm_a; rm -rf /", "invalide")
-        self.refuse("C\tA\tx\tE.\tkcm\tpas_un_module", "invalide")
-        self.refuse("C\tA\tx\tE.\tpage\tSecurite", "invalide")
-        self.refuse("C\tA\tx\tE.\tpage\t../aide", "invalide")
-        self.refuse("C\tA\tx\tE.\tdiscover\tbrowse; id", "Discover")
-        self.refuse("C\tA\tx\tE.\tflatpak\t-y", "invalide")
-        self.refuse("C\tA\tx\tE.\tinfo\tkcm_a", "info")
-        self.refuse("\tA\tx\tE.\tkcm\tkcm_a", "obligatoires")
+        self.refuse("C\tA\tx\tE.\tmonitor\tkcm", "colonnes")
+        self.refuse("C\tA\tx\tE.\tmonitor\tinconnu\tz", "type")
+        self.refuse("C\tA\tx\tE.\tmonitor\tkcm\tkcm_a; rm -rf /", "invalide")
+        self.refuse("C\tA\tx\tE.\tmonitor\tkcm\tpas_un_module", "invalide")
+        self.refuse("C\tA\tx\tE.\tmonitor\tpage\tSecurite", "invalide")
+        self.refuse("C\tA\tx\tE.\tmonitor\tpage\t../aide", "invalide")
+        self.refuse("C\tA\tx\tE.\tmonitor\tdiscover\tbrowse; id", "Discover")
+        self.refuse("C\tA\tx\tE.\tmonitor\tflatpak\t-y", "invalide")
+        self.refuse("C\tA\tx\tE.\tmonitor\tinfo\tkcm_a", "info")
+        self.refuse("C\tA\tx\tE.\ticone-inconnue\tkcm\tkcm_a", "icône")
+        self.refuse("\tA\tx\tE.\tmonitor\tkcm\tkcm_a", "obligatoires")
 
 
 class Recherche(unittest.TestCase):
@@ -208,7 +225,7 @@ class Page(unittest.TestCase):
         os.environ.pop("NICOS_PARAMETRES", None)
 
     def carte(self, page, nom):
-        return next(c for c in page.cartes if c.reglage.nom == nom)
+        return next(t for t in page.tuiles if t.reglage.nom == nom)
 
     def choisir(self, page, categorie):
         for rang in range(page.liste.count()):
@@ -221,76 +238,124 @@ class Page(unittest.TestCase):
         page = self.module.build(self.centre)
         self.assertEqual(page.categorie_courante(), "Système")
         self.assertEqual(page.liste.count(), 11)
-        self.carte(page, "Affichage").bouton.click()
+        self.assertEqual(page.entete.text(), "Système")
+        self.carte(page, "Affichage").click()
         self.assertEqual(self.lances[-1], ["systemsettings", "kcm_kscreen"])
-        self.carte(page, "Son").bouton.click()
+        self.carte(page, "Son").click()
         self.assertEqual(self.lances[-1], ["systemsettings", "kcm_pulseaudio"])
-        self.carte(page, "Stockage et disques").bouton.click()
+        self.carte(page, "Stockage et disques").click()
         self.assertEqual(self.lances[-1], ["kioclient", "exec", "/usr/share/applications/nicos-administration.desktop"])
         if CAPTURES:
             os.makedirs(CAPTURES, exist_ok=True)
-            page.resize(1040, 900)
+            page.resize(1120, 860)
             page.show()
             self.app.processEvents()
             page.grab().save(os.path.join(CAPTURES, "parametres.png"))
             page.recherche.setText("mot de passe")
             self.app.processEvents()
             page.grab().save(os.path.join(CAPTURES, "parametres-recherche.png"))
+            page.recherche.setText("")
+            self.choisir(page, "Personnalisation")
+            self.app.processEvents()
+            page.grab().save(os.path.join(CAPTURES, "parametres-personnalisation.png"))
+            page.resize(760, 800)
+            self.app.processEvents()
+            page.grab().save(os.path.join(CAPTURES, "parametres-etroit.png"))
+
+    def test_la_souris_et_le_clavier_ouvrent_une_tuile(self):
+        from PySide6.QtCore import QPoint, Qt
+        from PySide6.QtTest import QTest
+        page = self.module.build(self.centre)
+        page.resize(1120, 860)
+        page.show()
+        self.app.processEvents()
+        tuile = self.carte(page, "Affichage")
+        QTest.mouseClick(tuile, Qt.LeftButton, Qt.NoModifier, QPoint(30, 30))
+        self.assertEqual(self.lances[-1], ["systemsettings", "kcm_kscreen"])
+        self.lances.clear()
+        tuile.setFocus()
+        QTest.keyClick(tuile, Qt.Key_Return)
+        QTest.keyClick(tuile, Qt.Key_Space)
+        self.assertEqual(self.lances, [["systemsettings", "kcm_kscreen"]] * 2)
+        self.lances.clear()
+        QTest.mousePress(tuile, Qt.LeftButton, Qt.NoModifier, QPoint(30, 30))
+        QTest.mouseRelease(tuile, Qt.LeftButton, Qt.NoModifier, QPoint(5000, 5000))  # relâché ailleurs : rien
+        self.assertEqual(self.lances, [])
+
+    def test_une_ou_deux_colonnes_selon_la_largeur(self):
+        page = self.module.build(self.centre)
+        page.resize(1120, 860)
+        page.show()
+        self.app.processEvents()
+        self.assertEqual(page.colonnes, 2)
+        page.resize(700, 800)
+        self.app.processEvents()
+        self.assertEqual(page.colonnes, 1)
+        self.assertEqual(len(page.tuiles), 7)  # rien n'est perdu au changement de disposition
+        page.resize(1120, 860)
+        self.app.processEvents()
+        self.assertEqual(page.colonnes, 2)
 
     def test_la_recherche_traverse_les_categories(self):
         page = self.module.build(self.centre)
         page.recherche.setText("Bluetooth")
-        self.assertEqual(page.cartes[0].reglage.nom, "Bluetooth")
+        self.assertEqual(page.tuiles[0].reglage.nom, "Bluetooth")
         self.assertEqual(page.liste.currentRow(), -1)  # aucune catégorie choisie pendant la recherche
+        self.assertEqual(page.entete.text(), "Résultats")
+        self.assertIn("résultat(s) pour « Bluetooth »", page.compte.text())
         page.recherche.setText("")
         self.assertEqual(page.categorie_courante(), "Système")
         page.recherche.setText("zzzzqqqq")
-        self.assertEqual(page.cartes, [])
+        self.assertEqual(page.tuiles, [])
 
     def test_une_page_du_centre_et_discover(self):
         page = self.module.build(self.centre)
         self.choisir(page, "Confidentialité et sécurité")
-        self.carte(page, "Protéger mes données").bouton.click()
+        self.carte(page, "Protéger mes données").click()
         self.assertEqual(self.pages, ["securite"])
         self.choisir(page, "Mises à jour et récupération")
-        self.carte(page, "Mises à jour du système").bouton.click()
+        self.carte(page, "Mises à jour du système").click()
         self.assertEqual(self.lances[-1], ["plasma-discover", "--mode", "update"])
-        self.carte(page, "Récupération").bouton.click()
+        self.carte(page, "Récupération").click()
         self.assertEqual(self.pages[-1], "aide")
 
-    def test_une_explication_sans_bouton(self):
+    def test_une_explication_n_est_pas_cliquable(self):
         page = self.module.build(self.centre)
         self.choisir(page, "Personnalisation")
-        self.assertIsNone(self.carte(page, "Barre des tâches").bouton)
-        self.assertIsNotNone(self.carte(page, "Arrière-plan").bouton)
+        info = self.carte(page, "Barre des tâches")
+        self.assertFalse(info.actionnable)
+        self.assertTrue(info.property("info"))
+        info.click()
+        self.assertEqual(self.lances, [])
+        self.assertTrue(self.carte(page, "Arrière-plan").actionnable)
 
     def test_application_flatpak_installee_ou_a_installer(self):
         page = self.module.build(self.centre)
         self.choisir(page, "Mises à jour et récupération")
-        carte = self.carte(page, "Sauvegarde")
-        self.assertEqual(carte.bouton.text(), "Ouvrir")
-        carte.bouton.click()
+        tuile = self.carte(page, "Sauvegarde")
+        self.assertEqual(tuile.libelle, "Ouvrir")
+        tuile.click()
         self.assertEqual(self.lances[-1], ["flatpak", "run", "org.gnome.DejaDup"])
         launch.installed_flatpaks = lambda: set()
         page = self.module.build(self.centre)
         self.choisir(page, "Mises à jour et récupération")
-        carte = self.carte(page, "Sauvegarde")
-        self.assertEqual(carte.bouton.text(), "Installer")
-        carte.bouton.click()
+        tuile = self.carte(page, "Sauvegarde")
+        self.assertEqual(tuile.libelle, "Installer")
+        tuile.click()
         self.assertEqual(self.lances[-1], ["plasma-discover", "--application", "org.gnome.DejaDup"])
 
     def test_un_module_absent_de_ce_pc_est_masque(self):
         self.modules.discard("kcm_touchscreen")
         page = self.module.build(self.centre)
         page.recherche.setText("tactile")
-        self.assertNotIn("Écran tactile", [c.reglage.nom for c in page.cartes])
+        self.assertNotIn("Écran tactile", [t.reglage.nom for t in page.tuiles])
 
     def test_kcmshell_en_panne_ne_masque_rien(self):
         launch.run = lambda argv, timeout=120: (1, "")
         page = self.module.build(self.centre)
         self.assertEqual(page.liste.count(), 11)
         page.recherche.setText("tactile")
-        self.assertIn("Écran tactile", [c.reglage.nom for c in page.cartes])
+        self.assertIn("Écran tactile", [t.reglage.nom for t in page.tuiles])
 
     def test_les_reglages_avances_ouvrent_la_configuration_du_systeme(self):
         page = self.module.build(self.centre)
@@ -298,6 +363,16 @@ class Page(unittest.TestCase):
         bouton = next(b for b in page.findChildren(QPushButton) if b.text().startswith("Tous les réglages avancés"))
         bouton.click()
         self.assertEqual(self.lances[-1], ["systemsettings"])
+
+    def test_une_categorie_inconnue_a_quand_meme_sa_couleur_et_son_icone(self):
+        fichier = tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False, encoding="utf-8")
+        self.addCleanup(os.unlink, fichier.name)
+        fichier.write("Nouveauté\tUn réglage\tmot;clé\tExplication.\tstar\tkcm\tkcm_kscreen\n")
+        fichier.close()
+        os.environ["NICOS_PARAMETRES"] = fichier.name
+        page = self.module.build(self.centre)
+        self.assertEqual(page.liste.count(), 1)
+        self.assertEqual(len(page.tuiles), 1)
 
 
 if __name__ == "__main__":

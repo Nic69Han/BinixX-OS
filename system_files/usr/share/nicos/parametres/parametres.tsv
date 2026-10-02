@@ -1,6 +1,7 @@
 # Page « Paramètres » du Centre NicOS : les réglages classés comme dans Windows 11, avec leurs noms.
 # Colonnes séparées par une tabulation :
-#   catégorie  réglage  mots de recherche (séparés par « ; »)  explication  type  cible
+#   catégorie  réglage  mots de recherche (séparés par « ; »)  explication  icône  type  cible
+# icône : un nom de nicos_centre/icones.py (traits fins sur fond de couleur, un fond par catégorie)
 # type : kcm      = module de la Configuration du système de KDE ; cible = identifiant du module (kcm_…),
 #                   vérifié à chaque build par `kcmshell6 --list` ; un module absent est masqué sur le PC
 #        page     = une autre page du Centre NicOS ; cible = sa clé (accueil, catalogue, aide, securite, jeux…)
@@ -9,52 +10,52 @@
 #        flatpak  = application Flatpak ; cible = identifiant (ouverte si installée, sinon proposée dans Discover)
 #        info     = rien à ouvrir : l'explication suffit ; cible vide
 # L'ordre des catégories est celui de la première ligne qui les cite.
-Système	Affichage	écran;écrans;résolution;moniteur;mise à l'échelle;taille du texte;luminosité;plusieurs écrans;projecteur	Résolution, mise à l'échelle, plusieurs écrans, orientation.	kcm	kcm_kscreen
-Système	Son	son;audio;volume;haut-parleurs;casque;microphone;micro;sortie audio	Volume, haut-parleurs, casque et microphone.	kcm	kcm_pulseaudio
-Système	Notifications	notifications;alertes;ne pas déranger;bannières	Quelles applications peuvent afficher des alertes, et quand.	kcm	kcm_notifications
-Système	Alimentation et batterie	alimentation;batterie;veille;mise en veille;économie d'énergie;écran de veille;fermeture du capot	Veille, extinction de l'écran, comportement sur batterie.	kcm	kcm_powerdevilprofilesconfig
-Système	Bureaux virtuels	multitâche;bureaux virtuels;bureaux;fenêtres	Plusieurs bureaux pour ranger les fenêtres.	kcm	kcm_kwin_virtualdesktops
-Système	Stockage et disques	stockage;disque;espace disque;partition;espace libre;chiffrement	Disques, espace libre, chiffrement : dans l'administration du PC.	app	nicos-administration
-Système	À propos	à propos;nom du pc;version;système;informations;spécifications;mémoire;processeur	Nom du PC, version de NicOS, mémoire et processeur.	kcm	kcm_about-distro
-Bluetooth et appareils	Bluetooth	bluetooth;appairer;casque bluetooth;manette sans fil;souris sans fil	Associer un casque, une souris, une manette, un téléphone.	kcm	kcm_bluetooth
-Bluetooth et appareils	Imprimantes et scanners	imprimante;imprimantes;scanner;scanneur;impression;imprimer	Ajouter ou retirer une imprimante, choisir celle par défaut.	kcm	kcm_printer_manager
-Bluetooth et appareils	Souris	souris;pointeur;vitesse du pointeur;clic;molette	Vitesse, boutons, défilement.	kcm	kcm_mouse
-Bluetooth et appareils	Pavé tactile	pavé tactile;touchpad;trackpad;défilement;gestes	Gestes et défilement du pavé tactile de l'ordinateur portable.	kcm	kcm_touchpad
-Bluetooth et appareils	Clavier	clavier;touches;répétition des touches;disposition;azerty;qwerty;verrouillage majuscules	Répétition des touches, pavé numérique, disposition.	kcm	kcm_keyboard
-Bluetooth et appareils	Raccourcis clavier	raccourcis;raccourci clavier;touche windows;touches	Choisir les raccourcis clavier du bureau.	kcm	kcm_keys
-Bluetooth et appareils	Manettes de jeu	manette;manettes;joystick;gamepad;volant	Tester et régler une manette.	kcm	kcm_gamecontroller
-Bluetooth et appareils	Tablette graphique	tablette;stylet;wacom;tablette graphique	Régler une tablette graphique et son stylet.	kcm	kcm_tablet
-Bluetooth et appareils	Écran tactile	écran tactile;tactile;tactile gestes	Régler un écran tactile.	kcm	kcm_touchscreen
-Bluetooth et appareils	Lecture automatique	lecture automatique;clé usb;disque externe;carte sd;périphérique amovible;insertion	Que faire quand on branche une clé USB, une carte mémoire ou un disque.	kcm	kcm_solid_actions
-Bluetooth et appareils	Téléphone	téléphone;smartphone;android;lien avec le téléphone;phone link;kde connect;sms	Relier un téléphone : fichiers, notifications, presse-papiers (KDE Connect).	kcm	kcm_kdeconnect
-Réseau et Internet	Wi-Fi, Ethernet et VPN	wifi;wi-fi;réseau;internet;ethernet;câble;vpn;connexion;mot de passe wifi;hotspot;partage de connexion	Se connecter à un réseau, ajouter un VPN d'entreprise.	kcm	kcm_networkmanagement
-Réseau et Internet	Pare-feu	pare-feu;firewall;ports;connexions entrantes;défender	Quelles connexions peuvent entrer dans ce PC.	kcm	kcm_firewall
-Personnalisation	Arrière-plan	arrière-plan;fond d'écran;image de bureau;papier peint;diaporama	Choisir le fond d'écran.	kcm	kcm_wallpaper
-Personnalisation	Thèmes : clair ou sombre	thème;thèmes;clair;sombre;mode sombre;mode clair;apparence;nicos sombre	Passer du thème clair au thème sombre de NicOS.	kcm	kcm_lookandfeel
-Personnalisation	Couleurs	couleurs;couleur d'accentuation;contraste;couleur des fenêtres	Couleur d'accentuation et schéma de couleurs.	kcm	kcm_colors
-Personnalisation	Polices	polices;police;taille du texte;texte plus grand;caractères	Polices et taille du texte.	kcm	kcm_fonts
-Personnalisation	Icônes et pointeur	icônes;curseur;pointeur de souris;taille du pointeur;icônes du bureau	Thème des icônes et forme du pointeur.	kcm	kcm_icons
-Personnalisation	Écran de verrouillage	verrouillage;écran de verrouillage;verrouiller;mot de passe au réveil;délai de verrouillage	Quand verrouiller l'écran, mot de passe au réveil.	kcm	kcm_screenlocker
-Personnalisation	Effets du bureau	effets;animations;transparence;ombres;fenêtres souples	Animations, transparence et effets des fenêtres.	kcm	kcm_kwin_effects
-Personnalisation	Barre des tâches	barre des tâches;barre;tableau de bord;panneau;épingler;position de la barre;barre en bas;menu démarrer	La barre est en haut de l'écran : clic droit sur la barre, puis le mode d'édition pour la déplacer, la redimensionner ou y épingler des applications.	info	
-Applications	Applications installées	applications installées;désinstaller;programmes;programmes et fonctionnalités;supprimer une application;ajouter ou supprimer des programmes	Voir et désinstaller les applications (Discover).	discover	installed
-Applications	Mon logiciel Windows	logiciel windows;équivalent;word;excel;exe;msi;programme windows;trouver un équivalent	Trouver l'équivalent d'un programme Windows.	page	catalogue
-Applications	Applications par défaut	applications par défaut;ouvrir avec;navigateur par défaut;lecteur pdf par défaut;client de messagerie par défaut	Quel navigateur, quel lecteur de courrier, quel lecteur de musique…	kcm	kcm_componentchooser
-Applications	Types de fichiers	types de fichiers;associations de fichiers;extension;ouvrir les .docx avec;fichiers .pdf	Quelle application ouvre quel type de fichier.	kcm	kcm_filetypes
-Applications	Démarrage	démarrage;lancer au démarrage;applications au démarrage;ouverture de session;autostart	Applications lancées à l'ouverture de session.	kcm	kcm_autostart
-Applications	Autorisations des applications	autorisations;permissions;accès à la caméra;accès au micro;accès aux fichiers;flatpak;confidentialité des applications	Ce que chaque application a le droit de faire (caméra, fichiers, réseau…).	kcm	kcm_app-permissions
-Comptes	Votre compte	compte;utilisateurs;utilisateur;mot de passe;changer le mot de passe;photo de profil;nom d'utilisateur;comptes locaux;administrateur;ajouter un utilisateur	Mot de passe, photo, nom, ajouter ou retirer un utilisateur.	kcm	kcm_users
-Comptes	Écran de connexion	écran de connexion;connexion automatique;ouvrir la session automatiquement;options de connexion;sddm	Ouverture de session automatique, apparence de l'écran de connexion.	kcm	kcm_sddm
-Comptes	Compte professionnel	domaine;active directory;compte professionnel;compte scolaire;rejoindre un domaine;entreprise	Rejoindre le domaine de l'entreprise : dans l'administration du PC.	app	nicos-administration
-Comptes	OneDrive	onedrive;nuage;compte microsoft;synchronisation;fichiers à la demande	Relier OneDrive et synchroniser ses fichiers.	app	nicos-onedrive
-Heure et langue	Date et heure	date;heure;fuseau horaire;horloge;heure d'été;format de l'heure;synchroniser l'heure	Fuseau horaire, synchronisation automatique, format.	kcm	kcm_clock
-Heure et langue	Langue et région	langue;région;pays;format de la date;format des nombres;monnaie;euro;langue d'affichage	Langue des menus, formats de date, de nombre et de monnaie.	kcm	kcm_regionandlang
-Heure et langue	Saisie et correction	correction automatique;orthographe;correcteur;vérification orthographique;dictionnaire	Correction orthographique dans les applications.	kcm	kcm_spellchecking
-Jeux	Jeux	jeux;steam;xbox;manette;proton;epic;gog;minecraft;barre de jeu	Boutiques de jeux, carte graphique, manettes.	page	jeux
-Accessibilité	Accessibilité	accessibilité;loupe;lecteur d'écran;narrateur;contraste élevé;clavier visuel;filtres de couleur;sons;touches rémanentes;malvoyant;malentendant	Loupe, lecteur d'écran, touches rémanentes, alertes visuelles.	kcm	kcm_access
-Confidentialité et sécurité	Protéger mes données	bitlocker;chiffrement;clé de récupération;protection des données;chiffrer le disque;sécurité	Clé de récupération du disque chiffré, pare-feu.	page	securite
-Confidentialité et sécurité	Recherche de fichiers	indexation;recherche;recherche de fichiers;baloo;indexer;rechercher dans les fichiers	Quels dossiers sont indexés pour la recherche.	kcm	kcm_baloofile
-Mises à jour et récupération	Mises à jour du système	windows update;mises à jour;mise à jour;mettre à jour;updates;nouvelle version;redémarrer pour mettre à jour	Mises à jour de NicOS et des applications (Discover).	discover	update
-Mises à jour et récupération	Récupération	récupération;réinitialiser;restaurer;retour arrière;réparer;réinitialiser ce pc;revenir en arrière;dépannage;aide	Réparer un réglage, revenir à la version précédente, obtenir de l'aide.	page	aide
-Mises à jour et récupération	Sauvegarde	sauvegarde;historique des fichiers;backup;copie de sauvegarde;déjà dup;restaurer des fichiers	Sauvegarder ses fichiers sur un disque externe ou dans le nuage (Déjà Dup).	flatpak	org.gnome.DejaDup
-Mises à jour et récupération	Administration du PC	administration;gestion de l'ordinateur;observateur d'événements;services;journaux;panneau de configuration;outils d'administration;gestion des disques	Journaux, services, disques, comptes, mises à jour : l'équivalent des outils d'administration.	app	nicos-administration
+Système	Affichage	écran;écrans;résolution;moniteur;mise à l'échelle;taille du texte;luminosité;plusieurs écrans;projecteur	Résolution, mise à l'échelle, plusieurs écrans, orientation.	monitor	kcm	kcm_kscreen
+Système	Son	son;audio;volume;haut-parleurs;casque;microphone;micro;sortie audio	Volume, haut-parleurs, casque et microphone.	volume	kcm	kcm_pulseaudio
+Système	Notifications	notifications;alertes;ne pas déranger;bannières	Quelles applications peuvent afficher des alertes, et quand.	bell	kcm	kcm_notifications
+Système	Alimentation et batterie	alimentation;batterie;veille;mise en veille;économie d'énergie;écran de veille;fermeture du capot	Veille, extinction de l'écran, comportement sur batterie.	battery	kcm	kcm_powerdevilprofilesconfig
+Système	Bureaux virtuels	multitâche;bureaux virtuels;bureaux;fenêtres	Plusieurs bureaux pour ranger les fenêtres.	grid	kcm	kcm_kwin_virtualdesktops
+Système	Stockage et disques	stockage;disque;espace disque;partition;espace libre;chiffrement	Disques, espace libre, chiffrement : dans l'administration du PC.	hard-drive	app	nicos-administration
+Système	À propos	à propos;nom du pc;version;système;informations;spécifications;mémoire;processeur	Nom du PC, version de NicOS, mémoire et processeur.	info	kcm	kcm_about-distro
+Bluetooth et appareils	Bluetooth	bluetooth;appairer;casque bluetooth;manette sans fil;souris sans fil	Associer un casque, une souris, une manette, un téléphone.	bluetooth	kcm	kcm_bluetooth
+Bluetooth et appareils	Imprimantes et scanners	imprimante;imprimantes;scanner;scanneur;impression;imprimer	Ajouter ou retirer une imprimante, choisir celle par défaut.	printer	kcm	kcm_printer_manager
+Bluetooth et appareils	Souris	souris;pointeur;vitesse du pointeur;clic;molette	Vitesse, boutons, défilement.	mouse	kcm	kcm_mouse
+Bluetooth et appareils	Pavé tactile	pavé tactile;touchpad;trackpad;défilement;gestes	Gestes et défilement du pavé tactile de l'ordinateur portable.	touchpad	kcm	kcm_touchpad
+Bluetooth et appareils	Clavier	clavier;touches;répétition des touches;disposition;azerty;qwerty;verrouillage majuscules	Répétition des touches, pavé numérique, disposition.	keyboard	kcm	kcm_keyboard
+Bluetooth et appareils	Raccourcis clavier	raccourcis;raccourci clavier;touche windows;touches	Choisir les raccourcis clavier du bureau.	command	kcm	kcm_keys
+Bluetooth et appareils	Manettes de jeu	manette;manettes;joystick;gamepad;volant	Tester et régler une manette.	gamepad	kcm	kcm_gamecontroller
+Bluetooth et appareils	Tablette graphique	tablette;stylet;wacom;tablette graphique	Régler une tablette graphique et son stylet.	tablet	kcm	kcm_tablet
+Bluetooth et appareils	Écran tactile	écran tactile;tactile;tactile gestes	Régler un écran tactile.	pointer	kcm	kcm_touchscreen
+Bluetooth et appareils	Lecture automatique	lecture automatique;clé usb;disque externe;carte sd;périphérique amovible;insertion	Que faire quand on branche une clé USB, une carte mémoire ou un disque.	play-circle	kcm	kcm_solid_actions
+Bluetooth et appareils	Téléphone	téléphone;smartphone;android;lien avec le téléphone;phone link;kde connect;sms	Relier un téléphone : fichiers, notifications, presse-papiers (KDE Connect).	smartphone	kcm	kcm_kdeconnect
+Réseau et Internet	Wi-Fi, Ethernet et VPN	wifi;wi-fi;réseau;internet;ethernet;câble;vpn;connexion;mot de passe wifi;hotspot;partage de connexion	Se connecter à un réseau, ajouter un VPN d'entreprise.	wifi	kcm	kcm_networkmanagement
+Réseau et Internet	Pare-feu	pare-feu;firewall;ports;connexions entrantes;défender	Quelles connexions peuvent entrer dans ce PC.	shield	kcm	kcm_firewall
+Personnalisation	Arrière-plan	arrière-plan;fond d'écran;image de bureau;papier peint;diaporama	Choisir le fond d'écran.	image	kcm	kcm_wallpaper
+Personnalisation	Thèmes : clair ou sombre	thème;thèmes;clair;sombre;mode sombre;mode clair;apparence;nicos sombre	Passer du thème clair au thème sombre de NicOS.	sun	kcm	kcm_lookandfeel
+Personnalisation	Couleurs	couleurs;couleur d'accentuation;contraste;couleur des fenêtres	Couleur d'accentuation et schéma de couleurs.	droplet	kcm	kcm_colors
+Personnalisation	Polices	polices;police;taille du texte;texte plus grand;caractères	Polices et taille du texte.	type	kcm	kcm_fonts
+Personnalisation	Icônes et pointeur	icônes;curseur;pointeur de souris;taille du pointeur;icônes du bureau	Thème des icônes et forme du pointeur.	pointer	kcm	kcm_icons
+Personnalisation	Écran de verrouillage	verrouillage;écran de verrouillage;verrouiller;mot de passe au réveil;délai de verrouillage	Quand verrouiller l'écran, mot de passe au réveil.	lock	kcm	kcm_screenlocker
+Personnalisation	Effets du bureau	effets;animations;transparence;ombres;fenêtres souples	Animations, transparence et effets des fenêtres.	star	kcm	kcm_kwin_effects
+Personnalisation	Barre des tâches	barre des tâches;barre;tableau de bord;panneau;épingler;position de la barre;barre en bas;menu démarrer	La barre est en haut de l'écran : clic droit sur la barre, puis le mode d'édition pour la déplacer, la redimensionner ou y épingler des applications.	taskbar	info	
+Applications	Applications installées	applications installées;désinstaller;programmes;programmes et fonctionnalités;supprimer une application;ajouter ou supprimer des programmes	Voir et désinstaller les applications (Discover).	package	discover	installed
+Applications	Mon logiciel Windows	logiciel windows;équivalent;word;excel;exe;msi;programme windows;trouver un équivalent	Trouver l'équivalent d'un programme Windows.	search	page	catalogue
+Applications	Applications par défaut	applications par défaut;ouvrir avec;navigateur par défaut;lecteur pdf par défaut;client de messagerie par défaut	Quel navigateur, quel lecteur de courrier, quel lecteur de musique…	check-square	kcm	kcm_componentchooser
+Applications	Types de fichiers	types de fichiers;associations de fichiers;extension;ouvrir les .docx avec;fichiers .pdf	Quelle application ouvre quel type de fichier.	file	kcm	kcm_filetypes
+Applications	Démarrage	démarrage;lancer au démarrage;applications au démarrage;ouverture de session;autostart	Applications lancées à l'ouverture de session.	play	kcm	kcm_autostart
+Applications	Autorisations des applications	autorisations;permissions;accès à la caméra;accès au micro;accès aux fichiers;flatpak;confidentialité des applications	Ce que chaque application a le droit de faire (caméra, fichiers, réseau…).	shield-check	kcm	kcm_app-permissions
+Comptes	Votre compte	compte;utilisateurs;utilisateur;mot de passe;changer le mot de passe;photo de profil;nom d'utilisateur;comptes locaux;administrateur;ajouter un utilisateur	Mot de passe, photo, nom, ajouter ou retirer un utilisateur.	user	kcm	kcm_users
+Comptes	Écran de connexion	écran de connexion;connexion automatique;ouvrir la session automatiquement;options de connexion;sddm	Ouverture de session automatique, apparence de l'écran de connexion.	log-in	kcm	kcm_sddm
+Comptes	Compte professionnel	domaine;active directory;compte professionnel;compte scolaire;rejoindre un domaine;entreprise	Rejoindre le domaine de l'entreprise : dans l'administration du PC.	briefcase	app	nicos-administration
+Comptes	OneDrive	onedrive;nuage;compte microsoft;synchronisation;fichiers à la demande	Relier OneDrive et synchroniser ses fichiers.	cloud	app	nicos-onedrive
+Heure et langue	Date et heure	date;heure;fuseau horaire;horloge;heure d'été;format de l'heure;synchroniser l'heure	Fuseau horaire, synchronisation automatique, format.	clock	kcm	kcm_clock
+Heure et langue	Langue et région	langue;région;pays;format de la date;format des nombres;monnaie;euro;langue d'affichage	Langue des menus, formats de date, de nombre et de monnaie.	globe	kcm	kcm_regionandlang
+Heure et langue	Saisie et correction	correction automatique;orthographe;correcteur;vérification orthographique;dictionnaire	Correction orthographique dans les applications.	edit	kcm	kcm_spellchecking
+Jeux	Jeux	jeux;steam;xbox;manette;proton;epic;gog;minecraft;barre de jeu	Boutiques de jeux, carte graphique, manettes.	gamepad	page	jeux
+Accessibilité	Accessibilité	accessibilité;loupe;lecteur d'écran;narrateur;contraste élevé;clavier visuel;filtres de couleur;sons;touches rémanentes;malvoyant;malentendant	Loupe, lecteur d'écran, touches rémanentes, alertes visuelles.	accessibility	kcm	kcm_access
+Confidentialité et sécurité	Protéger mes données	bitlocker;chiffrement;clé de récupération;protection des données;chiffrer le disque;sécurité	Clé de récupération du disque chiffré, pare-feu.	lock	page	securite
+Confidentialité et sécurité	Recherche de fichiers	indexation;recherche;recherche de fichiers;baloo;indexer;rechercher dans les fichiers	Quels dossiers sont indexés pour la recherche.	search	kcm	kcm_baloofile
+Mises à jour et récupération	Mises à jour du système	windows update;mises à jour;mise à jour;mettre à jour;updates;nouvelle version;redémarrer pour mettre à jour	Mises à jour de NicOS et des applications (Discover).	refresh	discover	update
+Mises à jour et récupération	Récupération	récupération;réinitialiser;restaurer;retour arrière;réparer;réinitialiser ce pc;revenir en arrière;dépannage;aide	Réparer un réglage, revenir à la version précédente, obtenir de l'aide.	rotate	page	aide
+Mises à jour et récupération	Sauvegarde	sauvegarde;historique des fichiers;backup;copie de sauvegarde;déjà dup;restaurer des fichiers	Sauvegarder ses fichiers sur un disque externe ou dans le nuage (Déjà Dup).	save	flatpak	org.gnome.DejaDup
+Mises à jour et récupération	Administration du PC	administration;gestion de l'ordinateur;observateur d'événements;services;journaux;panneau de configuration;outils d'administration;gestion des disques	Journaux, services, disques, comptes, mises à jour : l'équivalent des outils d'administration.	sliders	app	nicos-administration
