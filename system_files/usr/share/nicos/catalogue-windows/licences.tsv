@@ -1,0 +1,45 @@
+# Licences des applications Flatpak du catalogue, lues sur Flathub (champ project_license).
+# Fichier généré : tests/centre/verifier_flathub.py --ecrire <ce fichier>. Une ligne : identifiant, tabulation, licence.
+# « LicenseRef-proprietary » = code fermé ; tout le reste est une licence libre (identifiant SPDX).
+com.anydesk.Anydesk	LicenseRef-proprietary
+com.bitwarden.desktop	GPL-3.0
+com.discordapp.Discord	LicenseRef-proprietary
+com.dropbox.Client	LicenseRef-proprietary
+com.github.jeromerobert.pdfarranger	GPL-3.0-or-later
+com.heroicgameslauncher.hgl	GPL-3.0
+com.jgraph.drawio.desktop	Apache-2.0
+com.nextcloud.desktopclient.nextcloud	GPL-2.0+
+com.obsproject.Studio	GPL-2.0-or-later
+com.rustdesk.RustDesk	AGPL-3.0-only
+com.spotify.Client	LicenseRef-proprietary
+com.usebottles.bottles	GPL-3.0-only
+com.valvesoftware.Steam	LicenseRef-proprietary
+com.visualstudio.code	LicenseRef-proprietary
+io.github.shiftey.Desktop	MIT
+net.davidotek.pupgui2	GPL-3.0
+net.lutris.Lutris	GPL-3.0-or-later
+net.scribus.Scribus	GPL-2.0+
+org.audacityteam.Audacity	GPL-3.0-only
+org.chromium.Chromium	BSD-3-Clause and LGPL-2.1+ and Apache-2.0 and IJG and MIT and GPL-2.0+ and ISC and OpenSSL and (MPL-1.1 or GPL-2.0 or LGPL-2.0)
+org.darktable.Darktable	GPL-3.0+
+org.filezillaproject.Filezilla	GPL-2.0-or-later
+org.freecad.FreeCAD	LGPL-2.1
+org.gimp.GIMP	GPL-3.0+ AND LGPL-3.0+
+org.gnome.Boxes	LGPL-2.1+
+org.inkscape.Inkscape	GPL-2.0-or-later
+org.kde.elisa	LGPL-3.0
+org.kde.gwenview	GPL-2.0+
+org.kde.haruna	GPL-3.0-or-later
+org.kde.kcalc	GPL-2.0+
+org.kde.kdenlive	GPL-3.0-only
+org.kde.klevernotes	GPL-3.0-or-later
+org.kde.kolourpaint	BSD-2-Clause and LGPL-2.0+ and GFDL-1.2
+org.kde.krita	GPL-3.0-only
+org.kde.okular	GPL-2.0+ and GFDL-1.3
+org.keepassxc.KeePassXC	GPL-3.0-or-later
+org.libreoffice.LibreOffice	MPL-2.0
+org.mozilla.thunderbird_esr	MPL-2.0
+org.onlyoffice.desktopeditors	AGPL-3.0-only
+org.prismlauncher.PrismLauncher	GPL-3.0-only
+org.remmina.Remmina	GPL-2.0+
+org.videolan.VLC	GPL-2.0+
