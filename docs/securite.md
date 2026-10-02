@@ -27,6 +27,14 @@ sous `ghcr.io/nic69han/nicos`, sur une connexion chiffrée) ; elle est prévue e
   **Pas sur un processeur AMD Ryzen des générations Zen 1 à 3** (environ 2017 à 2022) : leur puce TPM
   intégrée est vulnérable (faille « faulTPM ») ; garder alors le mot de passe, ou ajouter un code PIN
   quand le script le propose.
+- **Clé de récupération du disque chiffré** : si le mot de passe de chiffrement est oublié, les fichiers sont
+  perdus. Le Centre NicOS (page **Protéger mes données**) crée une clé de récupération, l'équivalent de
+  celle de BitLocker : elle est affichée **une seule fois**, à imprimer ou à enregistrer sur une clé USB
+  rangée à part, jamais sur ce PC. Le mot de passe actuel du disque et celui d'un administrateur sont
+  demandés. Créer une seconde clé remplace la première (l'ancienne cesse de fonctionner, avec accord
+  préalable). Au démarrage, la clé se saisit à la place du mot de passe. Outil : `nicos-cle-recuperation`
+  (`systemd-cryptenroll --recovery-key`), testé sur un vrai volume LUKS2 : la clé déverrouille le volume,
+  le mot de passe d'origine continue de fonctionner. Seuls les volumes LUKS2 sont pris en charge.
 - **Sauvegarder** : Déjà Dup (« Sauvegardes »), sur un disque externe débranché après la sauvegarde ou
   un service cloud. C'est la protection contre les rançongiciels.
 - **Mots de passe** : un mot de passe différent par site, dans le gestionnaire de Firefox ou Bitwarden.
