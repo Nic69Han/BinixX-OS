@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>NicOS</vendor>
+  <vendor_url>https://github.com/Nic69Han/NicOS</vendor_url>
+  <action id="org.nicos.cle-recuperation">
+    <description>Create a recovery key for an encrypted disk</description>
+    <description xml:lang="fr">Créer une clé de récupération pour un disque chiffré</description>
+    <message>Authentication is required to create a recovery key for an encrypted disk</message>
+    <message xml:lang="fr">Une authentification est nécessaire pour créer une clé de récupération du disque chiffré</message>
+    <icon_name>drive-harddisk-encrypted</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/nicos/nicos-cle-recuperation</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
+</policyconfig>
