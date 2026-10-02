@@ -253,8 +253,10 @@ else
 Désactivez-le jusqu'au prochain redémarrage : apparmor_parser -R /etc/apparmor.d/bwrap-userns-restrict"
     fi
     log "Génération de l'ISO d'installation automatique"
+    # quay.io coupe parfois les connexions en cours de route : téléchargement avec reprise (fetch-bib.sh)
+    "${TEST_DIR}/fetch-bib.sh" "${BIB_IMAGE}"
     rm -rf "${WORK}/bib-output" && mkdir -p "${WORK}/bib-output"
-    podman run --rm --privileged --pull=newer \
+    podman run --rm --privileged --pull=never \
         --security-opt label=type:unconfined_t \
         -v "${WORK}/iso-unattended.toml:/config.toml:ro" \
         -v "${WORK}/bib-output:/output" \
