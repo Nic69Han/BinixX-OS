@@ -85,6 +85,12 @@ def logout_prompt():
     return _start(["busctl", "--user", "call", "org.kde.LogoutPrompt", "/LogoutPrompt", "org.kde.LogoutPrompt",
                    "promptLogout"])
 
+def reboot_prompt():
+    """Propose de redémarrer le PC (boîte de dialogue de Plasma : les applications ouvertes ont le temps d'enregistrer)."""
+    return _start(["busctl", "--user", "call", "org.kde.LogoutPrompt", "/LogoutPrompt", "org.kde.LogoutPrompt",
+                   "promptReboot"])
+
+
 def run_flatpak(app_id):
     """Lance une application Flatpak installée."""
     return _start(["flatpak", "run", app_id])

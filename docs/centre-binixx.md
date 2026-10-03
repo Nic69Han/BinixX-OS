@@ -99,6 +99,37 @@ l'essentiel, le « Microsoft Store » : on coche, un bouton installe tout.
   la retire, et chaque identifiant proposé est cherché sur Flathub (un identifiant disparu est signalé en avertissement).
   **Non vérifié** : la fenêtre d'authentification elle-même (pas d'écran en CI).
 
+## Mises à jour : une page, comme Windows Update
+
+**Paramètres → Mises à jour et récupération → Mises à jour du système** ouvre une page qui répond aux questions qu'on se pose
+devant Windows Update, sans terminal :
+
+- **Quelle version ai-je ?** La version installée (`44.20261003.0`), sa date, et le **canal** suivi : « Stable » (chaque version a
+  passé un test complet avant d'arriver sur le PC) ou « Test » (voir [mises-a-jour.md](mises-a-jour.md#deux-canaux)).
+- **Y en a-t-il une nouvelle ?** Le bouton « Rechercher des mises à jour » compare l'**empreinte** de l'image installée avec celle
+  que le registre publie aujourd'hui pour la même étiquette (`skopeo inspect`, sans identifiant ni mot de passe) et annonce la
+  **taille à télécharger** : les couches de la nouvelle image que l'ancienne n'a pas. Sans réseau, la page le dit et ne devine rien.
+- **Installer maintenant** (administrateur, une authentification) : `bootc upgrade` télécharge et prépare la version, sans
+  redémarrer. Le PC se met aussi à jour tout seul, en arrière-plan : ce bouton ne fait que devancer le moment.
+- **Redémarrer maintenant** quand une version est prête : la boîte de dialogue de Plasma, qui laisse aux applications
+  ouvertes le temps d'enregistrer.
+- **Revenir à la version précédente** (administrateur, avec une confirmation) : `bootc rollback`, quand une version
+  précédente existe. Les documents et les réglages ne changent pas ; le retour prend effet au redémarrage.
+- Les applications (Flatpak) restent dans Discover : un bouton les ouvre.
+
+- **Comment** : `binixx_centre/misesajour.py` lit `rpm-ostree status --json` (réponse à un utilisateur ordinaire : version qui
+  tourne, version préparée, version précédente). Les deux actions d'administrateur passent par `pkexec` et la règle polkit
+  `org.binixx.mises-a-jour` (`auth_admin`), liée à `/usr/libexec/binixx/binixx-mises-a-jour`, qui n'accepte que `installer` et
+  `retour`, jamais un texte venu de l'utilisateur. Chaque commande de la page tourne dans un `QProcess` : la fenêtre ne se fige pas.
+- **En ligne de commande** (support, scripts d'entreprise) : `binixx-mises-a-jour etat|verifier [--json]`.
+- **Pas de « date du test »** : la promotion en `stable` rebaptise l'image sans la modifier, elle ne porte donc pas la date de son
+  test. La page affiche la date de la version et son canal.
+- **Page sans bouton dans la barre latérale** : comme la barre des tâches, elle s'ouvre depuis Paramètres.
+- **Tests** : `tests/image/centre/test_misesajour.py` (lecture de `rpm-ostree`, empreintes, taille, ligne de commande, page) ;
+  la CI vérifie l'outil, la règle polkit et les programmes (`79-mises-a-jour.sh`) ; le test VM lit l'état du vrai système
+  **avant la mise à jour, après la mise à jour (la version précédente est proposée) et après le retour arrière**, et vérifie
+  qu'un utilisateur ordinaire ne peut ni installer ni revenir en arrière (`80-mises-a-jour.sh`).
+
 ## Compléter le catalogue
 
 Le catalogue est un simple fichier : `system_files/usr/share/binixx/catalogue-windows/catalogue.tsv`
