@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Exécuter
+GenericName=Lancer une application ou une commande
+Comment=La barre de recherche de KRunner : tapez le nom d'une application, d'un réglage ou d'un fichier
+Exec=busctl --user call org.kde.krunner /App org.kde.krunner.App display
+Icon=system-run
+Terminal=false
+Categories=Utility;
+Keywords=exécuter;executer;run;windows r;lancer;commande;krunner;
+X-KDE-Shortcuts=Meta+R
