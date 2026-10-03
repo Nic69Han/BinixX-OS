@@ -1,6 +1,8 @@
 # Raccourcis globaux fournis par BinixX OS (les réglages de l'utilisateur passent avant) : les combinaisons de Windows
 # que KDE n'offre pas d'office. La liste annoncée par la page « Raccourcis » est usr/share/binixx/raccourcis/raccourcis.tsv ;
 # chaque touche de source « binixx » y doit avoir sa ligne ici (tests/image/checks.d/78-raccourcis.sh).
+# Les lanceurs de KDE qui prendraient aussi l'une de ces touches la perdent au build : build_files/modules.d/78-raccourcis.sh
+# écrit le bloc « touches retirées » en bas de ce fichier.
 # Windows + I : Paramètres
 [services][binixx-parametres.desktop]
 _launch=Meta+I
@@ -16,7 +18,3 @@ _launch=Meta+R
 # Ctrl + Maj + Échap : gestionnaire des tâches (le Moniteur système ; Ctrl + Échap marche toujours)
 [services][binixx-gestionnaire-taches.desktop]
 _launch=Ctrl+Shift+Esc
-
-# Windows + Maj + S : capturer une zone de l'écran
-[services][binixx-capture-zone.desktop]
-_launch=Meta+Shift+S

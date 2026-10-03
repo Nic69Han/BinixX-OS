@@ -86,20 +86,25 @@ ou en ajouter.
 
 - **Deux sources** : `kde` = Plasma les fournit lui-même (Windows + D, Windows + L, Alt + Tab…) ; `binixx` = l'image les ajoute,
   parce que KDE n'offre pas l'équivalent : **Windows + R** (la barre de recherche de KRunner), **Ctrl + Maj + Échap** (le
-  Moniteur système, comme le Gestionnaire des tâches ; Ctrl + Échap marche toujours), **Windows + Maj + S** (capturer une
-  zone avec Spectacle), et **Windows + E** (Dolphin ; KDE le fournit normalement, la ligne le garantit). Windows + I
-  (Paramètres) existait déjà.
+  Moniteur système, comme le Gestionnaire des tâches ; Ctrl + Échap marche toujours) et **Windows + E** (Dolphin ; KDE le
+  fournit normalement, la ligne le garantit). Windows + I (Paramètres) existait déjà. **Windows + Maj + S** (capturer une
+  zone) est celui de Spectacle, déjà dans KDE.
 - **Comment** : `etc/xdg/kglobalshortcutsrc` (`_launch=` par lanceur), et chaque lanceur ajouté déclare la même touche
-  (`X-KDE-Shortcuts=`) : `binixx-executer.desktop`, `binixx-gestionnaire-taches.desktop`, `binixx-capture-zone.desktop`.
+  (`X-KDE-Shortcuts=`) : `binixx-executer.desktop`, `binixx-gestionnaire-taches.desktop`.
   Les réglages de l'utilisateur passent avant : s'il change une touche, la sienne reste.
+- **Une touche, un seul propriétaire** : KDE ne sert qu'une action par touche. Spectacle prend déjà Windows + R (enregistrement
+  d'écran) et la Configuration du système Windows + I : sans précaution, nos raccourcis marcheraient parfois seulement. Au build,
+  `build_files/modules.d/78-raccourcis.sh` lance `binixx-raccourcis surcharger` : il lit les `X-KDE-Shortcuts` des lanceurs de KDE
+  et écrit, en bas de `kglobalshortcutsrc`, le bloc « touches retirées » (`action=touches gardées`, ou `none`). Il ne touche ni
+  aux touches de source `kde`, ni à nos lanceurs `binixx-*`. Le build échoue s'il reste un conflit.
 - **La liste** : `usr/share/binixx/raccourcis/raccourcis.tsv` (catégorie, touches à la KDE, action, précision, source).
   Ajouter un raccourci = ajouter une ligne ; si sa source est `binixx`, ajouter aussi son `_launch` dans
   `kglobalshortcutsrc` (un test l'exige, et un test refuse l'inverse : une touche posée par l'image sans être annoncée).
 - **Une promesse vérifiée** : `binixx_centre/raccourcis.py` interroge le service de raccourcis de KDE
   (`org.kde.kglobalaccel`, par `busctl`, sans shell) et compare les codes de touches de Qt avec ceux du fichier. Le test VM
-  lance `binixx-raccourcis verifier` dans la vraie session : **un raccourci annoncé que KDE n'a pas enregistré fait échouer
-  le test**, et le journal contient tout ce que KDE a enregistré (composant / action) pour corriger la liste.
-- **En ligne de commande** (support, scripts d'entreprise) : `/usr/libexec/binixx/binixx-raccourcis liste|verifier|registre`.
+  lance `binixx-raccourcis verifier` dans la vraie session : **un raccourci annoncé que KDE n'a pas enregistré (MANQUE), ou qu'il
+  donne à plusieurs actions (CONFLIT), fait échouer le test**, et le journal contient tout ce que KDE a enregistré (composant / action) pour corriger la liste.
+- **En ligne de commande** (support, scripts d'entreprise) : `/usr/libexec/binixx/binixx-raccourcis liste|verifier|registre|surcharger`.
 - **Page sans bouton dans la barre latérale** : comme la barre des tâches, elle s'ouvre depuis Paramètres.
 - **Tests** : `tests/image/centre/test_raccourcis.py` (fichier, codes de touches, lecture de la réponse de KDE, cohérence
   avec les lanceurs, page) ; la CI vérifie les lanceurs et les programmes ouverts (`78-raccourcis.sh`).

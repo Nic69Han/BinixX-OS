@@ -42,8 +42,9 @@ def fichier_tsv(*lignes):
 
 
 def structure(composant, action, *touches):
-    """Une action telle que busctl --json la renvoie : six textes, les touches actuelles, les touches par défaut."""
-    return ["", "", action, action, composant, composant, [[[t]] for t in touches], []]
+    """Une action telle que KDE la renvoie (busctl --json) : nom de l'action, nom affiché, composant, nom affiché du composant,
+    contexte, nom affiché du contexte, puis les touches actuelles et celles par défaut."""
+    return [action, action, composant, composant, "default", "default", [[[t]] for t in touches], []]
 
 
 def reponse(*structures):
@@ -193,7 +194,7 @@ class Lecture(unittest.TestCase):
         self.assertEqual(R.actions_du_composant("pas du json"), [])
 
     def test_une_sequence_de_plusieurs_touches_est_lue_a_plat(self):
-        sortie = reponse(["", "", "a", "a", "c", "c", [[[1, 2]], [[3]]], []])
+        sortie = reponse(["a", "a", "c", "c", "default", "default", [[[1, 2]], [[3]]], []])
         self.assertEqual(R.actions_du_composant(sortie), [("c", "a", [1, 2, 3])])
 
     def test_enregistres(self):
@@ -335,7 +336,7 @@ class RaccourcisFournisParLImage(unittest.TestCase):
             self.assertEqual(declarees, [touches], lanceur)
 
     def test_les_lanceurs_ajoutes_ont_le_necessaire(self):
-        for nom in ("binixx-executer", "binixx-gestionnaire-taches", "binixx-capture-zone"):
+        for nom in ("binixx-executer", "binixx-gestionnaire-taches"):
             with open(os.path.join(LANCEURS, nom + ".desktop"), encoding="utf-8") as fichier:
                 texte = fichier.read()
             for cle in ("Type=Application", "Name=", "Exec=", "Icon=", "Categories="):
@@ -344,6 +345,169 @@ class RaccourcisFournisParLImage(unittest.TestCase):
     def test_aucun_raccourci_en_double_entre_le_fichier_xdg_et_ses_lanceurs(self):
         touches = list(R.touches_du_fichier_xdg(XDG).values())
         self.assertEqual(len(touches), len(set(touches)))
+
+
+class Conflits(unittest.TestCase):
+    """Une touche annoncée que KDE donne à deux actions : une seule la reçoit, l'autre est ignorée."""
+
+    def registre_disputant_meta_d(self):
+        autre = reponse(structure("org.kde.spectacle.desktop", "RecordRegion", 0x10000044))
+        composants = json.dumps({"type": "ao", "data": [["/component/kwin", "/component/org_kde_spectacle_desktop"]]})
+        return Faux(composants=composants, reponses={"/component/kwin": KWIN, "/component/org_kde_spectacle_desktop": autre})
+
+    def test_la_touche_disputee_est_signalee(self):
+        liste = [r for r in R.charger(FICHIER) if r.touches in ("Meta+D", "Alt+Tab")]
+        registre = R.enregistres(self.registre_disputant_meta_d())
+        presents, absents = R.verifier(liste, registre)
+        disputees = R.conflits(presents)
+        self.assertEqual([r.touches for r, _ in disputees], ["Meta+D"])
+        self.assertEqual(sorted(disputees[0][1]), [("kwin", "Show Desktop"), ("org.kde.spectacle.desktop", "RecordRegion")])
+
+    def test_deux_actions_d_un_meme_composant_se_disputent_aussi(self):
+        composants = json.dumps({"type": "ao", "data": [["/component/kwin"]]})
+        kwin = reponse(structure("kwin", "A", 0x10000044), structure("kwin", "B", 0x10000044))
+        registre = R.enregistres(Faux(composants=composants, reponses={"/component/kwin": kwin}))
+        liste = [r for r in R.charger(FICHIER) if r.touches == "Meta+D"]
+        self.assertEqual(len(R.conflits(R.verifier(liste, registre)[0])), 1)
+
+    def test_une_touche_a_un_seul_proprietaire_n_est_pas_un_conflit(self):
+        liste = [r for r in R.charger(FICHIER) if r.touches in ("Meta+D", "Meta+E")]
+        presents, _ = R.verifier(liste, R.enregistres(Faux()))
+        self.assertEqual(R.conflits(presents), [])
+
+    def test_verifier_echoue_et_nomme_les_actions_en_conflit(self):
+        vieux = os.environ.get("BINIXX_RACCOURCIS")
+        os.environ["BINIXX_RACCOURCIS"] = fichier_tsv(("Cat", "Meta+D", "Afficher le bureau", "", "kde"),
+                                                      ("Cat", "Alt+Tab", "Passer d'une fenêtre à l'autre", "", "kde"))
+        self.addCleanup(lambda: os.environ.pop("BINIXX_RACCOURCIS") if vieux is None
+                        else os.environ.__setitem__("BINIXX_RACCOURCIS", vieux))
+        sortie = []
+        code = R.main(["verifier"], run=self.registre_disputant_meta_d(), sortie=sortie.append)
+        texte = "\n".join(sortie)
+        self.assertEqual(code, 1)
+        self.assertIn("CONFLIT  Meta+D", texte)
+        self.assertIn("org.kde.spectacle.desktop / RecordRegion", texte)
+        self.assertIn("kwin / Show Desktop", texte)
+        self.assertIn("ok       Alt+Tab", texte)         # sans conflit : un seul propriétaire
+        self.assertIn("1 en conflit", texte)
+
+    def test_le_registre_dit_composant_puis_action(self):
+        vieux = os.environ.get("BINIXX_RACCOURCIS")
+        os.environ["BINIXX_RACCOURCIS"] = FICHIER
+        self.addCleanup(lambda: os.environ.pop("BINIXX_RACCOURCIS") if vieux is None
+                        else os.environ.__setitem__("BINIXX_RACCOURCIS", vieux))
+        sortie = []
+        R.main(["registre"], run=Faux(), sortie=sortie.append)
+        self.assertIn(f"{'Meta+D':<24} kwin / Show Desktop", "\n".join(sortie))
+
+
+def ecrire(chemin, texte):
+    os.makedirs(os.path.dirname(chemin), exist_ok=True)
+    with open(chemin, "w", encoding="utf-8") as fichier:
+        fichier.write(texte)
+
+
+class UneToucheUnProprietaire(unittest.TestCase):
+    """Au build, les lanceurs de KDE qui prennent une touche de BinixX OS la perdent (kglobalshortcutsrc)."""
+
+    def setUp(self):
+        self.dossier = tempfile.mkdtemp()
+        self.addCleanup(__import__("shutil").rmtree, self.dossier, True)
+        self.apps = os.path.join(self.dossier, "applications")
+        self.xdg = os.path.join(self.dossier, "kglobalshortcutsrc")
+        ecrire(os.path.join(self.apps, "org.kde.spectacle.desktop"),
+               "[Desktop Entry]\nName=Spectacle\nX-KDE-Shortcuts=Print\nActions=A;B;\n\n"
+               "[Desktop Action RecordRegion]\nName=Record\nX-KDE-Shortcuts=Meta+R,Meta+Shift+R\n\n"
+               "[Desktop Action RectangularRegionScreenShot]\nX-KDE-Shortcuts=Meta+Shift+S\n")
+        ecrire(os.path.join(self.apps, "systemsettings.desktop"), "[Desktop Entry]\nName=Paramètres\nX-KDE-Shortcuts=Tools,Meta+I\n")
+        ecrire(os.path.join(self.apps, "org.kde.dolphin.desktop"), "[Desktop Entry]\nName=Dolphin\nX-KDE-Shortcuts=Meta+E\n")
+        ecrire(os.path.join(self.apps, "binixx-executer.desktop"), "[Desktop Entry]\nName=Exécuter\nX-KDE-Shortcuts=Meta+R\n")
+        ecrire(os.path.join(self.apps, "autre.desktop"), "[Desktop Entry]\nName=Sans raccourci\n")
+        ecrire(self.xdg, "# test\n[services][org.kde.dolphin.desktop]\n_launch=Meta+E\n\n[services][binixx-executer.desktop]\n_launch=Meta+R\n")
+        self.liste = R.charger(fichier_tsv(
+            ("Cat", "Meta+R", "Exécuter", "", "binixx"), ("Cat", "Meta+I", "Paramètres", "", "binixx"),
+            ("Cat", "Meta+E", "Explorateur", "", "binixx"), ("Cat", "Meta+Shift+S", "Capture", "", "kde")))
+
+    def calculer(self):
+        return R.surcharges(self.liste, self.apps, self.xdg)
+
+    def test_lire_les_touches_d_un_lanceur(self):
+        self.assertEqual(R.touches_du_lanceur(os.path.join(self.apps, "org.kde.spectacle.desktop")),
+                         {"_launch": ["Print"], "RecordRegion": ["Meta+R", "Meta+Shift+R"],
+                          "RectangularRegionScreenShot": ["Meta+Shift+S"]})
+        self.assertEqual(R.touches_du_lanceur(os.path.join(self.apps, "autre.desktop")), {})
+        self.assertEqual(R.touches_du_lanceur("/n/existe/pas.desktop"), {})
+
+    def test_une_touche_de_binixx_est_retiree_aux_autres_lanceurs(self):
+        retirees = self.calculer()
+        self.assertEqual(retirees["org.kde.spectacle.desktop"], {"RecordRegion": ["Meta+Shift+R"]})
+        self.assertEqual(retirees["systemsettings.desktop"], {"_launch": ["Tools"]})   # la touche « Tools » reste
+
+    def test_les_touches_de_kde_ne_sont_pas_touchees(self):
+        retirees = self.calculer()
+        self.assertNotIn("RectangularRegionScreenShot", retirees["org.kde.spectacle.desktop"])   # Windows + Maj + S : source kde
+        self.assertNotIn("_launch", retirees["org.kde.spectacle.desktop"])                        # Print
+
+    def test_nos_lanceurs_et_le_lanceur_choisi_par_l_image_restent(self):
+        retirees = self.calculer()
+        self.assertNotIn("binixx-executer.desktop", retirees)
+        self.assertNotIn("org.kde.dolphin.desktop", retirees)      # Meta+E : l'image le lui donne elle-même
+        self.assertNotIn("autre.desktop", retirees)
+
+    def test_un_lanceur_qui_perd_toutes_ses_touches_est_ecrit_none(self):
+        ecrire(os.path.join(self.apps, "seul.desktop"), "[Desktop Entry]\nX-KDE-Shortcuts=Meta+R\n")
+        R.ecrire_surcharges(self.calculer(), self.xdg)
+        with open(self.xdg, encoding="utf-8") as f:
+            texte = f.read()
+        self.assertIn("[services][seul.desktop]\n_launch=none", texte)
+        self.assertIn("[services][systemsettings.desktop]\n_launch=Tools", texte)
+
+    def test_apres_l_ecriture_il_ne_reste_aucun_conflit(self):
+        R.ecrire_surcharges(self.calculer(), self.xdg)
+        self.assertEqual(self.calculer(), {})
+        self.assertEqual(R.lire_surcharges(self.xdg)["org.kde.spectacle.desktop"], {"RecordRegion": ["Meta+Shift+R"]})
+
+    def test_ecrire_deux_fois_donne_le_meme_fichier_et_garde_le_reste(self):
+        R.ecrire_surcharges(self.calculer(), self.xdg)
+        with open(self.xdg, encoding="utf-8") as f:
+            premier = f.read()
+        R.ecrire_surcharges({**R.lire_surcharges(self.xdg), **self.calculer()}, self.xdg)
+        with open(self.xdg, encoding="utf-8") as f:
+            self.assertEqual(f.read(), premier)
+        self.assertTrue(premier.startswith("# test\n[services][org.kde.dolphin.desktop]\n_launch=Meta+E\n"))
+        self.assertEqual(premier.count(R.DEBUT_SURCHARGES), 1)
+        self.assertEqual(premier.count(R.FIN_SURCHARGES), 1)
+
+    def test_le_bloc_des_touches_retirees_ne_compte_pas_comme_touches_fournies(self):
+        R.ecrire_surcharges(self.calculer(), self.xdg)
+        self.assertEqual(R.touches_du_fichier_xdg(self.xdg),
+                         {"org.kde.dolphin.desktop": "Meta+E", "binixx-executer.desktop": "Meta+R"})
+
+    def test_ligne_de_commande(self):
+        anciens = {cle: os.environ.get(cle) for cle in ("BINIXX_RACCOURCIS", "BINIXX_LANCEURS", "BINIXX_XDG_RACCOURCIS")}
+        os.environ.update({"BINIXX_RACCOURCIS": fichier_tsv(("Cat", "Meta+R", "Exécuter", "", "binixx"),
+                                                            ("Cat", "Meta+I", "Paramètres", "", "binixx")),
+                           "BINIXX_LANCEURS": self.apps, "BINIXX_XDG_RACCOURCIS": self.xdg})
+        try:
+            sortie = []
+            self.assertEqual(R.main(["surcharger", "--verifier"], sortie=sortie.append), 1)       # des conflits au départ
+            self.assertIn("CONFLIT  org.kde.spectacle.desktop / RecordRegion", "\n".join(sortie))
+            sortie = []
+            self.assertEqual(R.main(["surcharger"], sortie=sortie.append), 0)
+            self.assertIn("touches retirées : systemsettings.desktop / _launch garde Tools", "\n".join(sortie))
+            sortie = []
+            self.assertEqual(R.main(["surcharger", "--verifier"], sortie=sortie.append), 0)       # plus aucun après
+            self.assertIn("0 conflits", "\n".join(sortie))
+        finally:
+            for cle, valeur in anciens.items():
+                if valeur is None:
+                    os.environ.pop(cle, None)
+                else:
+                    os.environ[cle] = valeur
+
+    def test_dans_le_depot_ou_dans_l_image_aucun_lanceur_ne_dispute_une_touche_de_binixx(self):
+        """Dans l'image, c'est le module 78-raccourcis.sh qui a retiré les touches ; dans le dépôt, il n'y a pas de lanceur de KDE."""
+        self.assertEqual(R.surcharges(R.charger(FICHIER), LANCEURS, XDG), {})
 
 
 @unittest.skipUnless(AVEC_QT, "PySide6 absent")

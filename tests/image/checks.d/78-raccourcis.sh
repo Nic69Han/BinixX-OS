@@ -2,7 +2,7 @@
 section "Raccourcis clavier (aide-mémoire des raccourcis de Windows)"
 check "outil binixx-raccourcis exécutable" test -x /usr/libexec/binixx/binixx-raccourcis
 check "fichier des raccourcis présent" test -s /usr/share/binixx/raccourcis/raccourcis.tsv
-for lanceur in binixx-executer binixx-gestionnaire-taches binixx-capture-zone; do
+for lanceur in binixx-executer binixx-gestionnaire-taches; do
     check "lanceur ${lanceur} valide" desktop-file-validate "/usr/share/applications/${lanceur}.desktop"
 done
 # Les programmes que ces raccourcis ouvrent existent dans l'image
@@ -24,9 +24,18 @@ check "une action inconnue est refusée" bash -c '! /usr/libexec/binixx/binixx-r
 # La page « Aide-mémoire des raccourcis » est ouverte depuis Paramètres, et l'image fournit les touches annoncées
 check "la ligne « Aide-mémoire des raccourcis » de Paramètres ouvre la page « raccourcis »" bash -c \
     "awk -F'\t' '\$2==\"Aide-mémoire des raccourcis\" && \$6==\"page\" && \$7==\"raccourcis\" {found=1} END {exit !found}' /usr/share/binixx/parametres/parametres.tsv"
-for touches in 'Meta+I' 'Meta+E' 'Meta+R' 'Ctrl+Shift+Esc' 'Meta+Shift+S'; do
+for touches in 'Meta+I' 'Meta+E' 'Meta+R' 'Ctrl+Shift+Esc'; do
     check "touche ${touches} fournie par l'image" grep -q "^_launch=${touches}\$" /etc/xdg/kglobalshortcutsrc
 done
+# Une touche annoncée n'a qu'un propriétaire : les lanceurs de KDE qui la déclarent aussi (Spectacle, Configuration du système…) la
+# perdent au build (module 78-raccourcis.sh) ; on liste ce qui a été retiré, et il ne doit rester aucun conflit
+sed -n '/^# --- touches retirées/,/^# --- fin des touches retirées/p' /etc/xdg/kglobalshortcutsrc | sed 's/^/            retiré : /'
+out="$(/usr/libexec/binixx/binixx-raccourcis surcharger --verifier 2>&1 || true)"
+if /usr/libexec/binixx/binixx-raccourcis surcharger --verifier >/dev/null 2>&1; then
+    pass "aucun lanceur de KDE ne dispute une touche de BinixX OS (${out##*$'\n'})"
+else
+    fail "des lanceurs de KDE gardent une touche de BinixX OS : ${out:0:400}"
+fi
 if out="$(BINIXX_CENTRE=/usr/lib/binixx/centre BINIXX_RACCOURCIS=/usr/share/binixx/raccourcis/raccourcis.tsv BINIXX_XDG_RACCOURCIS=/etc/xdg/kglobalshortcutsrc BINIXX_LANCEURS=/usr/share/applications QT_QPA_PLATFORM=offscreen python3 -m unittest discover -s /tests/centre -p 'test_raccourcis.py' 2>&1)"; then
     pass "raccourcis : tests du fichier, des codes de touches, de la lecture de KDE et de la page (${out##*$'\n'})"
 else
