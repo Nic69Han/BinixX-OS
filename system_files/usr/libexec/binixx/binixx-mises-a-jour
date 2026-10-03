@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+"""Mises à jour de BinixX OS : binixx-mises-a-jour etat | verifier [--json] ; installer | retour (administrateur)."""
+
+import sys
+
+sys.path.insert(0, "/usr/lib/binixx/centre")
+
+from binixx_centre.misesajour import main  # noqa: E402
+
+sys.exit(main())
