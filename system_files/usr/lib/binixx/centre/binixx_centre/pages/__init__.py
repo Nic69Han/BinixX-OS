@@ -5,6 +5,9 @@ TITLE (texte du bouton) et  build(centre) -> QWidget. Ajouter une page = ajouter
 
 Une page peut aussi donner ICONE (nom d'une icône de icones.py) et ACCENT (un couple de theme.ACCENTS) : la barre
 latérale en fait la pastille du bouton, et la page reprend la même couleur pour son en-tête (widgets.entete).
+
+Une page peut n'avoir aucun bouton dans la barre latérale (MENU = False) : on l'ouvre depuis une autre page ou avec
+--page, et le bouton de sa page parente (PARENT = clé de cette page) reste allumé.
 """
 
 import importlib

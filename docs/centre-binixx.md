@@ -34,12 +34,12 @@ Configuration du système) un classement et des noms que l'on reconnaît.
 - **Un fichier de données** : `usr/share/binixx/parametres/parametres.tsv`. Une ligne par réglage : catégorie, nom, mots de
   recherche (« fond d'écran », « arrière-plan »…), explication, icône, type et cible. Les types : `kcm` (un module de la
   Configuration du système), `page` (une autre page du Centre), `app` (un lanceur de l'image), `flatpak`, `discover`
-  (mises à jour, applications installées), `info` (une explication, rien à ouvrir : « Barre des tâches »).
+  (mises à jour, applications installées), `info` (une explication, rien à ouvrir).
 - **Présentation** : un en-tête en dégradé aux couleurs de BinixX OS (avec la grande barre de recherche arrondie), un menu de
   catégories à pastilles colorées, des **tuiles** cliquables à la souris comme au clavier (Tab, Entrée, Espace), sur deux
   colonnes (une seule si la fenêtre est étroite). Chaque catégorie a sa couleur et son pictogramme ; les pictogrammes sont des
   traits fins embarqués en SVG (`binixx_centre/icones.py`, dans le style des icônes Feather, licence MIT), donc indépendants
-  du thème d'icônes du PC. Une explication sans réglage à ouvrir (« Barre des tâches ») a un cadre en pointillés.
+  du thème d'icônes du PC. Une explication sans réglage à ouvrir (type `info`) a un cadre en pointillés.
 - **Recherche** sans accents ni majuscules, tous les mots doivent correspondre, le nom exact d'abord : « wifi »,
   « Wi-Fi » et « WIFI » donnent la même réponse ; « mot de passe » met « Votre compte » en premier.
 - **Jamais de bouton mort** : un module KDE absent de ce PC est masqué (la liste vient de `kcmshell6 --list`) ; à l'inverse, la CI
@@ -50,6 +50,27 @@ Configuration du système) un classement et des noms que l'on reconnaît.
   identifiants des modules.
 - **Touche Windows + I** : `usr/share/applications/binixx-parametres.desktop` (`X-KDE-Shortcuts`) et `etc/xdg/kglobalshortcutsrc`.
   Le test VM vérifie que KDE l'a enregistrée, en simple avertissement : si KDE l'ignorait, le menu et la recherche restent là.
+
+## Barre des tâches : en bas ou en haut
+
+Sous Windows la barre est en bas ; BinixX OS la place **en haut** au départ (flottante, aux coins arrondis). Dans
+**Paramètres → Personnalisation → Barre des tâches**, une page propose les deux positions, chacune avec une petite
+maquette d'écran (celle du choix actuel est cerclée). Un clic sur « Choisir » déplace la barre tout de suite, sans fermer la
+session, et Plasma garde ce choix d'une session à l'autre.
+
+- **Comment** : `binixx_centre/barre.py` envoie à Plasma, par D-Bus (`org.kde.PlasmaShell.evaluateScript`), un petit script
+  qui met les panneaux en `top` ou `bottom` ; aucun fichier de configuration n'est réécrit à la main, aucun shell n'est
+  utilisé, et la position vient d'une liste fermée (`haut`, `bas`). La position actuelle se lit dans la disposition courante
+  de Plasma, à défaut dans `plasma-org.kde.plasma.desktop-appletsrc`.
+- **Hors session** (un terminal à distance, un build) : le message dit que le bureau ne répond pas, sans trace d'erreur.
+- **En ligne de commande** (pour le support et les scripts d'entreprise) : `/usr/libexec/binixx/binixx-barre haut|bas|etat`.
+- **Page sans bouton dans la barre latérale** : elle s'ouvre depuis Paramètres, dont le bouton reste allumé
+  (`MENU = False` et `PARENT = "parametres"` dans `pages/barre.py`, voir [Sous le capot](#sous-le-capot)).
+- **Pour changer la position d'origine** (un déploiement d'entreprise en bas, par exemple) : `panel.location` dans
+  `usr/share/plasma/look-and-feel/org.binixx.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`.
+- **Tests** : `tests/image/centre/test_barre.py` (script, lecture, déplacement, page) ; la CI vérifie l'outil dans l'image ;
+  le test VM déplace vraiment la barre dans la session de l'utilisateur de test, vérifie que Plasma le confirme et que le
+  choix est écrit dans sa configuration, puis la remet en haut.
 
 ## Installer des applications
 
@@ -113,7 +134,8 @@ Toutes les pages partagent le même style moderne (retour du propriétaire : « 
 - Code : `system_files/usr/lib/binixx/centre/binixx_centre/` ; lanceur `usr/libexec/binixx/binixx-centre`.
 - **Ajouter une page** = ajouter un fichier dans `binixx_centre/pages/` qui définit `ORDER`, `KEY`,
   `TITLE` et `build(centre)` (et, pour le style, `ICONE` et `ACCENT`, voir ci-dessus) ; elle apparaît dans la barre
-  latérale, sans autre modification.
+  latérale, sans autre modification. Une page qui n'a pas à y figurer (elle s'ouvre depuis une autre) ajoute
+  `MENU = False` et `PARENT = "<clé de la page parente>"`.
 - Les actions (ouvrir Discover, la Configuration du système, un lanceur) passent par `launch.py` :
   jamais de shell, jamais de texte saisi par l'utilisateur dans une commande.
 - `binixx-centre --test <dossier>` construit toutes les pages hors écran et en enregistre une

@@ -35,6 +35,7 @@ class Centre(QWidget):
         self.errors = []
         self.keys = []
         self.widgets = {}
+        self.parents = {}
         self.setWindowTitle("Centre BinixX OS")
         self.setWindowIcon(QIcon.fromTheme("binixx"))
         self.resize(1120, 720)
@@ -79,6 +80,11 @@ class Centre(QWidget):
             widget = QLabel(f"La page « {module.TITLE} » n'a pas pu être affichée.")
             widget.setAlignment(Qt.AlignCenter)
         index = self.pile.addWidget(widget)
+        self.keys.append(module.KEY)
+        self.widgets[module.KEY] = widget
+        self.parents[module.KEY] = getattr(module, "PARENT", module.KEY)
+        if not getattr(module, "MENU", True):  # page ouverte depuis une autre, sans bouton dans la barre latérale
+            return
         bouton = QPushButton(module.TITLE)
         bouton.setObjectName("nav")
         bouton.setIcon(QIcon(widgets.pastille(getattr(module, "ICONE", "grid"),
@@ -89,17 +95,18 @@ class Centre(QWidget):
         bouton.clicked.connect(lambda _=False, i=index: self.pile.setCurrentIndex(i))
         self.boutons.addButton(bouton, index)
         colonne.addWidget(bouton)
-        self.keys.append(module.KEY)
-        self.widgets[module.KEY] = widget
         if index == 0:
             bouton.setChecked(True)
 
     def show_page(self, key):
-        """Affiche la page d'identifiant `key` ; sans effet si elle n'existe pas."""
+        """Affiche la page d'identifiant `key` ; sans effet si elle n'existe pas.
+
+        Une page sans bouton (MENU = False) laisse allumé le bouton de sa page parente (PARENT)."""
         if key in self.keys:
-            index = self.keys.index(key)
-            self.pile.setCurrentIndex(index)
-            self.boutons.button(index).setChecked(True)
+            self.pile.setCurrentIndex(self.keys.index(key))
+            bouton = self.boutons.button(self.keys.index(self.parents.get(key, key)))
+            if bouton is not None:
+                bouton.setChecked(True)
             return True
         return False
 

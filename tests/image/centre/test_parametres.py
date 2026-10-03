@@ -193,9 +193,20 @@ class Modules(unittest.TestCase):
         noms = {r.nom for r in visibles}
         self.assertIn("Affichage", noms)
         self.assertNotIn("Écran tactile", noms)
-        self.assertIn("Barre des tâches", noms)  # « info » : jamais masqué
+        self.assertIn("Barre des tâches", noms)  # page du Centre : jamais masquée
         self.assertIn("Protéger mes données", noms)  # page du Centre : jamais masquée
         self.assertEqual(len(p.visibles(reglages, None)), len(reglages))
+
+    def test_une_ligne_info_n_est_jamais_masquee(self):
+        explication = p.charger(self._ecrire("C\tB\tz\tTexte.\tinfo\tinfo\n"))
+        self.assertEqual(p.visibles(explication, set()), explication)
+
+    def _ecrire(self, contenu):
+        fichier = tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False, encoding="utf-8")
+        self.addCleanup(os.unlink, fichier.name)
+        fichier.write(contenu)
+        fichier.close()
+        return fichier.name
 
 
 @unittest.skipUnless(AVEC_QT, "PySide6 absent")
@@ -320,14 +331,25 @@ class Page(unittest.TestCase):
         self.assertEqual(self.pages[-1], "aide")
 
     def test_une_explication_n_est_pas_cliquable(self):
+        fichier = tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False, encoding="utf-8")
+        self.addCleanup(os.unlink, fichier.name)
+        fichier.write("Système\tUne explication\texplication\tRien à ouvrir ici.\tmonitor\tinfo\t\n"
+                      "Système\tAffichage\técran\tÉcrans.\tmonitor\tkcm\tkcm_kscreen\n")
+        fichier.close()
+        os.environ["BINIXX_PARAMETRES"] = fichier.name
         page = self.module.build(self.centre)
-        self.choisir(page, "Personnalisation")
-        info = self.carte(page, "Barre des tâches")
+        info = self.carte(page, "Une explication")
         self.assertFalse(info.actionnable)
         self.assertTrue(info.property("info"))
         info.click()
         self.assertEqual(self.lances, [])
-        self.assertTrue(self.carte(page, "Arrière-plan").actionnable)
+        self.assertTrue(self.carte(page, "Affichage").actionnable)
+
+    def test_la_barre_des_taches_ouvre_sa_page(self):
+        page = self.module.build(self.centre)
+        self.choisir(page, "Personnalisation")
+        self.carte(page, "Barre des tâches").click()
+        self.assertEqual(self.pages, ["barre"])
 
     def test_application_flatpak_installee_ou_a_installer(self):
         page = self.module.build(self.centre)

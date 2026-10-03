@@ -26,8 +26,8 @@ disponibles = {m.split()[0] for m in sys.argv[1].splitlines() if m.strip() and r
 manquants = []
 for ligne in open("/usr/share/binixx/parametres/parametres.tsv", encoding="utf-8"):
     champs = ligne.rstrip("\n").split("\t")
-    if not ligne.startswith("#") and len(champs) >= 6 and champs[4] == "kcm" and champs[5] not in disponibles:
-        manquants.append(f"{champs[1]} ({champs[5]})")
+    if not ligne.startswith("#") and len(champs) >= 7 and champs[5] == "kcm" and champs[6] not in disponibles:
+        manquants.append(f"{champs[1]} ({champs[6]})")
 print(", ".join(manquants))
 PYEOF
     )"
@@ -42,8 +42,8 @@ import os
 manquants = []
 for ligne in open("/usr/share/binixx/parametres/parametres.tsv", encoding="utf-8"):
     champs = ligne.rstrip("\n").split("\t")
-    if not ligne.startswith("#") and len(champs) >= 6 and champs[4] == "app" and not os.path.exists(f"/usr/share/applications/{champs[5]}.desktop"):
-        manquants.append(champs[5])
+    if not ligne.startswith("#") and len(champs) >= 7 and champs[5] == "app" and not os.path.exists(f"/usr/share/applications/{champs[6]}.desktop"):
+        manquants.append(champs[6])
 print(" ".join(manquants))
 PYEOF
 )"

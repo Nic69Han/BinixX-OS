@@ -149,10 +149,20 @@ class Pages(unittest.TestCase):
 
     def test_la_barre_laterale_montre_une_icone_par_page(self):
         boutons = self.centre.boutons.buttons()
-        self.assertEqual(len(boutons), len(self.modules))
+        avec_bouton = [m for m in self.modules if getattr(m, "MENU", True)]
+        self.assertEqual(len(boutons), len(avec_bouton))
+        self.assertLess(len(avec_bouton), len(self.modules))  # au moins une page s'ouvre depuis une autre (Barre des tâches)
         for bouton in boutons:
             self.assertFalse(bouton.icon().isNull(), bouton.text())
             self.assertIsInstance(bouton, QPushButton)
+
+    def test_une_page_sans_bouton_allume_celui_de_sa_page_parente(self):
+        self.assertTrue(self.centre.show_page("barre"))
+        self.assertEqual(self.centre.pile.currentWidget(), self.centre.widgets["barre"])
+        parent = self.centre.boutons.button(self.centre.keys.index("parametres"))
+        self.assertTrue(parent.isChecked())
+        self.assertTrue(self.centre.show_page("accueil"))
+        self.assertFalse(parent.isChecked())
 
     def test_aucune_page_en_erreur(self):
         self.assertEqual(self.centre.errors, [])
