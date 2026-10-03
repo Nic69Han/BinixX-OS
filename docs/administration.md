@@ -14,8 +14,8 @@ Tout se fait sans terminal, depuis trois endroits :
 | Tâche | Où | Sous Windows |
 | --- | --- | --- |
 | Installer ou supprimer une application | Discover | Microsoft Store, « Ajouter ou supprimer des programmes » |
-| Mettre à jour maintenant | Discover → Mises à jour | Windows Update |
-| Revenir à la version précédente du système | Administration du PC → Mises à jour logicielles → « Revenir en arrière », puis redémarrer ; ou choisir l'ancienne version dans le menu de démarrage | Restauration du système |
+| Mettre à jour maintenant | Paramètres → Mises à jour du système (le système) ; Discover → Mises à jour (les applications) | Windows Update |
+| Revenir à la version précédente du système | Paramètres → Mises à jour du système → « Revenir en arrière », puis redémarrer (ou Administration du PC → Mises à jour logicielles) ; ou choisir l'ancienne version dans le menu de démarrage | Restauration du système |
 | Rejoindre le domaine de l'entreprise (Active Directory) | Administration du PC → Présentation → Domaine → « Rejoindre un domaine » : nom du domaine, compte et mot de passe d'un administrateur du domaine | Paramètres → Comptes → Accès Professionnel ou Scolaire |
 | Pare-feu : autoriser une application ou un service | Configuration du système → Pare-feu ; ou Administration du PC → Réseau → Pare-feu | Pare-feu Windows Defender |
 | Réseau, Wi-Fi, VPN | Configuration du système → Connexions | Paramètres → Réseau et Internet |

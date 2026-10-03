@@ -57,8 +57,7 @@ Ligne de commande (administrateur) : `binixx-reparer-systeme liste | restaurer C
 Remettre tout `/etc` à l'origine effacerait aussi les comptes, les mots de passe, les réseaux Wi-Fi, le
 domaine et les clés : l'utilisateur ne pourrait plus ouvrir sa session. La réparation ciblée, avec
 sauvegarde et annulation, couvre le besoin réel (un réglage touché à la main) sans ce risque. Les deux
-autres filets existent déjà : le **retour à la version précédente** du système (Administration du PC →
-Mises à jour logicielles) et le **retour arrière automatique** si l'écran de connexion ne démarre plus
+autres filets existent déjà : le **retour à la version précédente** du système (Paramètres → Mises à jour du système) et le **retour arrière automatique** si l'écran de connexion ne démarre plus
 ([mises-a-jour.md](mises-a-jour.md)).
 
 ## Rapport de diagnostic

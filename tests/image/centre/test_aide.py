@@ -102,5 +102,34 @@ class PageAide(unittest.TestCase):
         del app
 
 
+@unittest.skipUnless(AVEC_QT, "PySide6 absent")
+class RetourALaVersionPrecedente(unittest.TestCase):
+    """« Depuis la dernière mise à jour, quelque chose ne marche plus » mène à la page Mises à jour, pas à Cockpit."""
+
+    def test_le_cas_d_aide_ouvre_la_page_mises_a_jour(self):
+        from PySide6.QtWidgets import QPushButton
+        from binixx_centre.pages import aide, mises_a_jour
+
+        app = QApplication.instance() or QApplication(sys.argv[:1])
+        ouvertes = []
+        centre = type("Centre", (), {"show_page": lambda self, cle: ouvertes.append(cle)})()
+        page = aide.build(centre)
+        bouton = next(b for b in page.findChildren(QPushButton) if b.text() == "Ouvrir les mises à jour")
+        bouton.click()
+        self.assertEqual(ouvertes, [mises_a_jour.KEY])
+        self.assertEqual(mises_a_jour.KEY, "mises_a_jour")
+        del app
+
+    def test_le_texte_dit_ou_cliquer_et_ne_parle_plus_de_cockpit(self):
+        from binixx_centre.pages import aide
+
+        titre, texte, bouton, action = next(p for p in aide.PROBLEMES if p[3] == "retour")
+        self.assertIn("Paramètres → Mises à jour du système → « Revenir en arrière »", texte)
+        self.assertEqual(bouton, "Ouvrir les mises à jour")
+        for p in aide.PROBLEMES:
+            self.assertNotIn("9090", " ".join(p))
+            self.assertNotIn("Administration du PC", p[1] if p[3] == "retour" else "")
+
+
 if __name__ == "__main__":
     unittest.main()
