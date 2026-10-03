@@ -76,6 +76,42 @@ affiche « La barre se déplace… », puis confirme (ou dit que la barre n'a pa
   le test VM déplace vraiment la barre dans la session de l'utilisateur de test, vérifie que Plasma le confirme et que le
   choix est écrit dans sa configuration, puis la remet en haut.
 
+## Raccourcis : l'aide-mémoire de Windows
+
+Un utilisateur de Windows a des réflexes : Windows + E pour les fichiers, Windows + L pour verrouiller, Windows + V pour
+l'historique du presse-papiers. **Paramètres → Bluetooth et appareils → Aide-mémoire des raccourcis** ouvre une page qui liste
+ceux qui marchent sur BinixX OS (touches dessinées comme sur un clavier, avec une recherche : « capture », « fichiers »,
+« windows e »). Le bouton « Personnaliser » ouvre les raccourcis de la Configuration du système (`kcm_keys`) pour en changer
+ou en ajouter.
+
+- **Deux sources** : `kde` = Plasma les fournit lui-même (Windows + D, Windows + L, Alt + Tab…) ; `binixx` = l'image les ajoute,
+  parce que KDE n'offre pas l'équivalent : **Windows + R** (la barre de recherche de KRunner), **Ctrl + Maj + Échap** (le
+  Moniteur système, comme le Gestionnaire des tâches ; Ctrl + Échap marche toujours) et **Windows + E** (Dolphin ; KDE le
+  fournit normalement, la ligne le garantit). Windows + I (Paramètres) existait déjà. **Windows + Maj + S** (capturer une
+  zone) est celui de Spectacle, déjà dans KDE.
+- **Comment** : `etc/xdg/kglobalshortcutsrc` (`_launch=` par lanceur), et chaque lanceur ajouté déclare la même touche
+  (`X-KDE-Shortcuts=`) : `binixx-executer.desktop`, `binixx-gestionnaire-taches.desktop`.
+  Les réglages de l'utilisateur passent avant : s'il change une touche, la sienne reste.
+- **Une touche, un seul propriétaire** : KDE ne sert qu'une action par touche. Spectacle prend déjà Windows + R (une de ses
+  actions d'enregistrement d'écran) et la Configuration du système Windows + I : sans précaution, nos raccourcis ne marcheraient
+  que par moments. Constaté dans le test VM : un `[services]` dans `kglobalshortcutsrc` ne retire pas la touche à ces lanceurs,
+  KDE lit la déclaration `X-KDE-Shortcuts` de leur fichier `.desktop`. Au build, `build_files/modules.d/78-raccourcis.sh` lance donc
+  `binixx-raccourcis surcharger` : il lit les `X-KDE-Shortcuts` des lanceurs de KDE (entrée principale ou `[Desktop Action X]`),
+  retire nos touches (source `binixx`) dans le `.desktop` de ceux qui ne sont pas à nous, et note ce qu'il a retiré dans
+  `/usr/share/binixx/raccourcis/touches-retirees.txt`. Il ne touche ni aux touches de source `kde`, ni à nos lanceurs `binixx-*`.
+  Le build échoue s'il reste un conflit.
+- **La liste** : `usr/share/binixx/raccourcis/raccourcis.tsv` (catégorie, touches à la KDE, action, précision, source).
+  Ajouter un raccourci = ajouter une ligne ; si sa source est `binixx`, ajouter aussi son `_launch` dans
+  `kglobalshortcutsrc` (un test l'exige, et un test refuse l'inverse : une touche posée par l'image sans être annoncée).
+- **Une promesse vérifiée** : `binixx_centre/raccourcis.py` interroge le service de raccourcis de KDE
+  (`org.kde.kglobalaccel`, par `busctl`, sans shell) et compare les codes de touches de Qt avec ceux du fichier. Le test VM
+  lance `binixx-raccourcis verifier` dans la vraie session : **un raccourci annoncé que KDE n'a pas enregistré (MANQUE), ou qu'il
+  donne à plusieurs actions (CONFLIT), fait échouer le test**, et le journal contient tout ce que KDE a enregistré (composant / action) pour corriger la liste.
+- **En ligne de commande** (support, scripts d'entreprise) : `/usr/libexec/binixx/binixx-raccourcis liste|verifier|registre|surcharger`.
+- **Page sans bouton dans la barre latérale** : comme la barre des tâches, elle s'ouvre depuis Paramètres.
+- **Tests** : `tests/image/centre/test_raccourcis.py` (fichier, codes de touches, lecture de la réponse de KDE, cohérence
+  avec les lanceurs, page) ; la CI vérifie les lanceurs et les programmes ouverts (`78-raccourcis.sh`).
+
 ## Installer des applications
 
 La page **Installer des applications** (menu, ou bouton « Choisir mes applications » de l'accueil) remplace, pour
