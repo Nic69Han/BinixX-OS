@@ -15,10 +15,10 @@ import tempfile
 import unittest
 
 ICI = os.path.dirname(__file__)
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/nicos/centre"))
-LIBEXEC = os.environ.get("NICOS_LIBEXEC", os.path.join(ICI, "../../../system_files/usr/libexec/nicos"))
-OUTIL = os.path.join(LIBEXEC, "nicos-reparer-systeme")
-CAPTURES = os.environ.get("NICOS_CAPTURES")
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/binixx/centre"))
+LIBEXEC = os.environ.get("BINIXX_LIBEXEC", os.path.join(ICI, "../../../system_files/usr/libexec/binixx"))
+OUTIL = os.path.join(LIBEXEC, "binixx-reparer-systeme")
+CAPTURES = os.environ.get("BINIXX_CAPTURES")
 sys.path.insert(0, RACINE)
 
 try:
@@ -63,20 +63,20 @@ class Arbres(unittest.TestCase):
         self.etc = os.path.join(self.tmp.name, "etc")
         self.sauv = os.path.join(self.tmp.name, "sauvegardes")
         for racine in (self.defaut,):
-            ecrire(racine, "sddm.conf.d/10-nicos.conf", "[Theme]\nCurrent=nicos\n")
+            ecrire(racine, "sddm.conf.d/10-binixx.conf", "[Theme]\nCurrent=binixx\n")
             ecrire(racine, "xdg/plasma-welcomerc", "[General]\nLastSeenVersion=99.0.0\n")
-            ecrire(racine, "sysctl.d/10-nicos.conf", "kernel.dmesg_restrict=1\n")
-            ecrire(racine, "profile.d/nicos.sh", "export A=1\n", 0o755)
+            ecrire(racine, "sysctl.d/10-binixx.conf", "kernel.dmesg_restrict=1\n")
+            ecrire(racine, "profile.d/binixx.sh", "export A=1\n", 0o755)
             ecrire(racine, "passwd", "root:x:0:0\n")
             ecrire(racine, "ssh/sshd_config", "PermitRootLogin no\n")
         os.makedirs(os.path.join(self.defaut, "systemd/system/multi-user.target.wants"))
         shutil.copytree(self.defaut, self.etc, symlinks=True)
         # changements de l'utilisateur
-        ecrire(self.etc, "sddm.conf.d/10-nicos.conf", "[Theme]\nCurrent=cassé\n")          # modifié
+        ecrire(self.etc, "sddm.conf.d/10-binixx.conf", "[Theme]\nCurrent=cassé\n")          # modifié
         os.remove(os.path.join(self.etc, "xdg/plasma-welcomerc"))                          # supprimé
         ecrire(self.etc, "sddm.conf.d/zz-essai.conf", "[General]\nSession=trop-bizarre\n")  # ajouté
         ecrire(self.etc, "sysctl.d/99-essai.conf", "vm.swappiness=0\n")                    # ajouté
-        os.chmod(os.path.join(self.etc, "profile.d/nicos.sh"), 0o644)                      # droits changés
+        os.chmod(os.path.join(self.etc, "profile.d/binixx.sh"), 0o644)                      # droits changés
         # changements qu'il ne faut jamais proposer
         ecrire(self.etc, "passwd", "root:x:0:0\nmoi:x:1000:1000\n")
         ecrire(self.etc, "ssh/ssh_host_rsa_key", "secret\n", 0o600)
@@ -99,11 +99,11 @@ class Arbres(unittest.TestCase):
 class Comparaison(Arbres):
     def test_seuls_les_reglages_modifies_sont_proposes(self):
         self.assertEqual(self.differences(), {
-            "sddm.conf.d/10-nicos.conf": "modifie",
+            "sddm.conf.d/10-binixx.conf": "modifie",
             "sddm.conf.d/zz-essai.conf": "ajoute",
             "xdg/plasma-welcomerc": "supprime",
             "sysctl.d/99-essai.conf": "ajoute",
-            "profile.d/nicos.sh": "modifie",  # seuls les droits ont changé
+            "profile.d/binixx.sh": "modifie",  # seuls les droits ont changé
         })
 
     def test_comptes_cles_reseau_et_services_ne_sont_jamais_proposes(self):
@@ -113,7 +113,7 @@ class Comparaison(Arbres):
 
     def test_categories_lisibles(self):
         parcat = {d["chemin"]: d["categorie"] for d in R.differences(self.etc, self.defaut)}
-        self.assertEqual(parcat["sddm.conf.d/10-nicos.conf"], "Écran de connexion")
+        self.assertEqual(parcat["sddm.conf.d/10-binixx.conf"], "Écran de connexion")
         self.assertEqual(parcat["sysctl.d/99-essai.conf"], "Réglages du noyau")
 
     def test_rien_ne_change_rien_a_proposer(self):
@@ -140,8 +140,8 @@ class Comparaison(Arbres):
                         "systemd/system/default.target"):
             ecrire(self.etc, relatif, "écrit par le système\n")
         self.assertEqual(self.differences(), {
-            "sddm.conf.d/10-nicos.conf": "modifie", "sddm.conf.d/zz-essai.conf": "ajoute",
-            "xdg/plasma-welcomerc": "supprime", "sysctl.d/99-essai.conf": "ajoute", "profile.d/nicos.sh": "modifie"})
+            "sddm.conf.d/10-binixx.conf": "modifie", "sddm.conf.d/zz-essai.conf": "ajoute",
+            "xdg/plasma-welcomerc": "supprime", "sysctl.d/99-essai.conf": "ajoute", "profile.d/binixx.sh": "modifie"})
         code, _ = self.restaurer(["X11/xorg.conf.d/00-keyboard.conf"])
         self.assertEqual(code, 2)
 
@@ -162,35 +162,35 @@ class Comparaison(Arbres):
 
 class Reparation(Arbres):
     def test_remise_a_l_origine_des_trois_sortes_de_changement(self):
-        code, resultat = self.restaurer(["sddm.conf.d/10-nicos.conf", "xdg/plasma-welcomerc",
-                                         "sddm.conf.d/zz-essai.conf", "profile.d/nicos.sh"])
+        code, resultat = self.restaurer(["sddm.conf.d/10-binixx.conf", "xdg/plasma-welcomerc",
+                                         "sddm.conf.d/zz-essai.conf", "profile.d/binixx.sh"])
         self.assertEqual(code, 0, resultat)
-        self.assertEqual(lire(self.etc, "sddm.conf.d/10-nicos.conf"), "[Theme]\nCurrent=nicos\n")
+        self.assertEqual(lire(self.etc, "sddm.conf.d/10-binixx.conf"), "[Theme]\nCurrent=binixx\n")
         self.assertEqual(lire(self.etc, "xdg/plasma-welcomerc"), "[General]\nLastSeenVersion=99.0.0\n")
         self.assertFalse(os.path.exists(os.path.join(self.etc, "sddm.conf.d/zz-essai.conf")))
-        self.assertEqual(os.stat(os.path.join(self.etc, "profile.d/nicos.sh")).st_mode & 0o777, 0o755)
+        self.assertEqual(os.stat(os.path.join(self.etc, "profile.d/binixx.sh")).st_mode & 0o777, 0o755)
         # ce qui n'a pas été choisi reste comme il est
         self.assertTrue(os.path.exists(os.path.join(self.etc, "sysctl.d/99-essai.conf")))
         self.assertEqual(set(self.differences()), {"sysctl.d/99-essai.conf"})
 
     def test_la_version_remplacee_est_sauvegardee(self):
-        self.restaurer(["sddm.conf.d/10-nicos.conf", "sddm.conf.d/zz-essai.conf"])
+        self.restaurer(["sddm.conf.d/10-binixx.conf", "sddm.conf.d/zz-essai.conf"])
         dossier = os.path.join(self.sauv, "20261002-120000")
-        self.assertEqual(lire(dossier, "etc/sddm.conf.d/10-nicos.conf"), "[Theme]\nCurrent=cassé\n")
+        self.assertEqual(lire(dossier, "etc/sddm.conf.d/10-binixx.conf"), "[Theme]\nCurrent=cassé\n")
         self.assertEqual(lire(dossier, "etc/sddm.conf.d/zz-essai.conf"), "[General]\nSession=trop-bizarre\n")
         with open(os.path.join(dossier, "MANIFESTE.json"), encoding="utf-8") as fichier:
             faits = {f["chemin"]: f["avant"] for f in json.load(fichier)["faits"]}
-        self.assertEqual(faits, {"sddm.conf.d/10-nicos.conf": "present", "sddm.conf.d/zz-essai.conf": "present"})
+        self.assertEqual(faits, {"sddm.conf.d/10-binixx.conf": "present", "sddm.conf.d/zz-essai.conf": "present"})
         self.assertEqual(os.stat(self.sauv).st_mode & 0o777, 0o700)
 
     def test_fichier_non_reparable_rien_n_est_modifie(self):
-        avant = lire(self.etc, "sddm.conf.d/10-nicos.conf")
+        avant = lire(self.etc, "sddm.conf.d/10-binixx.conf")
         for intrus in ("passwd", "../etc/passwd", "/etc/passwd", "xdg/../passwd", "ssh/ssh_host_rsa_key",
-                       "n-existe-pas", "sysctl.d/10-nicos.conf", ""):
+                       "n-existe-pas", "sysctl.d/10-binixx.conf", ""):
             with self.subTest(intrus=intrus):
-                code, message = self.restaurer(["sddm.conf.d/10-nicos.conf", intrus])
+                code, message = self.restaurer(["sddm.conf.d/10-binixx.conf", intrus])
                 self.assertEqual(code, 2)
-                self.assertEqual(lire(self.etc, "sddm.conf.d/10-nicos.conf"), avant)
+                self.assertEqual(lire(self.etc, "sddm.conf.d/10-binixx.conf"), avant)
                 self.assertFalse(os.path.exists(self.sauv), "aucune sauvegarde pour une demande refusée")
         self.assertEqual(self.restaurer([])[0], 2)
 
@@ -204,32 +204,32 @@ class Reparation(Arbres):
         self.assertEqual(lire(cible, "fichier"), "hors de /etc\n")
 
     def test_annuler_retrouve_la_version_d_avant(self):
-        self.restaurer(["sddm.conf.d/10-nicos.conf", "xdg/plasma-welcomerc", "sddm.conf.d/zz-essai.conf"])
+        self.restaurer(["sddm.conf.d/10-binixx.conf", "xdg/plasma-welcomerc", "sddm.conf.d/zz-essai.conf"])
         code, resultat = self.annuler()
         self.assertEqual(code, 0, resultat)
-        self.assertEqual(lire(self.etc, "sddm.conf.d/10-nicos.conf"), "[Theme]\nCurrent=cassé\n")
+        self.assertEqual(lire(self.etc, "sddm.conf.d/10-binixx.conf"), "[Theme]\nCurrent=cassé\n")
         self.assertFalse(os.path.exists(os.path.join(self.etc, "xdg/plasma-welcomerc")))  # il était absent avant
         self.assertEqual(lire(self.etc, "sddm.conf.d/zz-essai.conf"), "[General]\nSession=trop-bizarre\n")
         self.assertEqual(self.annuler()[0], 2, "une réparation ne s'annule qu'une fois")
         self.assertTrue(R.liste_sauvegardes(self.sauv)[0]["annulee"])
 
     def test_annuler_cible_la_derniere_ou_celle_demandee(self):
-        self.restaurer(["sddm.conf.d/10-nicos.conf"], "20261002-100000")
+        self.restaurer(["sddm.conf.d/10-binixx.conf"], "20261002-100000")
         self.restaurer(["sysctl.d/99-essai.conf"], "20261002-110000")
         self.assertEqual(self.annuler("20261002-100000")[1]["annulee"], "20261002-100000")
         self.assertEqual(self.annuler()[1]["annulee"], "20261002-110000")
         self.assertEqual(self.annuler("20269999-000000")[0], 2)
 
     def test_deux_reparations_la_meme_seconde(self):
-        self.restaurer(["sddm.conf.d/10-nicos.conf"], "20261002-120000")
+        self.restaurer(["sddm.conf.d/10-binixx.conf"], "20261002-120000")
         self.restaurer(["sysctl.d/99-essai.conf"], "20261002-120000")
         self.assertEqual([s["date"] for s in R.liste_sauvegardes(self.sauv)], ["20261002-120000", "20261002-120000+2"])
 
     def test_on_ne_garde_que_les_dernieres_reparations(self):
         ancien, R.CONSERVEES = R.CONSERVEES, 2
         try:
-            for heure, chemin in (("10", "sddm.conf.d/10-nicos.conf"), ("11", "sysctl.d/99-essai.conf"),
-                                  ("12", "profile.d/nicos.sh")):
+            for heure, chemin in (("10", "sddm.conf.d/10-binixx.conf"), ("11", "sysctl.d/99-essai.conf"),
+                                  ("12", "profile.d/binixx.sh")):
                 self.restaurer([chemin], f"20261002-{heure}0000")
         finally:
             R.CONSERVEES = ancien
@@ -276,8 +276,8 @@ class Page(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
-        from nicos_centre import launch, theme
-        from nicos_centre.pages import aide
+        from binixx_centre import launch, theme
+        from binixx_centre.pages import aide
         cls.launch, cls.aide = launch, aide
         cls.app.setStyleSheet(theme.STYLE)
 
@@ -295,7 +295,7 @@ class Page(unittest.TestCase):
         cle = "pkexec" if argv[0] == "pkexec" else argv[1]
         return self.reponses[cle]
 
-    CHANGEMENTS = [{"chemin": "sddm.conf.d/10-nicos.conf", "etat": "modifie", "categorie": "Écran de connexion"},
+    CHANGEMENTS = [{"chemin": "sddm.conf.d/10-binixx.conf", "etat": "modifie", "categorie": "Écran de connexion"},
                    {"chemin": "sysctl.d/99-essai.conf", "etat": "ajoute", "categorie": "Réglages du noyau"}]
 
     def page(self):
@@ -323,10 +323,10 @@ class Page(unittest.TestCase):
         self.reponses["liste"] = (0, json.dumps(self.CHANGEMENTS))
         self.reponses["pkexec"] = (0, json.dumps({"sauvegarde": "20261002-120000", "faits": []}))
         page = self.page()
-        page.choix = ["sddm.conf.d/10-nicos.conf"]
+        page.choix = ["sddm.conf.d/10-binixx.conf"]
         page.reparer_systeme()
         pkexec = [a for a in self.appels if a[0] == "pkexec"]
-        self.assertEqual(pkexec, [["pkexec", self.aide.REPARER, "restaurer", "sddm.conf.d/10-nicos.conf"]])
+        self.assertEqual(pkexec, [["pkexec", self.aide.REPARER, "restaurer", "sddm.conf.d/10-binixx.conf"]])
         self.assertIn("redémarr", page.messages[-1][1].lower())
 
     def test_rien_de_coche_rien_ne_part(self):
@@ -346,7 +346,7 @@ class Page(unittest.TestCase):
         dialogue = self.aide.ReparationDialog(None, self.CHANGEMENTS)
         self.assertEqual(dialogue.selection(), [])  # rien n'est coché d'avance : c'est à l'utilisateur de choisir
         dialogue.liste.item(0).setCheckState(__import__("PySide6.QtCore", fromlist=["Qt"]).Qt.Checked)
-        self.assertEqual(dialogue.selection(), ["sddm.conf.d/10-nicos.conf"])
+        self.assertEqual(dialogue.selection(), ["sddm.conf.d/10-binixx.conf"])
         if CAPTURES:
             os.makedirs(CAPTURES, exist_ok=True)
             dialogue.adjustSize()

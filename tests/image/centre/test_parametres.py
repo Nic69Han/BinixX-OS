@@ -12,15 +12,15 @@ import unittest
 
 ICI = os.path.dirname(__file__)
 DEPOT = os.path.join(ICI, "../../..")
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(DEPOT, "system_files/usr/lib/nicos/centre"))
-FICHIER = os.environ.get("NICOS_PARAMETRES", os.path.join(DEPOT, "system_files/usr/share/nicos/parametres/parametres.tsv"))
-LANCEURS = os.environ.get("NICOS_LANCEURS", os.path.join(DEPOT, "system_files/usr/share/applications"))
-CATALOGUE = os.environ.get("NICOS_CATALOGUE", os.path.join(DEPOT, "system_files/usr/share/nicos/catalogue-windows/catalogue.tsv"))
-FOURNIES = os.environ.get("NICOS_FLATPAKS", os.path.join(DEPOT, "flatpaks/system-flatpaks.list"))
-CAPTURES = os.environ.get("NICOS_CAPTURES")
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(DEPOT, "system_files/usr/lib/binixx/centre"))
+FICHIER = os.environ.get("BINIXX_PARAMETRES", os.path.join(DEPOT, "system_files/usr/share/binixx/parametres/parametres.tsv"))
+LANCEURS = os.environ.get("BINIXX_LANCEURS", os.path.join(DEPOT, "system_files/usr/share/applications"))
+CATALOGUE = os.environ.get("BINIXX_CATALOGUE", os.path.join(DEPOT, "system_files/usr/share/binixx/catalogue-windows/catalogue.tsv"))
+FOURNIES = os.environ.get("BINIXX_FLATPAKS", os.path.join(DEPOT, "flatpaks/system-flatpaks.list"))
+CAPTURES = os.environ.get("BINIXX_CAPTURES")
 sys.path.insert(0, RACINE)
 
-from nicos_centre import catalogue, launch, parametres as p  # noqa: E402
+from binixx_centre import catalogue, launch, parametres as p  # noqa: E402
 
 try:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -42,7 +42,7 @@ KCMSHELL = """The following modules are available:
 
 def lire_cles_des_pages():
     cles = set()
-    for fichier in glob.glob(os.path.join(RACINE, "nicos_centre/pages/*.py")):
+    for fichier in glob.glob(os.path.join(RACINE, "binixx_centre/pages/*.py")):
         with open(fichier, encoding="utf-8") as lecture:
             cles.update(re.findall(r'^KEY = "([a-z_]+)"', lecture.read(), re.M))
     return cles
@@ -88,13 +88,13 @@ class Fichier(unittest.TestCase):
                 self.assertIn(reglage.cible, connues, reglage.cible)
 
     def test_chaque_reglage_a_une_icone_dessinee(self):
-        from nicos_centre import icones
+        from binixx_centre import icones
         for reglage in self.reglages:
             self.assertIn(reglage.icone, icones.ICONES, reglage.nom)
 
     def test_les_icones_sont_du_svg_bien_forme(self):
         import xml.etree.ElementTree as ET
-        from nicos_centre import icones
+        from binixx_centre import icones
         for nom in icones.ICONES:
             racine = ET.fromstring(icones.svg(nom, "#123456"))
             self.assertTrue(racine.tag.endswith("svg"), nom)
@@ -203,13 +203,13 @@ class Page(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
-        from nicos_centre import theme
-        from nicos_centre.pages import parametres
+        from binixx_centre import theme
+        from binixx_centre.pages import parametres
         cls.module = parametres
         cls.app.setStyleSheet(theme.STYLE)
 
     def setUp(self):
-        os.environ["NICOS_PARAMETRES"] = FICHIER
+        os.environ["BINIXX_PARAMETRES"] = FICHIER
         self.anciens = (launch.run, launch.installed_flatpaks, launch._start)
         self.tous = {"kcm_" + r.cible[4:] for r in p.charger(FICHIER) if r.type == "kcm"}
         self.modules = set(self.tous)
@@ -222,7 +222,7 @@ class Page(unittest.TestCase):
 
     def tearDown(self):
         launch.run, launch.installed_flatpaks, launch._start = self.anciens
-        os.environ.pop("NICOS_PARAMETRES", None)
+        os.environ.pop("BINIXX_PARAMETRES", None)
 
     def carte(self, page, nom):
         return next(t for t in page.tuiles if t.reglage.nom == nom)
@@ -244,7 +244,7 @@ class Page(unittest.TestCase):
         self.carte(page, "Son").click()
         self.assertEqual(self.lances[-1], ["systemsettings", "kcm_pulseaudio"])
         self.carte(page, "Stockage et disques").click()
-        self.assertEqual(self.lances[-1], ["kioclient", "exec", "/usr/share/applications/nicos-administration.desktop"])
+        self.assertEqual(self.lances[-1], ["kioclient", "exec", "/usr/share/applications/binixx-administration.desktop"])
         if CAPTURES:
             os.makedirs(CAPTURES, exist_ok=True)
             page.resize(1120, 860)
@@ -369,7 +369,7 @@ class Page(unittest.TestCase):
         self.addCleanup(os.unlink, fichier.name)
         fichier.write("Nouveauté\tUn réglage\tmot;clé\tExplication.\tstar\tkcm\tkcm_kscreen\n")
         fichier.close()
-        os.environ["NICOS_PARAMETRES"] = fichier.name
+        os.environ["BINIXX_PARAMETRES"] = fichier.name
         page = self.module.build(self.centre)
         self.assertEqual(page.liste.count(), 1)
         self.assertEqual(len(page.tuiles), 1)

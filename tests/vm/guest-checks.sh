@@ -12,8 +12,8 @@ PHASE="${1:?phase manquante}"
 EXPECT_SECURE_BOOT="${2:-1}"
 TEST_USER="${SUDO_USER:-testeur}"
 TEST_HOME="$(getent passwd "${TEST_USER}" | cut -d: -f6)"
-UPDATE_MARKER=/usr/share/nicos/update-test-marker
-FLATPAK_LIST=/usr/share/nicos/flatpaks/system-flatpaks.list
+UPDATE_MARKER=/usr/share/binixx/update-test-marker
+FLATPAK_LIST=/usr/share/binixx/flatpaks/system-flatpaks.list
 FLATPAK_TIMEOUT="${FLATPAK_TIMEOUT:-2700}"
 
 failures=0
@@ -55,11 +55,11 @@ check_system_state() {
         failed="$(systemctl --failed --no-legend --plain | awk '{print $1}')"
         local unit
         while read -r unit; do
-            fail "service NicOS en échec : ${unit}"
+            fail "service BinixX OS en échec : ${unit}"
             journalctl -b -u "${unit}" --no-pager -o cat 2>/dev/null | tail -n 15 | sed 's/^/            /'
-        done < <(grep '^nicos-' <<<"${failed}")
-        if grep -qv '^nicos-' <<<"${failed}"; then
-            warn "unités en échec (hors NicOS) : $(grep -v '^nicos-' <<<"${failed}" | tr '\n' ' ')"
+        done < <(grep '^binixx-' <<<"${failed}")
+        if grep -qv '^binixx-' <<<"${failed}"; then
+            warn "unités en échec (hors BinixX OS) : $(grep -v '^binixx-' <<<"${failed}" | tr '\n' ' ')"
         fi
         ;;
     *) fail "état du système : '${state}'" ;;
@@ -67,7 +67,7 @@ check_system_state() {
     check "session graphique (graphical.target) atteinte" systemctl is-active graphical.target
     check "gestionnaire de connexion actif" systemctl is-active display-manager.service
     check "SELinux en mode Enforcing" test "$(getenforce)" = Enforcing
-    check "/usr en lecture seule, même pour root" bash -c '! touch /usr/.nicos-rw-test'
+    check "/usr en lecture seule, même pour root" bash -c '! touch /usr/.binixx-rw-test'
     if [[ "${EXPECT_SECURE_BOOT}" == 1 ]]; then
         check "Secure Boot actif" bash -c 'mokutil --sb-state | grep -q "SecureBoot enabled"'
     fi
@@ -76,8 +76,8 @@ check_system_state() {
         # dossier dont dépend Secure Boot
         local labels
         labels="$(efibootmgr 2>/dev/null | grep '^Boot[0-9A-F]\{4\}' | cut -f1 | sed 's/^Boot[0-9A-F]\{4\}\*\{0,1\} //')"
-        if grep -qx 'NicOS' <<<"${labels}" && ! grep -qi 'fedora' <<<"${labels}"; then
-            pass "menu de démarrage du PC : entrée « NicOS », aucune entrée « Fedora »"
+        if grep -qx 'BinixX OS' <<<"${labels}" && ! grep -qi 'fedora' <<<"${labels}"; then
+            pass "menu de démarrage du PC : entrée « BinixX OS », aucune entrée « Fedora »"
         else
             fail "menu de démarrage du PC : $(tr '\n' ';' <<<"${labels}")"
         fi
@@ -86,7 +86,7 @@ check_system_state() {
     fi
     local image
     image="$(booted_image)"
-    if [[ "${image}" == *nicos* ]]; then pass "image démarrée : ${image}"; else fail "image démarrée : '${image}'"; fi
+    if [[ "${image}" == *binixx* ]]; then pass "image démarrée : ${image}"; else fail "image démarrée : '${image}'"; fi
 }
 
 check_security() {
@@ -94,10 +94,10 @@ check_security() {
     check "pare-feu actif" systemctl is-active firewalld.service
     local zone services ports
     zone="$(firewall-cmd --get-default-zone 2>/dev/null)"
-    if [[ "${zone}" == nicos ]]; then pass "pare-feu : zone par défaut nicos"; else fail "pare-feu : zone par défaut '${zone}'"; fi
+    if [[ "${zone}" == binixx ]]; then pass "pare-feu : zone par défaut binixx"; else fail "pare-feu : zone par défaut '${zone}'"; fi
     # La VM de test ouvre SSH en plus (kickstart) ; rien d'autre ne doit pouvoir entrer
-    services="$(firewall-cmd --zone=nicos --list-services 2>/dev/null)"
-    ports="$(firewall-cmd --zone=nicos --list-ports 2>/dev/null)"
+    services="$(firewall-cmd --zone=binixx --list-services 2>/dev/null)"
+    ports="$(firewall-cmd --zone=binixx --list-ports 2>/dev/null)"
     if [[ -z "${ports}" ]] && ! tr ' ' '\n' <<<"${services}" | grep -qvxE 'dhcpv6-client|mdns|samba-client|kdeconnect|ssh|'; then
         pass "pare-feu : entrées limitées à ${services}"
     else
@@ -123,13 +123,13 @@ check_hardware_and_network() {
 check_printing() {
     section "Impression PDF"
     if ! wait_for 120 lpstat -p Cups-PDF; then
-        fail "imprimante Cups-PDF absente ($(systemctl is-failed nicos-pdf-printer.service))"
+        fail "imprimante Cups-PDF absente ($(systemctl is-failed binixx-pdf-printer.service))"
         return
     fi
     pass "imprimante Cups-PDF créée"
     local since
     since="$(mktemp)"
-    if ! runuser -u "${TEST_USER}" -- bash -c 'echo "Page de test NicOS" | lp -d Cups-PDF -t nicos-test' >/dev/null; then
+    if ! runuser -u "${TEST_USER}" -- bash -c 'echo "Page de test BinixX OS" | lp -d Cups-PDF -t binixx-test' >/dev/null; then
         fail "envoi d'un travail d'impression"
         return
     fi
@@ -145,8 +145,8 @@ check_printing() {
 
 check_flatpaks() {
     section "Applications Flatpak (installées au premier démarrage)"
-    if ! wait_for "${FLATPAK_TIMEOUT}" test -f /var/lib/nicos/flatpaks.sha256; then
-        fail "installation des Flatpak non terminée après ${FLATPAK_TIMEOUT} s ($(systemctl show -p ActiveState,Result --value nicos-flatpak-install.service | tr '\n' ' '))"
+    if ! wait_for "${FLATPAK_TIMEOUT}" test -f /var/lib/binixx/flatpaks.sha256; then
+        fail "installation des Flatpak non terminée après ${FLATPAK_TIMEOUT} s ($(systemctl show -p ActiveState,Result --value binixx-flatpak-install.service | tr '\n' ' '))"
         return
     fi
     local installed app
@@ -207,8 +207,8 @@ for app in ("org.mozilla.thunderbird_esr.desktop", "org.onlyoffice.desktopeditor
 kickoff = [s for s in cfg.sections() if s.startswith(prefix) and s.count("][") == 3
            and cfg.get(s, "plugin", fallback="") == "org.kde.plasma.kickoff"]
 icon = cfg.get(kickoff[0] + "][Configuration][General", "icon", fallback="")
-if icon != "nicos":
-    sys.exit(f"icône du bouton Démarrer : '{icon}' (attendu : nicos)")
+if icon != "binixx":
+    sys.exit(f"icône du bouton Démarrer : '{icon}' (attendu : binixx)")
 print("panneau en haut : " + ", ".join(applets))
 PYEOF
     )"; then
@@ -216,8 +216,8 @@ PYEOF
     else
         fail "disposition du panneau"
     fi
-    check "thème global appliqué (kdedefaults)" grep -qx 'org.nicos.desktop' "${TEST_HOME}/.config/kdedefaults/package"
-    check "couleurs NicOS clair appliquées" grep -q '^ColorScheme=NicOSClair' "${TEST_HOME}/.config/kdedefaults/kdeglobals"
+    check "thème global appliqué (kdedefaults)" grep -qx 'org.binixx.desktop' "${TEST_HOME}/.config/kdedefaults/package"
+    check "couleurs BinixX OS clair appliquées" grep -q '^ColorScheme=BinixXClair' "${TEST_HOME}/.config/kdedefaults/kdeglobals"
     # Plasma n'écrit « floating » que s'il diffère de son réglage par défaut (flottant)
     local shellrc="${TEST_HOME}/.config/plasmashellrc"
     if [[ ! -f "${shellrc}" ]]; then

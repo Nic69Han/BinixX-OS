@@ -6,5 +6,5 @@ bilan. Il dispose de `section`, `pass`, `fail` et `check`. Exemple :
 ```bash
 section "Ma fonctionnalité"
 check "paquet installé" rpm -q mon-paquet
-check "lanceur valide" desktop-file-validate /usr/share/applications/nicos-ma-fonction.desktop
+check "lanceur valide" desktop-file-validate /usr/share/applications/binixx-ma-fonction.desktop
 ```

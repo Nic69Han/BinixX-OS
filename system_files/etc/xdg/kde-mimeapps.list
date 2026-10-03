@@ -1,4 +1,4 @@
-# Applications par défaut de NicOS (complète la liste Fedora de kde-settings,
+# Applications par défaut de BinixX OS (complète la liste Fedora de kde-settings,
 # qui choisit déjà Firefox comme navigateur)
 [Default Applications]
 # Courriel
@@ -29,9 +29,9 @@ video/x-ms-wmv=org.kde.haruna.desktop
 video/quicktime=org.kde.haruna.desktop
 video/mpeg=org.kde.haruna.desktop
 
-# Programmes Windows (.exe, .msi) : NicOS ne les exécute pas ; il propose l'équivalent (Centre NicOS)
-application/vnd.microsoft.portable-executable=nicos-windows-program.desktop
-application/x-ms-dos-executable=nicos-windows-program.desktop
-application/x-msdownload=nicos-windows-program.desktop
-application/x-msi=nicos-windows-program.desktop
-application/x-dosexec=nicos-windows-program.desktop
+# Programmes Windows (.exe, .msi) : BinixX OS ne les exécute pas ; il propose l'équivalent (Centre BinixX OS)
+application/vnd.microsoft.portable-executable=binixx-windows-program.desktop
+application/x-ms-dos-executable=binixx-windows-program.desktop
+application/x-msdownload=binixx-windows-program.desktop
+application/x-msi=binixx-windows-program.desktop
+application/x-dosexec=binixx-windows-program.desktop

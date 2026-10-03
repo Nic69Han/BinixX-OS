@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       image:
-        description: "Image to test (default: ghcr.io/<owner>/nicos:testing)"
+        description: "Image to test (default: ghcr.io/<owner>/binixx:testing)"
         required: false
         type: string
       build:
@@ -29,7 +29,7 @@ on:
         default: false
         type: boolean
       variant:
-        description: "Image variant to test: main (nicos) or nvidia (nicos-nvidia)"
+        description: "Image variant to test: main (binixx) or nvidia (binixx-nvidia)"
         required: false
         default: main
         type: choice
@@ -54,12 +54,12 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-26.04
     timeout-minutes: 300
-    # NicOS: after a build of main, both images (nicos and nicos-nvidia) are tested and promoted on their
+    # BinixX OS: after a build of main, both images (binixx and binixx-nvidia) are tested and promoted on their
     # own: a failure of one never blocks the other. By hand, one image: the `variant` input.
     strategy:
       fail-fast: false
       matrix:
-        image: ${{ fromJSON(github.event_name == 'workflow_run' && '["nicos","nicos-nvidia"]' || (inputs.variant == 'nvidia' && '["nicos-nvidia"]' || '["nicos"]')) }}
+        image: ${{ fromJSON(github.event_name == 'workflow_run' && '["binixx","binixx-nvidia"]' || (inputs.variant == 'nvidia' && '["binixx-nvidia"]' || '["binixx"]')) }}
 
     steps:
       - name: Checkout
@@ -132,12 +132,12 @@ jobs:
           IMAGE_NAME: ${{ matrix.image }}
         run: |
           build_args=()
-          if [[ "${IMAGE_NAME}" == nicos-nvidia ]]; then
-            build_args=(--build-arg BASE_IMAGE=ghcr.io/ublue-os/kinoite-nvidia:44 --build-arg NICOS_VARIANT=nvidia)
+          if [[ "${IMAGE_NAME}" == binixx-nvidia ]]; then
+            build_args=(--build-arg BASE_IMAGE=ghcr.io/ublue-os/kinoite-nvidia:44 --build-arg BINIXX_VARIANT=nvidia)
           fi
-          sudo podman build "${build_args[@]}" --pull=newer --tag localhost/nicos:vm-test --file Containerfile .
+          sudo podman build "${build_args[@]}" --pull=newer --tag localhost/binixx:vm-test --file Containerfile .
           echo "TEST_REPO=ghcr.io/${OWNER,,}/${IMAGE_NAME}" >> "${GITHUB_ENV}"
-          echo "TEST_IMAGE=localhost/nicos:vm-test" >> "${GITHUB_ENV}"
+          echo "TEST_IMAGE=localhost/binixx:vm-test" >> "${GITHUB_ENV}"
 
       - name: Run VM test
         run: |

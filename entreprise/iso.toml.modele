@@ -1,11 +1,11 @@
 # Modèle de configuration de l'ISO d'installation de l'entreprise (bootc-image-builder).
-# Même principe que disk_config/iso.toml de NicOS ; seule l'adresse de l'image change.
+# Même principe que disk_config/iso.toml de BinixX OS ; seule l'adresse de l'image change.
 # Construction : voir docs/image-entreprise.md, étape « ISO d'installation ».
 
 [customizations.installer.kickstart]
 contents = """
 %post
-bootc switch --mutate-in-place --transport registry ghcr.io/VOTRE-ORGANISATION/nicos-entreprise:stable
+bootc switch --mutate-in-place --transport registry ghcr.io/VOTRE-ORGANISATION/binixx-entreprise:stable
 %end
 """
 

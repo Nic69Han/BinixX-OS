@@ -1,29 +1,29 @@
-# Passer de Windows à NicOS
+# Passer de Windows à BinixX OS
 
 Ce guide s'adresse à la personne qui migre un poste (ou à celle qui l'accompagne).
 
 ## Avant de changer de système
 
 - **Sauvegarder les fichiers** (Documents, Bureau, Images, Téléchargements) sur un disque externe ou un
-  cloud. L'installation de NicOS efface le disque.
+  cloud. L'installation de BinixX OS efface le disque.
 - **Courriel** : noter les paramètres des comptes (serveurs IMAP/SMTP ou compte Microsoft 365 / Gmail).
   Thunderbird configure seul la plupart des comptes à partir de l'adresse et du mot de passe.
   Avec Outlook en POP et des fichiers `.pst`, importer d'abord le courrier dans Thunderbird **sous Windows**.
 - **Mots de passe du navigateur** : les exporter depuis Edge ou Chrome (fichier CSV), puis les importer dans
   Firefox. Plus simple : activer la synchronisation Firefox avant la migration.
 - **Logiciels métiers** : vérifier chacun dans [compatibilite.md](compatibilite.md). Un logiciel Windows
-  (`.exe`) ne s'installe pas sur NicOS.
+  (`.exe`) ne s'installe pas sur BinixX OS.
 - **Licences** : noter la clé Windows si le PC doit pouvoir revenir en arrière.
 
 ## Récupérer ses fichiers : « Récupérer mes fichiers Windows »
 
-Une fois NicOS installé, **Récupérer mes fichiers Windows** (menu, ou page du Centre NicOS) copie les
+Une fois BinixX OS installé, **Récupérer mes fichiers Windows** (menu, ou page du Centre BinixX OS) copie les
 documents, le bureau, les images, la musique, les vidéos, les téléchargements et les favoris du navigateur
 depuis :
 
 - **un disque externe ou une clé USB** où l'on a copié le dossier du profil Windows (`C:\Users\Prénom`) ou
   n'importe quel dossier de sauvegarde (« Choisir un dossier… ») : c'est le cas le plus courant, puisque
-  **l'installation de NicOS efface le disque du PC** ;
+  **l'installation de BinixX OS efface le disque du PC** ;
 - **l'ancien disque Windows**, quand il est resté dans le PC comme second disque : il apparaît dans « Ouvrir
   mes disques » (un clic le monte), puis le profil est proposé dans l'étape 1.
 
@@ -46,16 +46,16 @@ Ce que fait l'assistant, et ce qu'il ne fait pas :
   48 chiffres (compte Microsoft). **Windows doit être complètement arrêté** (ni veille prolongée, ni
   démarrage rapide), sinon le disque est monté en lecture seule ou refusé.
 
-En ligne de commande : `nicos-migrer analyser|copier|favoris|sources` (voir `nicos-migrer` sans argument).
+En ligne de commande : `binixx-migrer analyser|copier|favoris|sources` (voir `binixx-migrer` sans argument).
 
 ## Où retrouver ses habitudes
 
 > Pour un logiciel précis (Word, Sage, Photoshop…), l'application **« Mon logiciel Windows »** (menu, ou
-> double-clic sur un `.exe` ou un `.msi`) donne l'équivalent sous NicOS : voir [centre-nicos.md](centre-nicos.md).
+> double-clic sur un `.exe` ou un `.msi`) donne l'équivalent sous BinixX OS : voir [centre-binixx.md](centre-binixx.md).
 
-| Sous Windows | Sous NicOS |
+| Sous Windows | Sous BinixX OS |
 | --- | --- |
-| Menu Démarrer, touche Windows | Logo NicOS en haut à gauche, touche Windows (même comportement, recherche comprise) |
+| Menu Démarrer, touche Windows | Logo BinixX OS en haut à gauche, touche Windows (même comportement, recherche comprise) |
 | Barre des tâches, épingler une application | Même principe, mais la barre est **en haut** de l'écran : clic droit sur l'icône → « Épingler au gestionnaire de tâches ». Elle se déplace en bas par clic droit → « Modifier le tableau de bord » |
 | Explorateur de fichiers | Dolphin (Windows + E) |
 | Word, Excel, PowerPoint | OnlyOffice (ouvre et enregistre directement les .docx, .xlsx, .pptx). Avec un abonnement Microsoft 365 : « Word (web) », « Excel (web) », « PowerPoint (web) » dans le menu |
@@ -73,7 +73,7 @@ En ligne de commande : `nicos-migrer analyser|copier|favoris|sources` (voir `nic
 | Connexion Bureau à distance (mstsc) | Remmina |
 | Historique des fichiers, Sauvegarde | Déjà Dup (« Sauvegardes ») : sur un disque externe ou un service cloud |
 | Calculatrice | KCalc |
-| Paramètres, Panneau de configuration | **Paramètres** (menu NicOS, ou touche Windows + I) : mêmes catégories et mêmes noms qu'en Windows 11. Pour les réglages avancés : Configuration du système |
+| Paramètres, Panneau de configuration | **Paramètres** (menu BinixX OS, ou touche Windows + I) : mêmes catégories et mêmes noms qu'en Windows 11. Pour les réglages avancés : Configuration du système |
 | Gestion de l'ordinateur, Observateur d'événements, Gestion des disques | « Administration du PC » (voir [administration.md](administration.md)) |
 | Windows Update | Automatique ; suivi dans Discover (« Mises à jour ») |
 | Microsoft Store | Discover |
@@ -103,7 +103,7 @@ Windows.
 
 ## En entreprise : domaine Active Directory
 
-Un PC NicOS peut rejoindre le domaine Windows de l'entreprise : chacun ouvre alors sa session avec son
+Un PC BinixX OS peut rejoindre le domaine Windows de l'entreprise : chacun ouvre alors sa session avec son
 compte habituel (`prenom.nom@entreprise.local` sur l'écran de connexion) et son dossier personnel est créé
 à la première connexion. Une fois, par l'administrateur, avec un compte autorisé à joindre des PC :
 

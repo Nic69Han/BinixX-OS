@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Zoom
+GenericName=Visioconférence et messagerie (web)
+Comment=Réunions Zoom dans le navigateur, sans installer le client
+Exec=/usr/libexec/binixx/binixx-webapp https://app.zoom.us/wc
+Icon=camera-web
+Terminal=false
+Categories=Network;Chat;VideoConference;
+Keywords=zoom;visio;réunion;meeting;
+StartupNotify=true
+# Classe de fenêtre de Chromium en mode application, pour grouper la fenêtre sous cette icône
+StartupWMClass=chrome-app.zoom.us__wc-Default

@@ -1,0 +1,17 @@
+[Unit]
+Description=BinixX OS : création de l'imprimante virtuelle PDF
+Documentation=https://github.com/Nic69Han/BinixX
+Wants=cups.service
+After=cups.service
+# Une fois créée, l'imprimante est enregistrée par CUPS dans /etc/cups ;
+# l'utilisateur reste libre de la supprimer ensuite.
+ConditionPathExists=!/var/lib/binixx/pdf-printer.done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/binixx/binixx-pdf-printer
+ExecStartPost=/usr/bin/mkdir -p /var/lib/binixx
+ExecStartPost=/usr/bin/touch /var/lib/binixx/pdf-printer.done
+
+[Install]
+WantedBy=multi-user.target

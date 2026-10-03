@@ -1,0 +1,17 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Projet BinixX OS"
+            }
+        ],
+        "Category": "",
+        "Description": "Thème sombre BinixX OS : barre des tâches en haut, menu de démarrage à gauche",
+        "Id": "org.binixx.dark.desktop",
+        "License": "GPLv2+",
+        "Name": "BinixX OS sombre",
+        "Website": "https://github.com/Nic69Han/BinixX"
+    },
+    "X-Plasma-APIVersion": "2"
+}

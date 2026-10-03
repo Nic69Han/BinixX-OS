@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=OneDrive
+GenericName=Synchronisation OneDrive
+Comment=Connecter votre compte Microsoft et synchroniser vos fichiers OneDrive
+Exec=konsole -e /usr/libexec/binixx/binixx-onedrive-setup
+Icon=folder-cloud
+Terminal=false
+Categories=Network;FileTransfer;
+Keywords=OneDrive;Microsoft;SharePoint;cloud;synchronisation;

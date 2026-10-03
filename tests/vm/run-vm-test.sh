@@ -1,17 +1,17 @@
 #!/usr/bin/bash
-# Test de bout en bout de NicOS dans une machine virtuelle KVM (critères MVP 1, 3 et 4) :
+# Test de bout en bout de BinixX OS dans une machine virtuelle KVM (critères MVP 1, 3 et 4) :
 #   1. génère une ISO d'installation automatique à partir de l'image (bootc-image-builder) ;
-#   2. installe NicOS sur un disque vierge, sans aucune intervention ;
+#   2. installe BinixX OS sur un disque vierge, sans aucune intervention ;
 #   3. démarre le système installé (UEFI + Secure Boot) et le vérifie (guest-checks.sh) ;
 #   4. le met à jour depuis un registre local, redémarre et vérifie, puis revient en arrière
 #      avec `bootc rollback`, redémarre et vérifie de nouveau ;
 #   5. lui impose une mise à jour défectueuse (plus d'écran de connexion) : il doit revenir tout seul
 #      à la version précédente après trois démarrages (greenboot, retour arrière automatique).
 #
-# Usage : sudo tests/vm/run-vm-test.sh --image ghcr.io/nic69han/nicos:testing
+# Usage : sudo tests/vm/run-vm-test.sh --image ghcr.io/nic69han/binixx:testing
 #         [--switch-ref REF] [--workdir DIR] [--no-secure-boot] [--skip-update] [--skip-auto-rollback]
 #
-# --image accepte une étiquette ou une empreinte (…/nicos@sha256:…), pour tester exactement
+# --image accepte une étiquette ou une empreinte (…/binixx@sha256:…), pour tester exactement
 # l'image qui sera promue. --switch-ref est l'image que le système installé suivra ensuite
 # pour ses mises à jour (comme le `bootc switch` de disk_config/iso.toml) ; par défaut --image.
 #
@@ -56,8 +56,8 @@ VM_RAM="${VM_RAM:-4096}"
 SSH_PORT="${SSH_PORT:-2222}"
 BIB_IMAGE="${BIB_IMAGE:-quay.io/centos-bootc/bootc-image-builder:latest}"
 REGISTRY_PORT=5000
-UPDATE_REF="10.0.2.2:${REGISTRY_PORT}/nicos:update-test" # 10.0.2.2 = l'hôte, vu depuis la VM
-BAD_UPDATE_REF="10.0.2.2:${REGISTRY_PORT}/nicos:update-bad"
+UPDATE_REF="10.0.2.2:${REGISTRY_PORT}/binixx:update-test" # 10.0.2.2 = l'hôte, vu depuis la VM
+BAD_UPDATE_REF="10.0.2.2:${REGISTRY_PORT}/binixx:update-bad"
 TEST_USER=testeur
 
 LOGS="${WORK}/logs"
@@ -162,7 +162,7 @@ start_vm() { # démarre le système installé, en arrière-plan
     fi
     rm -f "${QMP_SOCK}"
     qemu-system-x86_64 \
-        -name nicos-test \
+        -name binixx-test \
         -machine q35,accel=kvm,smm=on -global driver=cfi.pflash01,property=secure,value=on \
         -cpu host -smp "${VM_CPUS}" -m "${VM_RAM}" \
         -drive "if=pflash,format=raw,unit=0,file=${OVMF_CODE},readonly=on" \
@@ -201,9 +201,9 @@ reboot_vm() {
 
 guest_checks() { # guest_checks <phase> : lance guest-checks.sh (et checks.d/) dans la VM, garde journal et rapport
     tar -C "${TEST_DIR}" -cf - guest-checks.sh checks.d |
-        ssh_vm 'rm -rf /tmp/nicos-tests && mkdir /tmp/nicos-tests && tar -C /tmp/nicos-tests -xf -'
+        ssh_vm 'rm -rf /tmp/binixx-tests && mkdir /tmp/binixx-tests && tar -C /tmp/binixx-tests -xf -'
     local status=0
-    ssh_vm sudo bash /tmp/nicos-tests/guest-checks.sh "$1" "${SECURE_BOOT}" </dev/null 2>&1 | tee "${LOGS}/checks-$1.log" || status=$?
+    ssh_vm sudo bash /tmp/binixx-tests/guest-checks.sh "$1" "${SECURE_BOOT}" </dev/null 2>&1 | tee "${LOGS}/checks-$1.log" || status=$?
     ssh_vm sudo journalctl -b --no-pager >"${LOGS}/journal-$1.log" 2>&1 || true
     ssh_vm sudo bootc status >"${LOGS}/bootc-status-$1.txt" 2>&1 || true
     return "${status}"
@@ -215,7 +215,7 @@ cleanup() {
         [[ ${status} -ne 0 ]] && screenshot echec
         stop_vm
     fi
-    podman rm -f nicos-test-registry >/dev/null 2>&1 || true
+    podman rm -f binixx-test-registry >/dev/null 2>&1 || true
     # Journaux rendus à l'utilisateur qui a lancé sudo (lisibles sans root, et par la CI)
     if [[ -n "${SUDO_UID:-}" && -d "${LOGS}" ]]; then
         chown -R "${SUDO_UID}:${SUDO_GID:-${SUDO_UID}}" "${LOGS}" || true
@@ -238,10 +238,10 @@ if [[ -n "${SWITCH_REF}" ]]; then
     switch_cmd="bootc switch --mutate-in-place --transport registry ${SWITCH_REF}"
 fi
 # Nom local fixe pour l'ISO et la mise à jour de test, même si --image est une empreinte
-CANDIDATE=localhost/nicos-vm-test:candidate
+CANDIDATE=localhost/binixx-vm-test:candidate
 podman tag "${IMAGE}" "${CANDIDATE}"
 
-[[ -f "${KEY}" ]] || ssh-keygen -q -t ed25519 -N '' -C nicos-vm-test -f "${KEY}"
+[[ -f "${KEY}" ]] || ssh-keygen -q -t ed25519 -N '' -C binixx-vm-test -f "${KEY}"
 config="$(<"${TEST_DIR}/iso-unattended.toml.in")"
 config="${config//@SSH_PUBKEY@/$(<"${KEY}.pub")}"
 config="${config//@SWITCH_CMD@/${switch_cmd}}"
@@ -274,7 +274,7 @@ fi
 
 ### 2. Installation sans intervention ---------------------------------------------
 
-log "Installation de NicOS sur un disque vierge (console : ${LOGS}/install-serial.log)"
+log "Installation de BinixX OS sur un disque vierge (console : ${LOGS}/install-serial.log)"
 # Démarrage direct du noyau de l'ISO, pour lire l'installeur sur la console série.
 # Les paramètres (emplacement de l'installeur et du kickstart) viennent du menu GRUB de l'ISO.
 rm -rf "${WORK}/iso-boot" && mkdir -p "${WORK}/iso-boot"
@@ -302,7 +302,7 @@ qemu-img create -q -f qcow2 "${DISK}" 64G
 cp "${OVMF_VARS}" "${WORK}/vars-install.fd"
 install_status=0
 timeout 90m qemu-system-x86_64 \
-    -name nicos-install \
+    -name binixx-install \
     -machine q35,accel=kvm,smm=on -global driver=cfi.pflash01,property=secure,value=on \
     -cpu host -smp "${VM_CPUS}" -m "${VM_RAM}" \
     -drive "if=pflash,format=raw,unit=0,file=${OVMF_CODE},readonly=on" \
@@ -314,7 +314,7 @@ timeout 90m qemu-system-x86_64 \
     -device virtio-rng-pci \
     -display none -serial "file:${LOGS}/install-serial.log" -no-reboot || install_status=$?
 [[ ${install_status} -ne 124 ]] || die "installation non terminée en 90 minutes (l'installeur attend peut-être une réponse)"
-grep -q NICOS-INSTALL-OK "${LOGS}/install-serial.log" ||
+grep -q BINIXX-INSTALL-OK "${LOGS}/install-serial.log" ||
     die "l'installation n'a pas abouti (voir ${LOGS}/install-serial.log)"
 log "Installation terminée sans intervention"
 
@@ -334,13 +334,13 @@ screenshot bureau
 if [[ ${RUN_UPDATE} -eq 1 ]]; then
     log "Préparation d'une mise à jour dans un registre local"
     podman build --pull=never --build-arg "BASE_IMAGE=${CANDIDATE}" \
-        -t localhost/nicos-update-test:latest "${TEST_DIR}/update"
-    podman rm -f nicos-test-registry >/dev/null 2>&1 || true
-    podman run -d --rm --name nicos-test-registry -p "${REGISTRY_PORT}:5000" docker.io/library/registry:2
-    podman push --tls-verify=false localhost/nicos-update-test:latest "localhost:${REGISTRY_PORT}/nicos:update-test"
+        -t localhost/binixx-update-test:latest "${TEST_DIR}/update"
+    podman rm -f binixx-test-registry >/dev/null 2>&1 || true
+    podman run -d --rm --name binixx-test-registry -p "${REGISTRY_PORT}:5000" docker.io/library/registry:2
+    podman push --tls-verify=false localhost/binixx-update-test:latest "localhost:${REGISTRY_PORT}/binixx:update-test"
 
     log "Mise à jour de la VM vers ${UPDATE_REF}"
-    ssh_vm "sudo tee /etc/containers/registries.conf.d/90-nicos-test.conf >/dev/null" <<EOF
+    ssh_vm "sudo tee /etc/containers/registries.conf.d/90-binixx-test.conf >/dev/null" <<EOF
 [[registry]]
 location = "10.0.2.2:${REGISTRY_PORT}"
 insecure = true
@@ -361,15 +361,15 @@ EOF
     if [[ ${RUN_AUTO_ROLLBACK} -eq 1 ]]; then
         log "Mise à jour défectueuse : l'écran de connexion ne démarre plus"
         podman build --pull=never --build-arg "BASE_IMAGE=${CANDIDATE}" \
-            -t localhost/nicos-update-bad:latest "${TEST_DIR}/update-bad"
-        podman push --tls-verify=false localhost/nicos-update-bad:latest "localhost:${REGISTRY_PORT}/nicos:update-bad"
+            -t localhost/binixx-update-bad:latest "${TEST_DIR}/update-bad"
+        podman push --tls-verify=false localhost/binixx-update-bad:latest "localhost:${REGISTRY_PORT}/binixx:update-bad"
         ssh_vm sudo bootc switch "${BAD_UPDATE_REF}" </dev/null 2>&1 | tee "${LOGS}/bootc-switch-bad.log" ||
             die "bootc switch vers la mise à jour défectueuse"
         ssh_vm sudo systemctl reboot || true
         # Trois démarrages en échec (compteur de greenboot), puis retour à la version précédente.
         # Chaque démarrage défectueux ne dure qu'une vingtaine de secondes : on ne compte pas sur le fait de
         # l'attraper par SSH. Le contrôle de la mise à jour défectueuse écrit une ligne par démarrage dans
-        # /var/log/nicos-test-boots (partagé avec la version précédente) : « version d'origine de nouveau
+        # /var/log/binixx-test-boots (partagé avec la version précédente) : « version d'origine de nouveau
         # démarrée et fichier non vide » prouve qu'elle a démarré, échoué, puis qu'on est revenu en arrière.
         deadline=$((SECONDS + 1800))
         rolled_back=0
@@ -377,7 +377,7 @@ EOF
             vm_running || die "la VM s'est arrêtée pendant le retour arrière automatique"
             [[ ${SECONDS} -lt ${deadline} ]] || die "pas de retour arrière automatique en 30 minutes (voir ${LOGS}/boot-serial.log)"
             sleep 10
-            state="$(ssh_vm 'if test -e /usr/share/nicos/update-bad-marker; then echo bad; elif test -s /var/log/nicos-test-boots; then echo rolled-back; else echo good; fi' 2>/dev/null || true)"
+            state="$(ssh_vm 'if test -e /usr/share/binixx/update-bad-marker; then echo bad; elif test -s /var/log/binixx-test-boots; then echo rolled-back; else echo good; fi' 2>/dev/null || true)"
             [[ ${state} == "rolled-back" ]] && rolled_back=1
         done
         log "Retour arrière automatique effectué"

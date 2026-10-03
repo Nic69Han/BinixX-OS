@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""« Le marcheur de l'aube » : le fond d'écran de NicOS.
+"""« Le marcheur de l'aube » : le fond d'écran de BinixX OS.
 
-Un horizon de planète vu de l'espace, un ciel étoilé en bleu NicOS avec la Voie lactée, et un homme seul qui marche
+Un horizon de planète vu de l'espace, un ciel étoilé en bleu BinixX OS avec la Voie lactée, et un homme seul qui marche
 vers l'aube, tout petit, réduit à sa forme : une silhouette sombre, sans visage ni détail, avec une écharpe qui flotte
 derrière lui comme un clin d'œil au Petit Prince. L'idée : un fond qu'on reconnaît tout de suite et qui n'appartient
-qu'à NicOS, comme « Bliss » pour Windows XP. Une photo de la NASA serait aussi belle, mais on l'attribuerait à la NASA.
+qu'à BinixX OS, comme « Bliss » pour Windows XP. Une photo de la NASA serait aussi belle, mais on l'attribuerait à la NASA.
 
 Tout est calculé (bruit fractal, étoiles, lumière, silhouette dessinée en formes simples) : aucune image tierce, donc
 aucune licence à citer ; le résultat est identique d'une exécution à l'autre (graine fixe).
@@ -12,7 +12,7 @@ aucune licence à citer ; le résultat est identique d'une exécution à l'autre
     pip install numpy scipy pillow
     python3 branding/fond_ecran.py [largeur] [sortie.png] [clair|nuit]
 
-`clair` est le fond du thème NicOS, `nuit` celui du thème NicOS sombre (ciel plus sombre, nébuleuse plus discrète).
+`clair` est le fond du thème BinixX OS, `nuit` celui du thème BinixX OS sombre (ciel plus sombre, nébuleuse plus discrète).
 branding/generer.py appelle `ecrire_fonds()` pour produire les fichiers de l'image.
 """
 import math
@@ -208,7 +208,7 @@ def rendre(largeur=1920, mode="clair", graine=GRAINE):
     sd = rayon - np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)   # > 0 dans la planète, < 0 dans le ciel
     ciel = sd < 0
 
-    # --- ciel : de l'encre au bleu NicOS
+    # --- ciel : de l'encre au bleu BinixX OS
     haut, milieu, bas = _vec(0.012, 0.020, 0.075), _vec(0.030, 0.060, 0.300), _vec(0.090, 0.250, 0.800)
     t = np.clip(yy / max(horizon, 1), 0, 1) ** 1.6
     img = melange(np.broadcast_to(haut, (h, w, 3)), np.broadcast_to(milieu, (h, w, 3)), np.clip(t * 1.8, 0, 1))

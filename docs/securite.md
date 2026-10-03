@@ -1,6 +1,6 @@
 # Sécurité
 
-Ce que NicOS fait pour protéger un poste de bureau, et ce qui reste à faire par l'utilisateur ou
+Ce que BinixX OS fait pour protéger un poste de bureau, et ce qui reste à faire par l'utilisateur ou
 l'administrateur. La feuille de route sécurité est dans [feuille-de-route.md](feuille-de-route.md) (lot 1).
 
 ## Protections en place
@@ -18,7 +18,7 @@ l'administrateur. La feuille de route sécurité est dans [feuille-de-route.md](
 | Exploitation de failles du noyau | Journaux et adresses du noyau réservés à l'administrateur, pas d'espionnage d'un programme par un autre | test VM |
 
 **Pas encore en place** : la signature des images (les postes acceptent aujourd'hui toute image publiée
-sous `ghcr.io/nic69han/nicos`, sur une connexion chiffrée) ; elle est prévue en priorité (S2).
+sous `ghcr.io/nic69han/binixx`, sur une connexion chiffrée) ; elle est prévue en priorité (S2).
 
 ## Chaîne d'approvisionnement : ce qu'il y a dans l'image, d'où elle vient
 
@@ -26,9 +26,9 @@ sous `ghcr.io/nic69han/nicos`, sur une connexion chiffrée) ; elle est prévue e
 
 | Contrôle | Ce qu'il fait | Où le trouver |
 | --- | --- | --- |
-| **Inventaire (SBOM)** | La liste de tous les paquets de l'image (nom, version, licence, éditeur, identifiant `purl`), au format **CycloneDX 1.6**, produite par `securite/sbom.py` à partir de la base RPM de l'image. Un inventaire presque vide (moins de 500 paquets) fait échouer le build. | Artefact `sbom-nicos-<étiquette>` du build (90 jours) ; joint à l'image publiée comme attestation. |
+| **Inventaire (SBOM)** | La liste de tous les paquets de l'image (nom, version, licence, éditeur, identifiant `purl`), au format **CycloneDX 1.6**, produite par `securite/sbom.py` à partir de la base RPM de l'image. Un inventaire presque vide (moins de 500 paquets) fait échouer le build. | Artefact `sbom-binixx-<étiquette>` du build (90 jours) ; joint à l'image publiée comme attestation. |
 | **Avis de sécurité Fedora en attente** | Liste les avis (`FEDORA-AAAA-…`) dont le correctif est **déjà publié** pour un paquet de l'image (`dnf updateinfo --security`) : une faille connue **et corrigeable**. **Le build échoue** si un avis atteint le seuil (**Critical** par défaut). | Résumé du build ; artefact `avis-securite.txt`. |
-| **Provenance** | Attestation signée par GitHub : quel dépôt, quel workflow et quel commit ont produit **cette empreinte** d'image. Publiée dans le registre avec l'image (`gh attestation verify oci://ghcr.io/nic69han/nicos:stable --repo Nic69Han/NicOS`). | Onglet « Attestations » du dépôt. |
+| **Provenance** | Attestation signée par GitHub : quel dépôt, quel workflow et quel commit ont produit **cette empreinte** d'image. Publiée dans le registre avec l'image (`gh attestation verify oci://ghcr.io/nic69han/binixx:stable --repo Nic69Han/BinixX`). | Onglet « Attestations » du dépôt. |
 
 Le **seuil** se change sans modifier le code : variable de dépôt `CVE_THRESHOLD` (`Critical`, `Important`, `Moderate` ou `Low`).
 Un avis qu'on ne peut pas corriger tout de suite (correctif attendu dans l'image de base) s'inscrit dans
@@ -56,11 +56,11 @@ Limites assumées :
   intégrée est vulnérable (faille « faulTPM ») ; garder alors le mot de passe, ou ajouter un code PIN
   quand le script le propose.
 - **Clé de récupération du disque chiffré** : si le mot de passe de chiffrement est oublié, les fichiers sont
-  perdus. Le Centre NicOS (page **Protéger mes données**) crée une clé de récupération, l'équivalent de
+  perdus. Le Centre BinixX OS (page **Protéger mes données**) crée une clé de récupération, l'équivalent de
   celle de BitLocker : elle est affichée **une seule fois**, à imprimer ou à enregistrer sur une clé USB
   rangée à part, jamais sur ce PC. Le mot de passe actuel du disque et celui d'un administrateur sont
   demandés. Créer une seconde clé remplace la première (l'ancienne cesse de fonctionner, avec accord
-  préalable). Au démarrage, la clé se saisit à la place du mot de passe. Outil : `nicos-cle-recuperation`
+  préalable). Au démarrage, la clé se saisit à la place du mot de passe. Outil : `binixx-cle-recuperation`
   (`systemd-cryptenroll --recovery-key`), testé sur un vrai volume LUKS2 : la clé déverrouille le volume,
   le mot de passe d'origine continue de fonctionner. Seuls les volumes LUKS2 sont pris en charge.
 - **Sauvegarder** : Déjà Dup (« Sauvegardes »), sur un disque externe débranché après la sauvegarde ou
@@ -79,7 +79,7 @@ Limites assumées :
 
 - **Domaine Active Directory** : `sudo realm join` (voir [migration-windows.md](migration-windows.md)).
   Les comptes, mots de passe et verrouillages restent gérés depuis l'annuaire.
-- **Antivirus** : NicOS n'en a pas besoin pour se protéger lui-même. Si une politique interne ou un
+- **Antivirus** : BinixX OS n'en a pas besoin pour se protéger lui-même. Si une politique interne ou un
   assureur en exige un, ClamTk (Flathub) analyse les fichiers à la demande.
 - **Inventaire** : le SBOM de chaque image (voir plus haut) ; `rpm -qa` liste les paquets d'un poste ; `bootc status` donne la version exacte de l'image.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Avis de sécurité Fedora en attente pour les paquets d'une image NicOS, avec seuil bloquant.
+"""Avis de sécurité Fedora en attente pour les paquets d'une image BinixX OS, avec seuil bloquant.
 
 Pourquoi pas Trivy ou Grype : ils ne couvrent pas Fedora (pas de base d'avis pour cette distribution). La source
 fiable est celle de Fedora elle-même : `dnf updateinfo` liste, pour les paquets installés, les avis de sécurité

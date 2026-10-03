@@ -9,7 +9,7 @@ check_parametres() {
     check "kcmshell6 liste les modules (kcm_kscreen)" bash -c "QT_QPA_PLATFORM=offscreen kcmshell6 --list | grep -q '^ *kcm_kscreen'"
     out="$(runuser -u "${TEST_USER}" -- env XDG_RUNTIME_DIR="/run/user/${uid}" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${uid}/bus" \
         busctl --user call org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel allComponents 2>&1 || true)"
-    if grep -q 'nicos-parametres' <<<"${out}" || grep -q 'nicos_parametres' <<<"${out}"; then
+    if grep -q 'binixx-parametres' <<<"${out}" || grep -q 'binixx_parametres' <<<"${out}"; then
         pass "KDE connaît le raccourci « Paramètres » (Windows + I)"
     else
         warn "KDE n'a pas enregistré le raccourci Windows + I : ${out:0:200}"

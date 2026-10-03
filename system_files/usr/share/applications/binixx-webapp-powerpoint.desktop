@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=PowerPoint (web)
+GenericName=Présentations Microsoft 365 (web)
+Comment=Présentations PowerPoint en ligne, enregistrées sur OneDrive
+Exec=/usr/libexec/binixx/binixx-webapp https://powerpoint.cloud.microsoft/
+Icon=x-office-presentation
+Terminal=false
+Categories=Office;
+Keywords=powerpoint;microsoft;365;présentation;pptx;
+StartupNotify=true
+# Classe de fenêtre de Chromium en mode application, pour grouper la fenêtre sous cette icône
+StartupWMClass=chrome-powerpoint.cloud.microsoft__-Default

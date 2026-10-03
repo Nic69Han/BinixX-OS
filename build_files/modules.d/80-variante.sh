@@ -1,12 +1,12 @@
 #!/usr/bin/bash
-# Variante de l'image, selon NICOS_VARIANT (argument de build du Containerfile) :
-#   (vide)  NicOS standard (pilote graphique libre nouveau pour les cartes NVIDIA)
-#   nvidia  NicOS sur la base Universal Blue « kinoite-nvidia » : pilotes NVIDIA propriétaires, déjà signés
+# Variante de l'image, selon BINIXX_VARIANT (argument de build du Containerfile) :
+#   (vide)  BinixX OS standard (pilote graphique libre nouveau pour les cartes NVIDIA)
+#   nvidia  BinixX OS sur la base Universal Blue « kinoite-nvidia » : pilotes NVIDIA propriétaires, déjà signés
 #           pour Secure Boot par Universal Blue. docs/nvidia.md
 
 set -ouex pipefail
 
-case "${NICOS_VARIANT:-}" in
+case "${BINIXX_VARIANT:-}" in
 "") ;;
 nvidia)
     # Liste d'abord, test ensuite : `grep -q` dans un tube fait échouer rpm (SIGPIPE) sous pipefail
@@ -22,7 +22,7 @@ nvidia)
     printf 'VARIANT="NVIDIA"\nVARIANT_ID=nvidia\n' >>/usr/lib/os-release
     ;;
 *)
-    echo "Variante inconnue : ${NICOS_VARIANT}" >&2
+    echo "Variante inconnue : ${BINIXX_VARIANT}" >&2
     exit 1
     ;;
 esac

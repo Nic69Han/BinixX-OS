@@ -2,7 +2,7 @@
 # À copier dans .github/workflows/build.yml du dépôt de l'entreprise. Guide : docs/image-entreprise.md
 #
 # L'image est reconstruite à chaque modification et chaque nuit : elle reprend ainsi les correctifs de
-# sécurité de NicOS (étiquette `stable`, publiée seulement après le test complet de NicOS) sans rien faire.
+# sécurité de BinixX OS (étiquette `stable`, publiée seulement après le test complet de BinixX OS) sans rien faire.
 name: Image de l'entreprise
 
 on:
@@ -18,7 +18,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE: ghcr.io/${{ github.repository_owner }}/nicos-entreprise
+  IMAGE: ghcr.io/${{ github.repository_owner }}/binixx-entreprise
 
 jobs:
   build:

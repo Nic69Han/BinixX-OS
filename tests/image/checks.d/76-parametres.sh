@@ -1,8 +1,8 @@
 # shellcheck shell=bash
 section "Paramètres (écran unique des réglages)"
-check "lanceur « Paramètres » valide" desktop-file-validate /usr/share/applications/nicos-parametres.desktop
+check "lanceur « Paramètres » valide" desktop-file-validate /usr/share/applications/binixx-parametres.desktop
 check "touche Windows + I : raccourci fourni" grep -qx '_launch=Meta+I' /etc/xdg/kglobalshortcutsrc
-check "« Paramètres » est dans les favoris du menu" grep -q 'nicos-parametres.desktop' /etc/xdg/kicker-extra-favoritesrc
+check "« Paramètres » est dans les favoris du menu" grep -q 'binixx-parametres.desktop' /etc/xdg/kicker-extra-favoritesrc
 check "kcmshell6 présent" command -v kcmshell6
 # Les modules KDE cités par la page doivent exister dans l'image : la liste vient de kcmshell6 lui-même
 # (un module renommé par une mise à jour de Plasma fait échouer le build, au lieu de laisser un bouton mort)
@@ -24,7 +24,7 @@ if grep -q '^ *kcm_' <<<"${modules}"; then
 import re, sys
 disponibles = {m.split()[0] for m in sys.argv[1].splitlines() if m.strip() and re.match(r"^kcm_", m.strip())}
 manquants = []
-for ligne in open("/usr/share/nicos/parametres/parametres.tsv", encoding="utf-8"):
+for ligne in open("/usr/share/binixx/parametres/parametres.tsv", encoding="utf-8"):
     champs = ligne.rstrip("\n").split("\t")
     if not ligne.startswith("#") and len(champs) >= 6 and champs[4] == "kcm" and champs[5] not in disponibles:
         manquants.append(f"{champs[1]} ({champs[5]})")
@@ -40,7 +40,7 @@ missing="$(
     python3 - <<'PYEOF'
 import os
 manquants = []
-for ligne in open("/usr/share/nicos/parametres/parametres.tsv", encoding="utf-8"):
+for ligne in open("/usr/share/binixx/parametres/parametres.tsv", encoding="utf-8"):
     champs = ligne.rstrip("\n").split("\t")
     if not ligne.startswith("#") and len(champs) >= 6 and champs[4] == "app" and not os.path.exists(f"/usr/share/applications/{champs[5]}.desktop"):
         manquants.append(champs[5])
@@ -48,7 +48,7 @@ print(" ".join(manquants))
 PYEOF
 )"
 if [[ -z "${missing}" ]]; then pass "tous les lanceurs cités par la page Paramètres existent"; else fail "lanceurs absents : ${missing}"; fi
-if out="$(NICOS_CENTRE=/usr/lib/nicos/centre NICOS_PARAMETRES=/usr/share/nicos/parametres/parametres.tsv NICOS_LANCEURS=/usr/share/applications NICOS_CATALOGUE=/usr/share/nicos/catalogue-windows/catalogue.tsv NICOS_FLATPAKS=/usr/share/nicos/flatpaks/system-flatpaks.list QT_QPA_PLATFORM=offscreen python3 -m unittest discover -s /tests/centre -p 'test_parametres.py' 2>&1)"; then
+if out="$(BINIXX_CENTRE=/usr/lib/binixx/centre BINIXX_PARAMETRES=/usr/share/binixx/parametres/parametres.tsv BINIXX_LANCEURS=/usr/share/applications BINIXX_CATALOGUE=/usr/share/binixx/catalogue-windows/catalogue.tsv BINIXX_FLATPAKS=/usr/share/binixx/flatpaks/system-flatpaks.list QT_QPA_PLATFORM=offscreen python3 -m unittest discover -s /tests/centre -p 'test_parametres.py' 2>&1)"; then
     pass "paramètres : tests du fichier, de la recherche et de la page (${out##*$'\n'})"
 else
     fail "paramètres : tests du fichier, de la recherche et de la page"

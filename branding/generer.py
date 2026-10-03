@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Génère l'identité visuelle de NicOS : logos, icône, fond d'écran, écran de démarrage, installeur.
+"""Génère l'identité visuelle de BinixX OS : logos, icône, fond d'écran, écran de démarrage, installeur.
 
 Tous les fichiers sont produits à partir de ce script, pour pouvoir retoucher le logo
 (couleurs, proportions) et tout régénérer d'un coup :
@@ -36,7 +36,9 @@ FONT = BRANDING / "police" / "Outfit.ttf"
 # ------------------------------------------------------------------ couleurs
 INK = "#0B0F1A"          # encre : texte et fonds sombres
 WHITE = "#FFFFFF"
-# dégradé de la gemme : ciel lumineux -> bleu NicOS -> indigo profond
+# « BinixX OS » a deux « i » (positions 1 et 3 du texte) : ceux dont le point devient une gemme
+POINTS_EN_GEMME = (1, 3)
+# dégradé de la gemme : ciel lumineux -> bleu BinixX OS -> indigo profond
 GEM_LIGHT = [("0", "#5FB2FF"), ("0.45", "#2F5BFF"), ("1", "#1A26C9")]
 GEM_DARK = [("0", "#8CCBFF"), ("0.45", "#5A7DFF"), ("1", "#3A3FE0")]
 
@@ -98,7 +100,7 @@ def dot_gem(cx, cy, d, stops):
 
 # ------------------------------------------------------------------ logotype
 class Wordmark:
-    """« NicOS » en Outfit SemiBold, converti en tracés, point du i en gemme."""
+    """« BinixX OS » en Outfit SemiBold, converti en tracés, point du i en gemme."""
 
     def __init__(self, weight=600):
         self.font = instantiateVariableFont(TTFont(FONT), {"wght": weight})
@@ -128,19 +130,19 @@ class Wordmark:
 
     def render(self, x, baseline, cap_px, color, stops):
         """Renvoie (svg, largeur)."""
-        text = "NicOS"
+        text = "BinixX OS"
         buf = hb.Buffer()
-        buf.add_str(text.replace("i", "ı"))  # i sans point : le point est dessiné à part
+        buf.add_str("".join("ı" if k in POINTS_EN_GEMME else c for k, c in enumerate(text)))  # i sans point
         buf.guess_segment_properties()
         hb.shape(self.hbfont, buf, {"kern": True, "liga": False})
         scale = cap_px / self.cap
         out, pen_x = [], 0
-        for ch, info, pos in zip(text, buf.glyph_infos, buf.glyph_positions):
+        for k, (ch, info, pos) in enumerate(zip(text, buf.glyph_infos, buf.glyph_positions)):
             pen = SVGPathPen(self.glyphs)
             self.glyphs[self.font.getGlyphName(info.codepoint)].draw(
                 TransformPen(pen, (scale, 0, 0, -scale, x + pen_x * scale, baseline)))
             out.append(f'<path d="{pen.getCommands()}" fill="{color}"/>')
-            if ch == "i":
+            if k in POINTS_EN_GEMME:
                 x0, y0, x1, y1 = self.dot
                 out.append(dot_gem(x + (pen_x + (x0 + x1) / 2) * scale, baseline - (y0 + y1) / 2 * scale,
                                    (x1 - x0) * 1.45 * scale, stops))
@@ -156,7 +158,7 @@ def lockup_horizontal(wm, x, cy, sym, stops, text_color):
 
 
 def lockup_vertical(wm, cx, top, sym, stops, text_color):
-    cap = sym * 0.27
+    cap = sym * 0.235
     _, w = wm.render(0, 0, cap, text_color, stops)
     text, _ = wm.render(cx - w / 2, top + sym * 1.2 + cap, cap, text_color, stops)
     return gem(cx, top + sym / 2, sym, stops) + text, top + sym * 1.2 + cap
@@ -172,7 +174,7 @@ def svg_doc(w, h, body, background=None):
 class Renderer:
     def __init__(self, chromium):
         self.chromium = chromium
-        self.tmp = Path(tempfile.mkdtemp(prefix="nicos-branding-"))
+        self.tmp = Path(tempfile.mkdtemp(prefix="binixx-branding-"))
 
     def png(self, html_body, w, h, dest, transparent=False):
         page = self.tmp / "page.html"
@@ -187,7 +189,7 @@ class Renderer:
 
 
 def installer_sidebar_html(w, h):
-    """Panneau latéral de l'installeur : nuit NicOS, halo bleu derrière le logo, gemme discrète.
+    """Panneau latéral de l'installeur : nuit BinixX OS, halo bleu derrière le logo, gemme discrète.
     Anaconda l'affiche sans le redimensionner, calé en haut à gauche, sur 15 % de la largeur de
     l'écran (153 px en 1024x768) : l'essentiel tient dans les 150 premiers pixels et les 700
     premières lignes ; le bas finit sur la couleur unie du CSS (INK)."""
@@ -204,7 +206,7 @@ def installer_sidebar_html(w, h):
             '</div>')
 
 
-INSTALLER_CSS = f"""/* Installeur (Anaconda) : logo et couleurs NicOS à la place de ceux de Fedora.
+INSTALLER_CSS = f"""/* Installeur (Anaconda) : logo et couleurs BinixX OS à la place de ceux de Fedora.
  * Généré par branding/generer.py ; placé dans images/product.img sur l'ISO par
  * disk_config/personnaliser-iso.sh. Anaconda charge ce fichier après son propre style et celui de
  * Fedora (fedora-logos), avec une priorité plus haute.
@@ -212,13 +214,13 @@ INSTALLER_CSS = f"""/* Installeur (Anaconda) : logo et couleurs NicOS à la plac
 
 /* Panneau latéral : fond, puis logo */
 .logo-sidebar {{
-    background-image: url('/usr/share/anaconda/pixmaps/nicos/sidebar-bg.png');
+    background-image: url('/usr/share/anaconda/pixmaps/binixx/sidebar-bg.png');
     background-color: {INK};
     background-repeat: no-repeat;
 }}
 
 .logo {{
-    background-image: url('/usr/share/anaconda/pixmaps/nicos/sidebar-logo.png');
+    background-image: url('/usr/share/anaconda/pixmaps/binixx/sidebar-logo.png');
     background-position: 50% 24px;
     background-repeat: no-repeat;
     background-color: transparent;
@@ -241,7 +243,7 @@ AnacondaSpokeWindow #nav-box {{
 def installer_assets(wm, renderer):
     """Images et style de l'installeur, dans branding/installeur/ (arborescence de product.img)."""
     root = BRANDING / "installeur"
-    pixmaps = root / "usr/share/anaconda/pixmaps/nicos"
+    pixmaps = root / "usr/share/anaconda/pixmaps/binixx"
     pixmaps.mkdir(parents=True, exist_ok=True)
     # Logo horizontal blanc, 130 px de large, centré dans 150 px (le panneau en fait 153 en 1024x768)
     body, w = lockup_horizontal(wm, 0, 60, 120, GEM_DARK, WHITE)
@@ -289,41 +291,41 @@ def main():
 
     # 1. Logos (vectoriels)
     logos = {
-        "nicos-symbole": svg_doc(512, 512, gem(256, 256, 500)),
-        "nicos-symbole-fond-sombre": svg_doc(512, 512, gem(256, 256, 500, GEM_DARK)),
-        "nicos-symbole-mono": svg_doc(512, 512, gem(256, 256, 500, mono=INK)),
-        "nicos-symbole-petit": svg_doc(64, 64, gem(32, 32, 62, small=True)),
-        "nicos-avatar": svg_doc(512, 512, f'<rect width="512" height="512" rx="112" fill="{INK}"/>'
+        "binixx-symbole": svg_doc(512, 512, gem(256, 256, 500)),
+        "binixx-symbole-fond-sombre": svg_doc(512, 512, gem(256, 256, 500, GEM_DARK)),
+        "binixx-symbole-mono": svg_doc(512, 512, gem(256, 256, 500, mono=INK)),
+        "binixx-symbole-petit": svg_doc(64, 64, gem(32, 32, 62, small=True)),
+        "binixx-avatar": svg_doc(512, 512, f'<rect width="512" height="512" rx="112" fill="{INK}"/>'
                                 + gem(256, 256, 330, GEM_DARK)),
     }
     body, w = lockup_horizontal(wm, 0, 60, 120, GEM_LIGHT, INK)
-    logos["nicos-logo-horizontal"] = svg_doc(math.ceil(w), 120, body)
+    logos["binixx-logo-horizontal"] = svg_doc(math.ceil(w), 120, body)
     body, w = lockup_horizontal(wm, 0, 60, 120, GEM_DARK, WHITE)
-    logos["nicos-logo-horizontal-fond-sombre"] = svg_doc(math.ceil(w), 120, body)
+    logos["binixx-logo-horizontal-fond-sombre"] = svg_doc(math.ceil(w), 120, body)
     body, h = lockup_vertical(wm, 170, 4, 200, GEM_LIGHT, INK)
-    logos["nicos-logo-vertical"] = svg_doc(340, math.ceil(h) + 16, body)
+    logos["binixx-logo-vertical"] = svg_doc(340, math.ceil(h) + 16, body)
     body, h = lockup_vertical(wm, 170, 4, 200, GEM_DARK, WHITE)
-    logos["nicos-logo-vertical-fond-sombre"] = svg_doc(340, math.ceil(h) + 16, body)
+    logos["binixx-logo-vertical-fond-sombre"] = svg_doc(340, math.ceil(h) + 16, body)
     for name, doc in logos.items():
         (BRANDING / "logo" / f"{name}.svg").write_text(doc)
 
-    # 2. Icône système (menu Démarrer, « À propos », os-release LOGO=nicos)
+    # 2. Icône système (menu Démarrer, « À propos », os-release LOGO=binixx)
     icons = SYSTEM / "usr/share/icons/hicolor/scalable/apps"
     icons.mkdir(parents=True, exist_ok=True)
-    (icons / "nicos.svg").write_text(logos["nicos-symbole"])
+    (icons / "binixx.svg").write_text(logos["binixx-symbole"])
 
     renderer = Renderer(args.chromium)
 
     # 3. Écran de démarrage (Plymouth) : logo vertical blanc, taille 1x
-    plymouth = SYSTEM / "usr/share/plymouth/themes/nicos"
+    plymouth = SYSTEM / "usr/share/plymouth/themes/binixx"
     plymouth.mkdir(parents=True, exist_ok=True)
     body, h = lockup_vertical(wm, 120, 4, 140, GEM_DARK, WHITE)
     mark_h = math.ceil(h) + 8
     renderer.png(svg_doc(240, mark_h, body), 240, mark_h, plymouth / "watermark.png", transparent=True)
 
-    # 4. Fond d'écran NicOS « Le marcheur de l'aube » (clair et sombre) : calculé par fond_ecran.py, sans Chromium
+    # 4. Fond d'écran BinixX OS « Le marcheur de l'aube » (clair et sombre) : calculé par fond_ecran.py, sans Chromium
     import fond_ecran
-    fond_ecran.ecrire_fonds(SYSTEM / "usr/share/wallpapers/NicOS/contents")
+    fond_ecran.ecrire_fonds(SYSTEM / "usr/share/wallpapers/BinixX/contents")
 
     # 5. Installeur de l'ISO (Anaconda)
     installer_assets(wm, renderer)

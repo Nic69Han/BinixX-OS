@@ -20,28 +20,28 @@ section() { printf '\n== %s\n' "$*"; }
 section "Image d'entreprise (exemple)"
 # shellcheck source=/dev/null  # fichier de l'image, absent du dépôt
 . /usr/lib/os-release
-if [[ "${NAME}" == NicOS && "${VARIANT}" == "Exemple SARL" && "${VARIANT_ID}" == exemple-sarl ]]; then
-    pass "os-release : NicOS, variante « ${VARIANT} » (${VARIANT_ID})"
+if [[ "${NAME}" == "BinixX OS" && "${VARIANT}" == "Exemple SARL" && "${VARIANT_ID}" == exemple-sarl ]]; then
+    pass "os-release : BinixX OS, variante « ${VARIANT} » (${VARIANT_ID})"
 else
     fail "os-release : NAME='${NAME}' VARIANT='${VARIANT:-}' VARIANT_ID='${VARIANT_ID:-}'"
 fi
-check "mémo pour le support (/etc/nicos/entreprise.conf)" grep -qx 'NOM_ENTREPRISE="Exemple SARL"' /etc/nicos/entreprise.conf
+check "mémo pour le support (/etc/binixx/entreprise.conf)" grep -qx 'NOM_ENTREPRISE="Exemple SARL"' /etc/binixx/entreprise.conf
 check "logiciel de l'entreprise installé (paquet)" rpm -q htop
-check "applications Flatpak de l'entreprise listées" grep -qx 'org.keepassxc.KeePassXC' /usr/share/nicos/flatpaks/system-flatpaks.d/entreprise.list
-check "applications Flatpak de NicOS conservées" test -s /usr/share/nicos/flatpaks/system-flatpaks.list
+check "applications Flatpak de l'entreprise listées" grep -qx 'org.keepassxc.KeePassXC' /usr/share/binixx/flatpaks/system-flatpaks.d/entreprise.list
+check "applications Flatpak de BinixX OS conservées" test -s /usr/share/binixx/flatpaks/system-flatpaks.list
 check "Firefox : page d'accueil de l'entreprise" python3 -c '
 import json
 p = json.load(open("/etc/firefox/policies/policies.json"))["policies"]
 assert p["Homepage"]["URL"] == "https://intranet.exemple.fr"
 '
-check "Firefox : réglages de NicOS conservés (HTTPS, uBlock Origin)" python3 -c '
+check "Firefox : réglages de BinixX OS conservés (HTTPS, uBlock Origin)" python3 -c '
 import json
 p = json.load(open("/etc/firefox/policies/policies.json"))["policies"]
 assert p["HttpsOnlyMode"] == "enabled" and "uBlock0@raymondhill.net" in p["ExtensionSettings"]
 assert "Proxy" not in p  # PROXY est vide dans l exemple
 '
-check "fichiers de l'entreprise copiés (system_files)" test -f /etc/nicos/README
-check "identité NicOS conservée (logo)" test -s /usr/share/icons/hicolor/scalable/apps/nicos.svg
+check "fichiers de l'entreprise copiés (system_files)" test -f /etc/binixx/README
+check "identité BinixX OS conservée (logo)" test -s /usr/share/icons/hicolor/scalable/apps/binixx.svg
 
 printf '\n'
 if [[ ${failures} -gt 0 ]]; then

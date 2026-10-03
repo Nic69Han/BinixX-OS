@@ -14,7 +14,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-DEFAUT = Path(__file__).resolve().parents[2] / "system_files/usr/share/nicos/catalogue-windows/catalogue.tsv"
+DEFAUT = Path(__file__).resolve().parents[2] / "system_files/usr/share/binixx/catalogue-windows/catalogue.tsv"
 
 
 ENTETE = """# Licences des applications Flatpak du catalogue, lues sur Flathub (champ project_license).

@@ -1,4 +1,4 @@
-# Gérer un parc de postes NicOS
+# Gérer un parc de postes BinixX OS
 
 Pour une PME de 5 à 50 postes. Le principe : **une image, une source de vérité**. On ne règle pas chaque
 PC ; on règle l'image, et tous les postes la suivent.
@@ -7,7 +7,7 @@ PC ; on règle l'image, et tous les postes la suivent.
 
 | Besoin | Solution | Où |
 | --- | --- | --- |
-| Tous les postes identiques | Image d'entreprise : NicOS + logiciels + réglages de la PME | [image-entreprise.md](image-entreprise.md) |
+| Tous les postes identiques | Image d'entreprise : BinixX OS + logiciels + réglages de la PME | [image-entreprise.md](image-entreprise.md) |
 | Déployer sans casser | Canaux `testing` (postes pilotes) puis `stable`, mises à jour testées | [mises-a-jour.md](mises-a-jour.md) |
 | Un poste en panne après une mise à jour | Retour arrière **automatique**, ou manuel en un clic | [mises-a-jour.md](mises-a-jour.md) |
 | Administrer un poste à la souris | Cockpit (« Administration du PC ») | [administration.md](administration.md) |

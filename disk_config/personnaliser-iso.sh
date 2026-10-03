@@ -5,10 +5,10 @@
 #
 # 1. Nom du volume. bootc-image-builder nomme l'ISO d'après l'ID de os-release
 #    (« Fedora-S-dvd-x86_64-44 ») : c'est le nom de la clé USB affiché par l'ordinateur. Il devient
-#    « NicOS-44-x86_64 ». Le menu de démarrage s'en sert pour retrouver l'installeur
+#    « BinixX-OS-44-x86_64 ». Le menu de démarrage s'en sert pour retrouver l'installeur
 #    (inst.stage2=hd:LABEL=…, inst.ks=…, search -l …) : il est remplacé dans les grub.cfg de l'ISO
 #    et dans celui de l'image de démarrage UEFI (efiboot.img, FAT, modifiée avec mtools), comme le
-#    fait mkksiso de Fedora avec --volid. Éditeur et application de l'ISO deviennent « NicOS ».
+#    fait mkksiso de Fedora avec --volid. Éditeur et application de l'ISO deviennent « BinixX OS ».
 # 2. Logo et couleurs de l'installeur. bootc-image-builder le construit avec fedora-logos et n'a pas
 #    d'option de marque. Anaconda prévoit images/product.img sur le support : son initramfs le
 #    décompresse par-dessus l'installeur (anaconda-lib.sh, anaconda_auto_updates), puis
@@ -52,15 +52,15 @@ extract() { xorriso -osirrox on -indev "$1" -extract "/$2" "$3" >/dev/null 2>&1 
 
 old_label="$(volume_id "${ISO}")"
 if [[ "${old_label}" =~ ^Fedora-S-dvd-(.+)-([0-9]+)$ ]]; then
-    new_label="NicOS-${BASH_REMATCH[2]}-${BASH_REMATCH[1]}"
-elif [[ "${old_label}" == NicOS-* ]]; then
+    new_label="BinixX-OS-${BASH_REMATCH[2]}-${BASH_REMATCH[1]}"
+elif [[ "${old_label}" == BinixX-OS-* ]]; then
     new_label="${old_label}" # ISO déjà personnalisée
 else
     fail "nom de volume inattendu : '${old_label}' (bootc-image-builder a changé ?)"
 fi
 echo "Nom du volume : ${old_label} -> ${new_label}"
 
-xorriso_args=(-volid "${new_label}" -volset_id "${new_label}" -publisher NicOS -application_id NicOS)
+xorriso_args=(-volid "${new_label}" -volset_id "${new_label}" -publisher "BinixX OS" -application_id "BinixX OS")
 
 # Menus GRUB de l'ISO : UEFI (EFI/BOOT) et BIOS (boot/grub2)
 configs=0
@@ -103,21 +103,21 @@ xorriso_args+=(-map "${work}/product.img" /images/product.img)
 
 ### 3. Nouvelle ISO, vérifiée ----------------------------------------------------------
 
-xorriso -indev "${ISO}" -outdev "${work}/nicos.iso" -boot_image any replay "${xorriso_args[@]}"
-implantisomd5 --force "${work}/nicos.iso" >/dev/null
-checkisomd5 "${work}/nicos.iso" >/dev/null || fail "somme de contrôle de la nouvelle ISO invalide"
+xorriso -indev "${ISO}" -outdev "${work}/binixx.iso" -boot_image any replay "${xorriso_args[@]}"
+implantisomd5 --force "${work}/binixx.iso" >/dev/null
+checkisomd5 "${work}/binixx.iso" >/dev/null || fail "somme de contrôle de la nouvelle ISO invalide"
 
-[[ "$(volume_id "${work}/nicos.iso")" == "${new_label}" ]] || fail "nom de volume non appliqué"
-if xorriso -indev "${work}/nicos.iso" -pvd_info 2>/dev/null | grep -i fedora; then
+[[ "$(volume_id "${work}/binixx.iso")" == "${new_label}" ]] || fail "nom de volume non appliqué"
+if xorriso -indev "${work}/binixx.iso" -pvd_info 2>/dev/null | grep -i fedora; then
     fail "« Fedora » reste dans l'identité de l'ISO (ci-dessus)"
 fi
 mkdir -p "${work}/verif"
 for cfg in EFI/BOOT/grub.cfg boot/grub2/grub.cfg; do
-    extract "${work}/nicos.iso" "${cfg}" "${work}/verif/${cfg//\//_}" || continue
+    extract "${work}/binixx.iso" "${cfg}" "${work}/verif/${cfg//\//_}" || continue
 done
-read -r efi_start efi_count <<<"$(efi_partition "${work}/nicos.iso")" || true
+read -r efi_start efi_count <<<"$(efi_partition "${work}/binixx.iso")" || true
 [[ -n "${efi_start:-}" ]] || fail "image de démarrage UEFI absente de la nouvelle ISO"
-dd if="${work}/nicos.iso" of="${work}/verif/efiboot.img" bs=512 skip="${efi_start}" count="${efi_count}" status=none
+dd if="${work}/binixx.iso" of="${work}/verif/efiboot.img" bs=512 skip="${efi_start}" count="${efi_count}" status=none
 mtype -i "${work}/verif/efiboot.img" ::/EFI/BOOT/grub.cfg >"${work}/verif/efiboot_grub.cfg"
 if grep -F -- "${old_label}" "${work}"/verif/*.cfg; then
     fail "l'ancien nom de volume reste dans le menu de démarrage (ci-dessus)"
@@ -128,8 +128,8 @@ grep -qF "hd:LABEL=${new_label}" "${work}/verif/efiboot_grub.cfg" ||
 if grep -hE "^[[:space:]]*(menuentry|submenu)" "${work}"/verif/*.cfg | sed 's/--class [^ ]*//g' | grep -i fedora; then
     fail "« Fedora » dans un titre du menu de démarrage (ci-dessus)"
 fi
-xorriso -indev "${work}/nicos.iso" -find /images/product.img 2>/dev/null | grep -q product.img ||
+xorriso -indev "${work}/binixx.iso" -find /images/product.img 2>/dev/null | grep -q product.img ||
     fail "product.img absent de la nouvelle ISO"
 
-mv -f "${work}/nicos.iso" "${ISO}"
-echo "ISO personnalisée : volume ${new_label}, installeur aux couleurs de NicOS : ${ISO}"
+mv -f "${work}/binixx.iso" "${ISO}"
+echo "ISO personnalisée : volume ${new_label}, installeur aux couleurs de BinixX OS : ${ISO}"

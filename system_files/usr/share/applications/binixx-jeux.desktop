@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Jeux
+GenericName=Steam, Epic, GOG, manettes, carte graphique
+Comment=Boutiques de jeux à la demande, carte graphique, manettes
+Exec=/usr/libexec/binixx/binixx-centre --page jeux
+Icon=applications-games
+Terminal=false
+Categories=Game;
+Keywords=jeux;jeu;steam;epic;gog;proton;manette;gaming;minecraft;
+StartupNotify=true
+StartupWMClass=binixx-centre

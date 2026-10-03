@@ -1,8 +1,8 @@
 #!/usr/bin/python3
-"""Inventaire des logiciels d'une image NicOS (SBOM) au format CycloneDX 1.6, sans dépendance.
+"""Inventaire des logiciels d'une image BinixX OS (SBOM) au format CycloneDX 1.6, sans dépendance.
 
 Usage (voir `just sbom`) :
-  podman run --rm IMAGE rpm -qa --qf "$(sbom.py --format-rpm)" | sbom.py --nom nicos --version testing \
+  podman run --rm IMAGE rpm -qa --qf "$(sbom.py --format-rpm)" | sbom.py --nom binixx --version testing \
       --os-release os-release > sbom.cdx.json
 
 Entrée : une ligne par paquet RPM, champs séparés par des tabulations (nom, époque, version, release, architecture,
@@ -133,9 +133,9 @@ def fabriquer(paquets, nom, version, distro, maintenant=None, numero=None):
         "version": 1,
         "metadata": {
             "timestamp": maintenant.isoformat().replace("+00:00", "Z"),
-            "tools": {"components": [{"type": "application", "name": "nicos-sbom", "version": "1"}]},
+            "tools": {"components": [{"type": "application", "name": "binixx-sbom", "version": "1"}]},
             "component": {"type": "container", "bom-ref": racine, "name": nom, "version": version, "purl": racine,
-                          "description": distro.get("PRETTY_NAME", "NicOS")},
+                          "description": distro.get("PRETTY_NAME", "BinixX OS")},
         },
         "components": composants,
     }
@@ -160,7 +160,7 @@ def resume(document):
 def main(argv):
     analyseur = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     analyseur.add_argument("--format-rpm", action="store_true", help="affiche le format à passer à `rpm -qa --qf`")
-    analyseur.add_argument("--nom", default="nicos")
+    analyseur.add_argument("--nom", default="binixx")
     analyseur.add_argument("--version", default="testing")
     analyseur.add_argument("--os-release", help="fichier os-release de l'image")
     analyseur.add_argument("--minimum", type=int, default=500, help="nombre de paquets en dessous duquel on refuse")

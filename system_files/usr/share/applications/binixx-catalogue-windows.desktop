@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Mon logiciel Windows
+GenericName=Équivalents des logiciels Windows
+Comment=Trouver ce qui remplace Word, Sage, Photoshop… sous BinixX OS
+Exec=/usr/libexec/binixx/binixx-centre --page catalogue
+Icon=binixx
+Terminal=false
+Categories=System;
+Keywords=windows;logiciel;équivalent;remplacer;word;excel;outlook;sage;photoshop;installer;catalogue;
+StartupNotify=true
+StartupWMClass=binixx-centre

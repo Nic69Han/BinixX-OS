@@ -3,7 +3,7 @@
 # dans un dossier de destination ; un second passage avec un fichier modifié ne doit rien écraser.
 check_migration() {
     section "Récupérer mes fichiers Windows"
-    local outil=/usr/libexec/nicos/nicos-migrer base=/var/tmp/nicos-test-migration profil dest out code
+    local outil=/usr/libexec/binixx/binixx-migrer base=/var/tmp/binixx-test-migration profil dest out code
     profil="${base}/Users/Alice" dest="${base}/copie"
     rm -rf "${base}"
     install -d -o "${TEST_USER}" "${base}"
@@ -12,7 +12,7 @@ check_migration() {
         printf 'contrat v1' >'${profil}/Documents/contrat.txt'
         printf 'photo' >'${profil}/Pictures/photo.jpg'
         printf 'ini' >'${profil}/Documents/desktop.ini'
-        printf '%s' '{\"roots\":{\"bookmark_bar\":{\"type\":\"folder\",\"name\":\"Barre\",\"children\":[{\"type\":\"url\",\"name\":\"NicOS\",\"url\":\"https://example.org/\"}]}}}' \\
+        printf '%s' '{\"roots\":{\"bookmark_bar\":{\"type\":\"folder\",\"name\":\"Barre\",\"children\":[{\"type\":\"url\",\"name\":\"BinixX OS\",\"url\":\"https://example.org/\"}]}}}' \\
             >'${profil}/AppData/Local/Google/Chrome/User Data/Default/Bookmarks'
     "
 

@@ -97,7 +97,7 @@ class Document(unittest.TestCase):
     distro = {"ID": "fedora", "VERSION_ID": "44", "PRETTY_NAME": "Fedora Linux 44 (Kinoite)"}
 
     def fabriquer(self, lignes=LIGNES):
-        return S.fabriquer(S.lire_paquets(lignes), "nicos", "testing", self.distro,
+        return S.fabriquer(S.lire_paquets(lignes), "binixx", "testing", self.distro,
                            maintenant=datetime.datetime(2026, 10, 2, 12, 0, tzinfo=datetime.timezone.utc),
                            numero="00000000-0000-0000-0000-000000000001")
 
@@ -107,7 +107,7 @@ class Document(unittest.TestCase):
         self.assertEqual(d["serialNumber"], "urn:uuid:00000000-0000-0000-0000-000000000001")
         self.assertEqual(d["metadata"]["timestamp"], "2026-10-02T12:00:00Z")
         self.assertEqual(d["metadata"]["component"]["type"], "container")
-        self.assertEqual(d["metadata"]["component"]["purl"], "pkg:oci/nicos?tag=testing")
+        self.assertEqual(d["metadata"]["component"]["purl"], "pkg:oci/binixx?tag=testing")
         self.assertEqual(len(d["components"]), 3)
 
     def test_ordre_stable_et_references_uniques(self):

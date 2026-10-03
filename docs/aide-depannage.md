@@ -1,7 +1,7 @@
 # Obtenir de l'aide : dépannage et rapport pour le support
 
-Menu → **Obtenir de l'aide** (ou page *Obtenir de l'aide* du Centre NicOS, voir
-[centre-nicos.md](centre-nicos.md)). Tout se passe sur le PC : **rien n'est envoyé nulle part**.
+Menu → **Obtenir de l'aide** (ou page *Obtenir de l'aide* du Centre BinixX OS, voir
+[centre-binixx.md](centre-binixx.md)). Tout se passe sur le PC : **rien n'est envoyé nulle part**.
 
 ## Les cas les plus fréquents
 
@@ -17,25 +17,25 @@ Remet la barre, le thème, les raccourcis et le comportement des fenêtres comme
 - **Ne change pas** : les fichiers, les applications, la langue, le clavier, les écrans, les mots de
   passe enregistrés, les profils de Firefox et de Thunderbird.
 - **Rien n'est supprimé** : les anciens réglages sont rangés dans
-  `~/.local/share/nicos/sauvegardes/bureau-<date>/`, avec un `LISEZMOI.txt` qui explique comment en
+  `~/.local/share/binixx/sauvegardes/bureau-<date>/`, avec un `LISEZMOI.txt` qui explique comment en
   retrouver un.
 - **Pourquoi à la prochaine ouverture de session ?** Plasma réécrit ses réglages quand la session se
   ferme : les déplacer pendant qu'elle tourne ne servirait à rien. Le bouton programme la remise à
-  zéro (`nicos-reinitialiser-bureau programmer`), propose de fermer la session, et le script
-  `etc/xdg/plasma-workspace/env/90-nicos-reinitialiser.sh` l'applique à l'ouverture suivante, avant que
-  Plasma ne démarre. `nicos-reinitialiser-bureau annuler` la retire.
+  zéro (`binixx-reinitialiser-bureau programmer`), propose de fermer la session, et le script
+  `etc/xdg/plasma-workspace/env/90-binixx-reinitialiser.sh` l'applique à l'ouverture suivante, avant que
+  Plasma ne démarre. `binixx-reinitialiser-bureau annuler` la retire.
 
 ## « Un réglage du système modifié à la main pose problème » : réparer le système
 
 Un tutoriel suivi trop vite ou un essai oublié peut dérégler l'écran de connexion, le son, le pare-feu…
-Sur NicOS, l'image porte les réglages d'origine (`/usr/etc`) et `/etc` contient ce qui a été changé depuis.
+Sur BinixX OS, l'image porte les réglages d'origine (`/usr/etc`) et `/etc` contient ce qui a été changé depuis.
 Le bouton *Voir les réglages modifiés* compare les deux et liste ce qui diffère :
 
 - **Modifié** : remis comme dans l'image ; **supprimé** : recréé ; **ajouté** : retiré (c'est un réglage qui
   n'existe pas dans l'image).
 - **Rien n'est coché d'avance** : l'utilisateur choisit. Une seule authentification d'administrateur (`pkexec`).
 - **Sauvegarde et annulation** : la version remplacée est copiée dans
-  `/var/lib/nicos/sauvegardes-etc/<date>/` (réservé à l'administrateur, 20 réparations gardées) ;
+  `/var/lib/binixx/sauvegardes-etc/<date>/` (réservé à l'administrateur, 20 réparations gardées) ;
   *Annuler la dernière réparation* rend à chaque fichier sa version d'avant.
 - **Périmètre volontairement étroit** : seuls les dossiers de réglages courants sont concernés (écran de
   connexion, valeurs par défaut du bureau, variables d'environnement, noyau, pilotes, règles des
@@ -50,9 +50,9 @@ Le bouton *Voir les réglages modifiés* compare les deux et liste ce qui diffè
 - Le rapport de diagnostic liste aussi ces fichiers (noms seulement) : le support voit d'un coup d'œil ce
   qui a été touché.
 
-Ligne de commande (administrateur) : `nicos-reparer-systeme liste | restaurer CHEMIN… | annuler [DATE] | sauvegardes`.
+Ligne de commande (administrateur) : `binixx-reparer-systeme liste | restaurer CHEMIN… | annuler [DATE] | sauvegardes`.
 
-### Pourquoi pas un « Réinitialiser NicOS » complet ?
+### Pourquoi pas un « Réinitialiser BinixX OS » complet ?
 
 Remettre tout `/etc` à l'origine effacerait aussi les comptes, les mots de passe, les réseaux Wi-Fi, le
 domaine et les clés : l'utilisateur ne pourrait plus ouvrir sa session. La réparation ciblée, avec
@@ -63,15 +63,15 @@ Mises à jour logicielles) et le **retour arrière automatique** si l'écran de 
 
 ## Rapport de diagnostic
 
-Le bouton *Créer le rapport* lance `nicos-diagnostic`, enregistre le résultat dans
-`Documents/Rapport-NicOS-<date>.txt` et le copie dans le presse-papiers. Il contient : version de
-NicOS et de la dernière mise à jour, services en échec, erreurs récentes du démarrage, espace
+Le bouton *Créer le rapport* lance `binixx-diagnostic`, enregistre le résultat dans
+`Documents/Rapport-BinixX-OS-<date>.txt` et le copie dans le presse-papiers. Il contient : version de
+BinixX OS et de la dernière mise à jour, services en échec, erreurs récentes du démarrage, espace
 disque, mémoire, état du réseau (types et états des connexions seulement), cartes graphiques, réseau
 et son, imprimantes, applications Flatpak, noms des réglages du système modifiés.
 
 Il ne contient ni mot de passe, ni contenu de fichier, ni adresse IP, ni nom de réseau Wi-Fi, et il
 n'exige aucun droit particulier. L'utilisateur le relit avant de l'envoyer ; un administrateur peut aussi
-le lancer lui-même : `/usr/libexec/nicos/nicos-diagnostic`.
+le lancer lui-même : `/usr/libexec/binixx/binixx-diagnostic`.
 
 ## Tests
 

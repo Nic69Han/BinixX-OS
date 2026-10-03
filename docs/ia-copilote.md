@@ -1,4 +1,4 @@
-# Un copilote IA dans NicOS : plan et garde-fous
+# Un copilote IA dans BinixX OS : plan et garde-fous
 
 Objectif : aider un utilisateur qui quitte Windows à **comprendre, réparer et se débrouiller**, sans
 jargon. Étude, rien n'est livré : chaque niveau est un chantier à part, avec ses tests, à lancer sur

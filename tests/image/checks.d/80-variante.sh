@@ -7,7 +7,7 @@ nvidia)
     pass "variante NVIDIA"
     check "pilotes NVIDIA présents" rpm -q nvidia-driver kmod-nvidia
     # shellcheck disable=SC2016  # expansion voulue dans le sous-shell
-    check "NicOS reste NicOS (nom, logo)" bash -c '. /usr/lib/os-release && [[ "${NAME}" == NicOS && "${LOGO}" == nicos ]]'
+    check "BinixX OS reste BinixX OS (nom, logo)" bash -c '. /usr/lib/os-release && [[ "${NAME}" == "BinixX OS" && "${LOGO}" == binixx ]]'
     ;;
 "" | kinoite) pass "variante standard (VARIANT_ID : ${variant_id:-aucun})" ;; # kinoite : valeur de la base Fedora
 *) fail "variante inconnue : ${variant_id}" ;;

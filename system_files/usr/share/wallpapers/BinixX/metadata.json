@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Projet BinixX OS"
+            }
+        ],
+        "Id": "BinixX",
+        "License": "Apache-2.0",
+        "Name": "BinixX OS"
+    }
+}

@@ -5,15 +5,15 @@
 check_applications() {
     section "Installer des applications (Flathub)"
     local ident absents="" cmd ok=0 liste
-    wait_for 600 test -f /var/lib/nicos/flatpaks.sha256 || true
+    wait_for 600 test -f /var/lib/binixx/flatpaks.sha256 || true
     check "action polkit d'installation de Flatpak connue" pkaction --action-id org.freedesktop.Flatpak.app-install
     check "le dépôt Flathub est configuré pour tout le système" bash -c "flatpak remotes --system --columns=name | grep -qx flathub"
 
     liste="$(
         python3 - <<'PYEOF'
 import sys
-sys.path.insert(0, "/usr/lib/nicos/centre")
-from nicos_centre import applications, catalogue
+sys.path.insert(0, "/usr/lib/binixx/centre")
+from binixx_centre import applications, catalogue
 for application in applications.proposees(catalogue.charger(), catalogue.fournies()):
     print(application.identifiant)
 PYEOF
@@ -29,14 +29,14 @@ PYEOF
     cmd="$(
         python3 - "${ident}" <<'PYEOF'
 import shlex, sys
-sys.path.insert(0, "/usr/lib/nicos/centre")
-from nicos_centre import applications
+sys.path.insert(0, "/usr/lib/binixx/centre")
+from binixx_centre import applications
 print(shlex.join(applications.commande([sys.argv[1]])))
 PYEOF
     )"
     for _ in 1 2; do
         # shellcheck disable=SC2086  # la commande vient de applications.commande : mots séparés par des espaces
-        if timeout 900 ${cmd} </dev/null >/var/tmp/nicos-test-applications.log 2>&1; then
+        if timeout 900 ${cmd} </dev/null >/var/tmp/binixx-test-applications.log 2>&1; then
             ok=1
             break
         fi
@@ -46,8 +46,8 @@ PYEOF
         pass "la commande de la page installe ${ident} depuis Flathub"
         flatpak uninstall --system --noninteractive --assumeyes "${ident}" >/dev/null 2>&1 || warn "${ident} non retiré"
     else
-        fail "la commande de la page n'a pas installé ${ident} : $(tail -3 /var/tmp/nicos-test-applications.log | tr '\n' ' ')"
+        fail "la commande de la page n'a pas installé ${ident} : $(tail -3 /var/tmp/binixx-test-applications.log | tr '\n' ' ')"
     fi
-    rm -f /var/tmp/nicos-test-applications.log
+    rm -f /var/tmp/binixx-test-applications.log
 }
 register_check base check_applications
