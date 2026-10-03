@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Gestionnaire des tâches
+GenericName=Applications et processus en cours
+Comment=Voir ce qui ralentit le PC, fermer une application bloquée (le Moniteur système de KDE)
+Exec=kioclient exec /usr/share/applications/org.kde.plasma-systemmonitor.desktop
+Icon=utilities-system-monitor
+Terminal=false
+Categories=System;Monitor;
+Keywords=gestionnaire des tâches;task manager;processus;application bloquée;ctrl maj échap;moniteur système;
+X-KDE-Shortcuts=Ctrl+Shift+Esc
+StartupNotify=true

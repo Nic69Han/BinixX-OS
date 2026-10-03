@@ -1,4 +1,20 @@
-# Raccourcis globaux fournis par BinixX OS (les réglages de l'utilisateur passent avant) :
-# la touche Windows + I ouvre « Paramètres », comme sous Windows.
+# Raccourcis globaux fournis par BinixX OS (les réglages de l'utilisateur passent avant) : les combinaisons de Windows
+# que KDE n'offre pas d'office. La liste annoncée par la page « Raccourcis » est usr/share/binixx/raccourcis/raccourcis.tsv ;
+# chaque touche de source « binixx » y doit avoir sa ligne ici (tests/image/checks.d/78-raccourcis.sh).
+# Les lanceurs de KDE qui prendraient aussi l'une de ces touches la perdent au build : build_files/modules.d/78-raccourcis.sh
+# réécrit leur X-KDE-Shortcuts (ce fichier-ci n'y suffit pas : KDE lit surtout les .desktop).
+# Windows + I : Paramètres
 [services][binixx-parametres.desktop]
 _launch=Meta+I
+
+# Windows + E : l'explorateur de fichiers (Dolphin). KDE le fournit normalement ; cette ligne le garantit.
+[services][org.kde.dolphin.desktop]
+_launch=Meta+E
+
+# Windows + R : exécuter (la barre de recherche de KRunner)
+[services][binixx-executer.desktop]
+_launch=Meta+R
+
+# Ctrl + Maj + Échap : gestionnaire des tâches (le Moniteur système ; Ctrl + Échap marche toujours)
+[services][binixx-gestionnaire-taches.desktop]
+_launch=Ctrl+Shift+Esc
