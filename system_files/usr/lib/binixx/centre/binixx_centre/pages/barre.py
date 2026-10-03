@@ -1,6 +1,8 @@
 """Barre des tâches : en bas (comme Windows) ou en haut de l'écran, en un clic. Page ouverte depuis Paramètres."""
 
-from PySide6.QtCore import QRectF, QSize, Qt
+import time
+
+from PySide6.QtCore import QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import QBrush, QColor, QLinearGradient, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
@@ -69,6 +71,11 @@ class Page(QWidget):
         super().__init__()
         self.centre = centre
         self.actuelle = None
+        self.voulue = None
+        self.fin = 0.0
+        self.minuteur = QTimer(self)
+        self.minuteur.setInterval(600)
+        self.minuteur.timeout.connect(self.verifier)
         self.cartes = {}
         contenu, page = widgets.page_de_cartes()
 
@@ -118,10 +125,30 @@ class Page(QWidget):
         self.actualiser()
 
     def choisir(self, position):
-        reussi, message = barre.deplacer(position)
-        if reussi:
-            self.actuelle = position
-        self.actualiser(message)
+        """Envoie l'ordre à Plasma, puis relit la position sans bloquer la fenêtre : Plasma met quelques secondes."""
+        reussi, message = barre.envoyer(position)
+        if not reussi:
+            self.actualiser(message)
+            return
+        self.voulue = position
+        self.fin = time.monotonic() + barre.ATTENTE
+        for carte in self.cartes.values():
+            carte.bouton.setEnabled(False)
+        self.etat.setText(f"La barre se déplace {barre.NOMS[position]}…")
+        self.minuteur.start()
+
+    def verifier(self):
+        """Relit la position tant que Plasma n'a pas appliqué le déplacement (appelé par le minuteur)."""
+        lue = barre.position_actuelle()
+        if barre.a_bouge(self.voulue, lue):
+            self.minuteur.stop()
+            self.actuelle = self.voulue if lue is not None else self.actuelle
+            self.actualiser(f"La barre est maintenant {barre.NOMS[self.voulue]}.")
+        elif time.monotonic() >= self.fin:
+            self.minuteur.stop()
+            self.actuelle = lue
+            self.actualiser(f"La barre est restée {barre.NOMS[lue]} : Plasma n'a pas appliqué le changement. "
+                            "Réessayez dans un instant.")
 
     def actualiser(self, message=None):
         if message is None:

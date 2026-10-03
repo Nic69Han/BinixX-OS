@@ -14,6 +14,7 @@ import argparse
 import configparser
 import os
 import re
+import time
 
 from . import launch
 
@@ -26,6 +27,10 @@ SERVICE = ["busctl", "--user", "call", "org.kde.plasmashell", "/PlasmaShell", "o
 LIGNE_EMPLACEMENT = re.compile(r"""location\s*=\s*\\?["'](top|bottom|left|right)\\?["']""")
 # Plasma::Types::Location dans le fichier de configuration : 3 = haut, 4 = bas
 CODES = {"3": "haut", "4": "bas"}
+# Plasma répond à evaluateScript avant d'avoir déplacé la barre : le test VM a mesuré plusieurs secondes avant que la
+# nouvelle position soit lisible. On lui laisse ce délai avant de conclure que le déplacement a échoué.
+ATTENTE = 15.0
+PAS = 0.5
 
 
 def script_de_deplacement(position):
@@ -72,18 +77,36 @@ def position_actuelle(run=launch.run, chemin=None):
     return position_dans_configuration(chemin)
 
 
-def deplacer(position, run=launch.run, chemin=None):
-    """Déplace la barre : (réussi, message en français). Il faut une session de bureau ouverte."""
+def envoyer(position, run=launch.run):
+    """Envoie à Plasma l'ordre de déplacer la barre : (réussi, message d'erreur). Ne dit pas si la barre a bougé."""
     script = script_de_deplacement(position)
     code, sortie = run(SERVICE + ["evaluateScript", "s", script], timeout=15)
     if code != 0:
         return False, "La barre n'a pas pu être déplacée : le bureau ne répond pas. Essayez depuis une session ouverte."
     if "rror" in (sortie or ""):  # Plasma renvoie le texte de l'erreur du script
         return False, "La barre n'a pas pu être déplacée : " + sortie.strip()[:200]
-    voulue = position_actuelle(run, chemin)
-    if voulue is not None and voulue != position:
-        return False, f"La barre est restée {NOMS[voulue]}."
-    return True, f"La barre est maintenant {NOMS[position]}."
+    return True, ""
+
+
+def a_bouge(position, lue):
+    """La position lue vaut-elle la position voulue ? Une position illisible (None) compte pour réussie : on ne sait pas."""
+    return lue is None or lue == position
+
+
+def deplacer(position, run=launch.run, chemin=None, attente=ATTENTE, dormir=time.sleep, horloge=time.monotonic):
+    """Déplace la barre et attend la confirmation de Plasma : (réussi, message en français). Bloque jusqu'à `attente`
+    secondes ; la page du Centre, elle, utilise envoyer() puis relit la position sans bloquer la fenêtre."""
+    reussi, message = envoyer(position, run)
+    if not reussi:
+        return False, message
+    fin = horloge() + attente
+    while True:
+        lue = position_actuelle(run, chemin)
+        if a_bouge(position, lue):
+            return True, f"La barre est maintenant {NOMS[position]}."
+        if horloge() >= fin:
+            return False, f"La barre est restée {NOMS[lue]} : Plasma n'a pas appliqué le changement en {attente:g} secondes."
+        dormir(PAS)
 
 
 def main(argv=None):

@@ -56,13 +56,17 @@ Configuration du système) un classement et des noms que l'on reconnaît.
 Sous Windows la barre est en bas ; BinixX OS la place **en haut** au départ (flottante, aux coins arrondis). Dans
 **Paramètres → Personnalisation → Barre des tâches**, une page propose les deux positions, chacune avec une petite
 maquette d'écran (celle du choix actuel est cerclée). Un clic sur « Choisir » déplace la barre tout de suite, sans fermer la
-session, et Plasma garde ce choix d'une session à l'autre.
+session, et Plasma garde ce choix d'une session à l'autre. Plasma met quelques secondes à appliquer le changement : la page
+affiche « La barre se déplace… », puis confirme (ou dit que la barre n'a pas bougé) sans bloquer la fenêtre.
 
 - **Comment** : `binixx_centre/barre.py` envoie à Plasma, par D-Bus (`org.kde.PlasmaShell.evaluateScript`), un petit script
   qui met les panneaux en `top` ou `bottom` ; aucun fichier de configuration n'est réécrit à la main, aucun shell n'est
   utilisé, et la position vient d'une liste fermée (`haut`, `bas`). La position actuelle se lit dans la disposition courante
   de Plasma, à défaut dans `plasma-org.kde.plasma.desktop-appletsrc`.
 - **Hors session** (un terminal à distance, un build) : le message dit que le bureau ne répond pas, sans trace d'erreur.
+- **Pourquoi on relit la position** : `evaluateScript` répond avant que la barre ait bougé ; le test VM l'a mesuré (plusieurs
+  secondes). `barre.deplacer()` (ligne de commande) attend jusqu'à 15 secondes que Plasma confirme ; la page envoie l'ordre
+  (`barre.envoyer()`) puis relit toutes les 600 ms.
 - **En ligne de commande** (pour le support et les scripts d'entreprise) : `/usr/libexec/binixx/binixx-barre haut|bas|etat`.
 - **Page sans bouton dans la barre latérale** : elle s'ouvre depuis Paramètres, dont le bouton reste allumé
   (`MENU = False` et `PARENT = "parametres"` dans `pages/barre.py`, voir [Sous le capot](#sous-le-capot)).

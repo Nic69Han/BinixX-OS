@@ -111,38 +111,80 @@ class Lecture(unittest.TestCase):
         self.assertIsNone(barre.position_actuelle(Faux((1, "")), "/n/existe/pas"))
 
 
+class Horloge:
+    """Une horloge simulée : dormir() la fait avancer, aucun test n'attend pour de vrai."""
+
+    def __init__(self):
+        self.t = 0.0
+        self.pauses = 0
+
+    def __call__(self):
+        return self.t
+
+    def dormir(self, secondes):
+        self.t += secondes
+        self.pauses += 1
+
+
 class Deplacement(unittest.TestCase):
+    def deplacer(self, position, faux, attente=3.0):
+        horloge = Horloge()
+        resultat = barre.deplacer(position, faux, "/n/existe/pas", attente, horloge.dormir, horloge)
+        return resultat, horloge
+
     def test_la_commande_est_celle_de_plasma_sans_shell(self):
         faux = Faux((0, "s \"\"\n"), (0, DISPOSITION_BAS))
-        reussi, message = barre.deplacer("bas", faux, "/n/existe/pas")
+        (reussi, message), _ = self.deplacer("bas", faux)
         self.assertTrue(reussi, message)
         self.assertEqual(message, "La barre est maintenant en bas.")
         self.assertEqual(faux.appels[0][:6], ["busctl", "--user", "call", "org.kde.plasmashell", "/PlasmaShell",
                                               "org.kde.PlasmaShell"])
         self.assertEqual(faux.appels[0][6:9], ["evaluateScript", "s", barre.script_de_deplacement("bas")])
 
+    def test_plasma_met_du_temps_on_relit_jusqu_a_la_confirmation(self):
+        # constaté en test VM : juste après evaluateScript, Plasma répond encore l'ancienne position
+        faux = Faux((0, 's ""'), (0, DISPOSITION_HAUT), (0, DISPOSITION_HAUT), (0, DISPOSITION_BAS))
+        (reussi, message), horloge = self.deplacer("bas", faux, attente=10.0)
+        self.assertTrue(reussi, message)
+        self.assertEqual(horloge.pauses, 2)  # deux relectures avant la bonne
+
     def test_sans_bureau_ouvert(self):
-        reussi, message = barre.deplacer("haut", Faux((1, "")), "/n/existe/pas")
+        (reussi, message), horloge = self.deplacer("haut", Faux((1, "")))
         self.assertFalse(reussi)
         self.assertIn("le bureau ne répond pas", message)
+        self.assertEqual(horloge.pauses, 0)  # rien à attendre
 
     def test_erreur_de_script(self):
-        reussi, message = barre.deplacer("haut", Faux((0, 's "ReferenceError: panels is not defined"')), "/n/existe/pas")
+        (reussi, message), _ = self.deplacer("haut", Faux((0, 's "ReferenceError: panels is not defined"')))
         self.assertFalse(reussi)
         self.assertIn("ReferenceError", message)
 
-    def test_la_barre_n_a_pas_bouge(self):
-        reussi, message = barre.deplacer("bas", Faux((0, 's ""'), (0, DISPOSITION_HAUT)), "/n/existe/pas")
+    def test_la_barre_n_a_pas_bouge_apres_l_attente(self):
+        reponses = [(0, 's ""')] + [(0, DISPOSITION_HAUT)] * 20
+        (reussi, message), horloge = self.deplacer("bas", Faux(*reponses), attente=3.0)
         self.assertFalse(reussi)
-        self.assertEqual(message, "La barre est restée en haut.")
+        self.assertIn("La barre est restée en haut", message)
+        self.assertIn("3 secondes", message)
+        self.assertGreaterEqual(horloge.t, 3.0)
 
     def test_position_illisible_apres_coup_vaut_reussite(self):
-        reussi, _ = barre.deplacer("haut", Faux((0, 's ""'), (1, "")), "/n/existe/pas")
+        (reussi, _), _ = self.deplacer("haut", Faux((0, 's ""'), (1, "")))
         self.assertTrue(reussi)
 
     def test_position_inconnue(self):
         with self.assertRaises(ValueError):
             barre.deplacer("gauche", Faux())
+
+    def test_envoyer_ne_relit_rien(self):
+        faux = Faux((0, 's ""'))
+        self.assertEqual(barre.envoyer("haut", faux), (True, ""))
+        self.assertEqual(len(faux.appels), 1)
+        self.assertEqual(barre.envoyer("haut", Faux((1, "")))[0], False)
+
+    def test_a_bouge(self):
+        self.assertTrue(barre.a_bouge("bas", "bas"))
+        self.assertTrue(barre.a_bouge("bas", None))
+        self.assertFalse(barre.a_bouge("bas", "haut"))
 
 
 class LigneDeCommande(unittest.TestCase):
@@ -192,21 +234,24 @@ class PageDuCentre(unittest.TestCase):
         cls.module = page
 
     def setUp(self):
-        self.anciens = (barre.position_actuelle, barre.deplacer)
-        self.position = "haut"
+        self.anciens = (barre.position_actuelle, barre.envoyer)
+        self.position = "haut"      # ce que Plasma répond
         self.demandes = []
+        self.ordre = (True, "")     # ce que répond l'envoi de l'ordre
         barre.position_actuelle = lambda *a, **k: self.position
-
-        def deplacer(position, *a, **k):
-            self.demandes.append(position)
-            self.position = position
-            return True, f"La barre est maintenant {barre.NOMS[position]}."
-        barre.deplacer = deplacer
+        barre.envoyer = lambda position, *a, **k: self.demandes.append(position) or self.ordre
         self.pages = []
         self.centre = type("Centre", (), {"show_page": lambda s, cle: self.pages.append(cle)})()
 
     def tearDown(self):
-        barre.position_actuelle, barre.deplacer = self.anciens
+        barre.position_actuelle, barre.envoyer = self.anciens
+
+    def ouvrir(self):
+        page = self.module.build(self.centre)
+        self.addCleanup(page.minuteur.stop)
+        page.show()
+        self.app.processEvents()
+        return page
 
     def test_la_page_n_a_pas_de_bouton_et_depend_de_parametres(self):
         self.assertFalse(self.module.MENU)
@@ -214,9 +259,7 @@ class PageDuCentre(unittest.TestCase):
         self.assertEqual(self.module.KEY, "barre")
 
     def test_la_position_actuelle_est_marquee(self):
-        page = self.module.build(self.centre)
-        page.show()
-        self.app.processEvents()
+        page = self.ouvrir()
         self.assertEqual(page.actuelle, "haut")
         self.assertTrue(page.cartes["haut"].apercu.actif)
         self.assertFalse(page.cartes["bas"].apercu.actif)
@@ -227,31 +270,57 @@ class PageDuCentre(unittest.TestCase):
         self.assertEqual(page.etat.text(), "La barre est actuellement en haut.")
         page.close()
 
-    def test_un_clic_deplace_la_barre(self):
-        page = self.module.build(self.centre)
-        page.show()
+    def test_un_clic_envoie_l_ordre_puis_attend_la_confirmation(self):
+        page = self.ouvrir()
         page.cartes["bas"].bouton.click()
         self.assertEqual(self.demandes, ["bas"])
+        # tant que Plasma n'a pas bougé : message d'attente, boutons bloqués, minuteur en marche
+        self.assertTrue(page.minuteur.isActive())
+        self.assertIn("se déplace en bas", page.etat.text())
+        self.assertFalse(any(carte.bouton.isEnabled() for carte in page.cartes.values()))
+        page.verifier()                      # Plasma répond encore « haut »
+        self.assertTrue(page.minuteur.isActive())
+        self.position = "bas"
+        page.verifier()                      # cette fois la barre est en bas
+        self.assertFalse(page.minuteur.isActive())
         self.assertEqual(page.etat.text(), "La barre est maintenant en bas.")
         self.assertTrue(page.cartes["bas"].apercu.actif)
         self.assertFalse(page.cartes["bas"].bouton.isEnabled())
         self.assertTrue(page.cartes["haut"].bouton.isEnabled())
         page.close()
 
-    def test_un_echec_garde_la_position_et_l_explique(self):
-        barre.deplacer = lambda position, *a, **k: (False, "La barre n'a pas pu être déplacée : le bureau ne répond pas.")
-        page = self.module.build(self.centre)
-        page.show()
+    def test_un_ordre_refuse_garde_la_position_et_l_explique(self):
+        self.ordre = (False, "La barre n'a pas pu être déplacée : le bureau ne répond pas.")
+        page = self.ouvrir()
         page.cartes["bas"].bouton.click()
         self.assertIn("ne répond pas", page.etat.text())
+        self.assertFalse(page.minuteur.isActive())
         self.assertTrue(page.cartes["haut"].apercu.actif)
+        page.close()
+
+    def test_plasma_n_applique_jamais_le_changement(self):
+        page = self.ouvrir()
+        page.cartes["bas"].bouton.click()
+        page.fin = 0.0                       # le délai est écoulé
+        page.verifier()
+        self.assertFalse(page.minuteur.isActive())
+        self.assertIn("est restée en haut", page.etat.text())
+        self.assertTrue(page.cartes["haut"].apercu.actif)
+        self.assertTrue(page.cartes["bas"].bouton.isEnabled())   # on peut réessayer
+        page.close()
+
+    def test_position_illisible_pendant_l_attente_vaut_reussite(self):
+        page = self.ouvrir()
+        page.cartes["bas"].bouton.click()
+        self.position = None
+        page.verifier()
+        self.assertFalse(page.minuteur.isActive())
+        self.assertEqual(page.etat.text(), "La barre est maintenant en bas.")
         page.close()
 
     def test_sans_session_on_le_dit(self):
         self.position = None
-        page = self.module.build(self.centre)
-        page.show()
-        self.app.processEvents()
+        page = self.ouvrir()
         self.assertIn("n'a pas pu être lue", page.etat.text())
         self.assertFalse(any(carte.apercu.actif for carte in page.cartes.values()))
         page.close()
