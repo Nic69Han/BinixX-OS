@@ -127,7 +127,7 @@ Choisies avec le propriétaire après comparaison ; chaque ligne est une pull re
 | --- | --- | --- | --- |
 | **P1. Paramètres** | Un seul écran, catégories et noms de Windows 11, recherche, touche Windows + I : [centre-nicos.md](centre-nicos.md#paramètres). | Centre de contrôle de Deepin | Livré |
 | **Style commun** | Le style moderne de Paramètres (en-tête en dégradé, cartes à pastille, pictogrammes) appliqué à toutes les pages, une couleur par page : [centre-nicos.md](centre-nicos.md#présentation-commune). | Retour du propriétaire | Livré |
-| **Fond d'écran signature** | « Lever de gemme » : la gemme du logo se lève sur un horizon de planète, ciel étoilé, aube d'ambre ; clair et sombre, 1080p et 4K, calculé par `branding/lever_de_gemme.py` : [identite-visuelle.md](identite-visuelle.md#le-fond-décran--lever-de-gemme). | Le fond « Bliss » de Windows XP | En test |
+| **Fond d'écran signature** | « Le marcheur de l'aube » : un homme seul, simple silhouette sombre, marche vers le soleil qui se lève sur une planète, ciel étoilé (clin d'œil au Petit Prince) ; clair et sombre, 1080p et 4K, calculé par `branding/fond_ecran.py` : [identite-visuelle.md](identite-visuelle.md#le-fond-décran). | Le fond « Bliss » de Windows XP | En test |
 | **P2. Disposition de la barre** | Barre en bas (comme Windows) ou en haut, en un clic dans le Centre. | Zorin Appearance | À faire |
 | **P3. Créer une application web** | Transformer n'importe quel site (intranet, logiciel de gestion en ligne) en application du menu. | Outil « Web Apps » de Zorin OS 18 | À faire |
 | **P4. Clé USB bootable** | « Rufus / Etcher » dans le catalogue, vers l'outil KDE d'écriture d'ISO : installer NicOS sur le PC suivant. | Deepin Boot Maker | À faire |

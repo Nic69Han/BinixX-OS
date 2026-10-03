@@ -19,7 +19,7 @@ Dans l'image :
 | Emplacement | Contenu |
 | --- | --- |
 | `/usr/share/icons/hicolor/scalable/apps/nicos.svg` | Icône `nicos` : bouton Démarrer, « À propos », `LOGO` de `os-release` |
-| `/usr/share/wallpapers/NicOS/` | Fond d'écran « Lever de gemme » (bureau, verrouillage, connexion), version claire et sombre, en 1080p et 4K |
+| `/usr/share/wallpapers/NicOS/` | Fond d'écran « Le marcheur de l'aube » (bureau, verrouillage, connexion), version claire et sombre, en 1080p et 4K |
 | `/usr/share/plymouth/themes/nicos/` | Écran de démarrage |
 
 Sur l'ISO, `disk_config/personnaliser-iso.sh` :
@@ -29,26 +29,34 @@ Sur l'ISO, `disk_config/personnaliser-iso.sh` :
 - donne à l'installeur (Anaconda) le logo et les couleurs de `branding/installeur/`, par
   `images/product.img`, qu'il applique au démarrage par-dessus les logos Fedora.
 
-## Le fond d'écran : « Lever de gemme »
+## Le fond d'écran
 
-Le fond de Windows XP (« Bliss ») se reconnaît au premier regard parce qu'il n'appartient qu'à Windows. NicOS a le sien :
-un horizon de planète vu de l'espace, un ciel étoilé en bleu NicOS avec la Voie lactée, et **la gemme du logo qui se
-lève comme un soleil**, une aube d'ambre qui court sur l'horizon. L'ambre est la seule touche chaude de l'identité
-(voir [Couleurs](#couleurs)).
+Le fond de Windows XP (« Bliss ») se reconnaît au premier regard parce qu'il n'appartient qu'à Windows. NicOS a le sien,
+« Le marcheur de l'aube » : un horizon de planète vu de l'espace, un ciel étoilé en bleu NicOS avec la Voie lactée, et **un homme seul qui marche
+vers l'aube**, tout petit, réduit à sa forme : une silhouette sombre, sans visage ni détail, sur la courbure de la
+planète, devant un soleil qui se lève. Une écharpe flotte derrière lui, un clin d'œil au Petit Prince de
+Saint-Exupéry : l'esprit y est (un voyageur minuscule dans l'immensité), mais le dessin est le nôtre. L'ambre de
+l'aube est la seule touche chaude de l'identité (voir [Couleurs](#couleurs)).
 
-- **Original** : tout est calculé par `branding/lever_de_gemme.py` (bruit fractal, étoiles, lumière, gemme dessinée
-  d'après `generer.py`), sans image tierce : **aucune licence à citer**, mêmes droits que le logo. Le résultat est
+- **Original** : tout est calculé par `branding/fond_ecran.py` (bruit fractal, étoiles, lumière, silhouette dessinée
+  en formes simples), sans image tierce : **aucune licence à citer**, mêmes droits que le logo. Le résultat est
   identique à chaque exécution (graine fixe) ; chaque fond est calculé en 4K puis réduit, donc toutes les tailles
   montrent le même ciel.
+- **Une silhouette, pas un portrait** : de profil, de la tête (avec le nez et le menton) aux pieds, en pleine
+  enjambée, bras qui se balancent. Elle fait 6,8 % de la hauteur de l'écran (73 px en 1080p) : assez grande pour qu'on
+  la voie dès l'ouverture de la session, assez petite pour rester « au loin » et donner une échelle au ciel.
 - **Deux versions** : `images/` pour le thème NicOS (clair), `images_dark/` pour NicOS sombre (ciel plus sombre,
   nébuleuse plus discrète). Le bureau, l'écran de verrouillage et l'écran de connexion utilisent le même dossier.
+- **Pas de logo dans le fond** : la gemme reste sur la barre, l'écran de démarrage et l'installeur ; le fond mise sur
+  une image qu'on retient sans elle.
 - **Écartés** : des photos de la NASA, libres de droits avec crédit (« Falaises cosmiques » du télescope James Webb, lever
   de Terre d'Artemis II). Spectaculaires, mais on les attribuerait à la NASA, pas à NicOS. Elles restent possibles
   comme fonds d'écran optionnels, avec leur crédit (NASA, ESA, CSA, STScI) et sans laisser croire que la NASA cautionne
   NicOS.
-- **Régénérer** : `python3 branding/lever_de_gemme.py 3840 fond.png clair` pour un essai (`nuit` pour le thème
+- **Régénérer** : `python3 branding/fond_ecran.py 3840 fond.png clair` pour un essai (`nuit` pour le thème
   sombre) ; `branding/generer.py` écrit les fichiers de l'image. Dépendances : `pip install numpy scipy pillow`.
-  Les tests (`tests/branding`) vérifient le déterminisme, la gemme et les fichiers produits.
+  Les tests (`tests/branding`) vérifient le déterminisme, la silhouette (une seule forme, proportions humaines, deux
+  jambes en enjambée, pieds posés sur l'horizon) et les fichiers produits.
 
 ## Couleurs
 

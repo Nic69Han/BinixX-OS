@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""« Lever de gemme » : le fond d'écran de NicOS.
+"""« Le marcheur de l'aube » : le fond d'écran de NicOS.
 
-Un horizon de planète vu de l'espace, un ciel étoilé en bleu NicOS, et la gemme du logo qui se lève comme un soleil,
-une aube d'ambre sur l'horizon. L'idée : un fond qu'on reconnaît tout de suite et qui n'appartient qu'à NicOS, comme
-« Bliss » pour Windows XP. Une photo de la NASA serait aussi belle, mais on l'attribuerait à la NASA.
+Un horizon de planète vu de l'espace, un ciel étoilé en bleu NicOS avec la Voie lactée, et un homme seul qui marche
+vers l'aube, tout petit, réduit à sa forme : une silhouette sombre, sans visage ni détail, avec une écharpe qui flotte
+derrière lui comme un clin d'œil au Petit Prince. L'idée : un fond qu'on reconnaît tout de suite et qui n'appartient
+qu'à NicOS, comme « Bliss » pour Windows XP. Une photo de la NASA serait aussi belle, mais on l'attribuerait à la NASA.
 
-Tout est calculé (bruit fractal, étoiles, lumière, gemme dessinée d'après branding/generer.py) : aucune image tierce,
-donc aucune licence à citer ; le résultat est identique d'une exécution à l'autre (graine fixe).
+Tout est calculé (bruit fractal, étoiles, lumière, silhouette dessinée en formes simples) : aucune image tierce, donc
+aucune licence à citer ; le résultat est identique d'une exécution à l'autre (graine fixe).
 
     pip install numpy scipy pillow
-    python3 branding/lever_de_gemme.py [largeur] [sortie.png] [clair|nuit]
+    python3 branding/fond_ecran.py [largeur] [sortie.png] [clair|nuit]
 
 `clair` est le fond du thème NicOS, `nuit` celui du thème NicOS sombre (ciel plus sombre, nébuleuse plus discrète).
 branding/generer.py appelle `ecrire_fonds()` pour produire les fichiers de l'image.
@@ -19,17 +20,13 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from scipy.ndimage import gaussian_filter
 
-# Dégradé de la gemme sur fond clair : identique à GEM_LIGHT de generer.py (un test le vérifie)
-GEM_LIGHT = [(0.0, "#5FB2FF"), (0.45, "#2F5BFF"), (1.0, "#1A26C9")]
 GRAINE = 7
 MODES = ("clair", "nuit")
-
-
-def _couleur(hexa):
-    return [int(hexa[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+HAUTEUR_MARCHEUR = 0.068    # taille de l'homme, en part de la hauteur de l'image (73 px en 1080p)
+POSITION_MARCHEUR = 0.085   # son écart avec le soleil, en part de la largeur de l'image : il marche vers lui
 
 
 def _vec(*valeurs):
@@ -67,46 +64,109 @@ def melange(a, b, t):
     return a + (b - a) * t[..., None]
 
 
-def gemme(taille, sur_echantillonnage=3):
-    """La gemme du logo (même géométrie que generer.gem) : (couleur pré-multipliée, opacité), de côté `taille` px.
+def _arrondir(points, tours=2):
+    """Adoucit les coins d'un polygone fermé (découpage de Chaikin) : une ligne brisée devient une courbe."""
+    for _ in range(tours):
+        nouveaux = []
+        for i, (x0, y0) in enumerate(points):
+            x1, y1 = points[(i + 1) % len(points)]
+            nouveaux += [(0.75 * x0 + 0.25 * x1, 0.75 * y0 + 0.25 * y1), (0.25 * x0 + 0.75 * x1, 0.25 * y0 + 0.75 * y1)]
+        points = nouveaux
+    return points
 
-    Un losange aux angles doux, fendu de deux entailles diagonales, en dégradé ciel -> bleu NicOS -> indigo, avec une
-    lumière blanche venant du haut. Dessinée à partir d'une distance signée, puis réduite pour lisser les bords."""
-    n = taille * sur_echantillonnage
-    c = (n - 1) / 2
-    yy, xx = np.mgrid[0:n, 0:n].astype(np.float32)
-    dx, dy = xx - c, yy - c
-    cote = taille * 0.96 / math.sqrt(2) * 0.98   # côté du carré avant rotation (generer.gem : size / sqrt(2) * 0.98)
-    cote *= sur_echantillonnage
-    rayon = cote * 0.2
-    # repère de la gemme : le carré tourné de 45 degrés
-    lx = (dx - dy) / math.sqrt(2)
-    ly = (dx + dy) / math.sqrt(2)
-    qx, qy = np.abs(lx) - (cote / 2 - rayon), np.abs(ly) - (cote / 2 - rayon)
-    distance = np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0) - rayon
-    dedans = distance <= 0
-    # trois lames de poids 1,25 / 1 / 0,8 séparées par des entailles
-    poids, entaille = (1.25, 1.0, 0.8), cote * 0.05
-    unite = (cote - entaille * 2) / sum(poids)
-    lames = np.zeros_like(dedans)
-    y = -cote / 2
-    for p in poids:
-        lames |= (ly >= y) & (ly < y + p * unite)
-        y += p * unite + entaille
-    lames &= dedans
-    # dégradé le long de la diagonale de la gemme
-    t = np.clip((lx + ly + cote) / (2 * cote), 0, 1)
-    couleur = np.stack([np.interp(t, [o for o, _ in GEM_LIGHT], [_couleur(h)[k] for _, h in GEM_LIGHT])
-                        for k in range(3)], axis=-1).astype(np.float32)
-    # lumière du haut : blanc à 26 % en haut à droite du carré, jusqu'à 0 vers le centre
-    u, v = (lx + cote / 2) / cote, (ly + cote / 2) / cote
-    lumiere = 0.26 * (1 - np.clip((1 - u + v) / 1.3, 0, 1)) * dedans
-    a_lames = lames.astype(np.float32)
-    opacite = a_lames + lumiere * (1 - a_lames)
-    couleur_pm = couleur * (a_lames * (1 - lumiere))[..., None] + lumiere[..., None]
+
+def marcheur(hauteur, sur_echantillonnage=6):
+    """Silhouette d'un homme qui marche, de profil, tourné vers la droite : (opacité, pied_x, pied_y).
+
+    Rien que la forme, comme un personnage vu de très loin : tête avec nez et menton, cou, épaules, dos, jambes en pleine
+    enjambée (l'une tendue, le talon en avant ; l'autre qui pousse sur la pointe du pied), bras qui se balancent, et une
+    écharpe qui flotte derrière lui. `hauteur` est la taille de l'homme en pixels, pieds compris. Le résultat est un
+    masque (h, l) en niveaux de 0 à 1 ; (pied_x, pied_y) est le point du masque où il pose le pied, au sol.
+    Dessiné à 6 fois la taille puis réduit, pour des contours nets sans escalier."""
     s = sur_echantillonnage
-    reduit = lambda a: a.reshape(taille, s, taille, s, *a.shape[2:]).mean(axis=(1, 3))  # noqa: E731
-    return reduit(couleur_pm).astype(np.float32), reduit(opacite).astype(np.float32)
+    u = hauteur * s                          # une unité = la hauteur de l'homme
+    largeur, haut = int(1.10 * u), int(1.06 * u)
+    ox, oy = 0.66 * u, 1.04 * u              # le pied dans le masque (y = 0 au sol, le haut du corps est négatif)
+    masque = Image.new("L", (largeur, haut), 0)
+    d = ImageDraw.Draw(masque)
+
+    def p(x, y):
+        # un très léger penché vers l'avant : le haut du corps avance, les pieds restent au sol
+        return (ox + (x + 0.025 * -y) * u, oy + y * u)
+
+    def membre(points):
+        """Un membre : une ligne brisée de (x, y, épaisseur) dont l'épaisseur varie, arrondie aux deux bouts."""
+        pts = [(p(x, y), e * u / 2) for x, y, e in points]
+        gauche, droite = [], []
+        for i, ((x, y), r) in enumerate(pts):
+            ax, ay = pts[max(i - 1, 0)][0]
+            bx, by = pts[min(i + 1, len(pts) - 1)][0]
+            n = math.hypot(bx - ax, by - ay) or 1
+            nx, ny = -(by - ay) / n, (bx - ax) / n
+            gauche.append((x + nx * r, y + ny * r))
+            droite.append((x - nx * r, y - ny * r))
+        d.polygon(_arrondir(gauche + droite[::-1], 1), fill=255)
+        for (x, y), r in (pts[0], pts[-1]):
+            d.ellipse((x - r, y - r, x + r, y + r), fill=255)
+
+    def forme(points, tours=2):
+        d.polygon(_arrondir([p(*q) for q in points], tours), fill=255)
+
+    hanche = (0.0, -0.49)
+    # jambe avant : presque tendue, le talon attaque le sol
+    membre([(*hanche, 0.115), (0.050, -0.375, 0.098), (0.095, -0.265, 0.074), (0.125, -0.185, 0.070),
+            (0.158, -0.090, 0.048), (0.172, -0.052, 0.044)])
+    forme([(0.150, -0.070), (0.200, -0.066), (0.285, -0.022), (0.285, 0.0), (0.168, 0.0), (0.150, -0.030)], 1)
+    # jambe arrière : genou plié, talon levé, appui sur la pointe du pied
+    membre([(*hanche, 0.115), (-0.040, -0.375, 0.098), (-0.078, -0.268, 0.074), (-0.125, -0.205, 0.072),
+            (-0.190, -0.125, 0.048), (-0.212, -0.098, 0.043)])
+    forme([(-0.232, -0.118), (-0.190, -0.100), (-0.108, -0.028), (-0.108, 0.0), (-0.145, 0.0), (-0.214, -0.062)], 1)
+
+    # tronc, de profil : épaules, dos, creux des reins, fesses, ventre plat, poitrine
+    forme([(-0.040, -0.835), (-0.070, -0.800), (-0.078, -0.730), (-0.066, -0.640), (-0.058, -0.585),
+           (-0.085, -0.525), (-0.088, -0.480), (-0.040, -0.452), (0.045, -0.452), (0.058, -0.500),
+           (0.052, -0.580), (0.062, -0.660), (0.070, -0.740), (0.058, -0.800), (0.030, -0.838)])
+
+    # bras, qui se balancent à l'opposé des jambes : épaule, coude, poignet, main
+    epaule = (0.002, -0.772)
+    membre([(*epaule, 0.060), (-0.040, -0.690, 0.052), (-0.076, -0.612, 0.046), (-0.112, -0.545, 0.040),
+            (-0.138, -0.492, 0.036), (-0.150, -0.462, 0.030)])
+    membre([(*epaule, 0.060), (0.045, -0.695, 0.052), (0.085, -0.620, 0.046), (0.118, -0.552, 0.040),
+            (0.142, -0.503, 0.036), (0.152, -0.470, 0.030)])
+
+    # cou et tête, un peu avancée, avec le nez et le menton
+    membre([(0.000, -0.830, 0.056), (0.010, -0.862, 0.050)])
+    x, y = p(0.028, -0.930)
+    rx, ry = 0.056 * u, 0.072 * u
+    d.ellipse((x - rx, y - ry, x + rx, y + ry), fill=255)
+    forme([(0.066, -0.945), (0.100, -0.918), (0.072, -0.900)], 0)
+
+    # l'écharpe : une bande ondulante qui s'affine en flottant derrière lui
+    haut_e, bas_e = [], []
+    for i in range(41):
+        t = i / 40
+        ex = -0.60 * t
+        ey = -0.835 + 0.060 * math.sin(2 * math.pi * 1.2 * t) - 0.085 * t
+        e = (0.056 * (1 - t) ** 0.8 + 0.016) / 2
+        haut_e.append(p(ex, ey - e))
+        bas_e.append(p(ex, ey + e))
+    d.polygon(haut_e + bas_e[::-1], fill=255)
+
+    petit = masque.resize((largeur // s, haut // s), Image.LANCZOS)
+    return np.asarray(petit, np.float32) / 255.0, int(ox / s), int(oy / s)
+
+
+def geometrie(largeur, hauteur_image):
+    """Où tout se trouve, en pixels : le soleil, l'horizon, la planète (centre et rayon) et les pieds du marcheur."""
+    w, h = largeur, hauteur_image
+    sx, horizon = w * 0.62, h * 0.745
+    sy = horizon - 0.116 * h                  # le soleil est juste derrière l'horizon
+    rayon = 2.2 * w                           # la planète est un cercle immense : on n'en voit que le haut
+    cx, cy = sx, horizon + rayon
+    taille = max(8, int(HAUTEUR_MARCHEUR * h))
+    xf = sx - POSITION_MARCHEUR * w
+    yf = cy - math.sqrt(rayon ** 2 - (xf - cx) ** 2) + 1.5 * (w / 1920)   # les pieds s'enfoncent un peu dans le sol
+    return {"soleil": (sx, sy), "horizon": horizon, "planete": (cx, cy, rayon), "pieds": (xf, yf), "taille": taille}
 
 
 def etoile(canevas, x, y, luminosite, teinte, aiguilles, echelle=1.0):
@@ -141,12 +201,10 @@ def rendre(largeur=1920, mode="clair", graine=GRAINE):
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
     u, v = xx / w, yy / h
 
-    # --- la gemme se lève derrière l'horizon d'une planète : presque entière, seule sa pointe basse est cachée
-    taille = int(0.58 * h)
-    gx, horizon = w * 0.62, h * 0.745
-    gy = horizon - 0.20 * taille
-    rayon = 2.2 * w
-    cx, cy = gx, horizon + rayon
+    # --- le soleil se lève derrière l'horizon d'une planète
+    lieux = geometrie(w, h)
+    (sx, sy), horizon = lieux["soleil"], lieux["horizon"]
+    cx, cy, rayon = lieux["planete"]
     sd = rayon - np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)   # > 0 dans la planète, < 0 dans le ciel
     ciel = sd < 0
 
@@ -184,40 +242,29 @@ def rendre(largeur=1920, mode="clair", graine=GRAINE):
             etoile(etoiles, x, y, rng.uniform(0.03, 0.24), _vec(0.85, 0.90, 1.0), False, echelle)
     for _ in range(11):
         x, y = rng.uniform(0.03 * w, 0.97 * w), rng.uniform(0.03 * h, 0.55 * h)
-        if (x - gx) ** 2 + (y - gy) ** 2 < (0.45 * h) ** 2:
-            continue
+        if (x - sx) ** 2 + (y - sy) ** 2 < (0.45 * h) ** 2:
+            continue   # pas d'étoile à aiguilles dans la lumière du soleil
         etoile(etoiles, x, y, rng.uniform(0.35, 0.85) * (0.55 if mode == "nuit" else 0.85), _vec(0.85, 0.92, 1.0), True, echelle)
     img = img + etoiles * ciel[..., None]
 
-    # --- la lumière du soleil-gemme : un halo chaud, puis bleu
-    r = np.sqrt((xx - gx) ** 2 + ((yy - gy) * 1.15) ** 2)
+    # --- la lumière du soleil : un halo chaud, puis bleu, et un cœur très lumineux juste derrière l'horizon
+    r = np.sqrt((xx - sx) ** 2 + ((yy - sy) * 1.15) ** 2)
     chaud_halo = np.exp(-r / (0.16 * h)) * 0.95 + np.exp(-r / (0.42 * h)) * 0.35
     img = img + (chaud_halo * ciel)[..., None] * _vec(1.0, 0.62, 0.30)
     img = img + (np.exp(-r / (0.75 * h)) * 0.55 * ciel)[..., None] * _vec(0.25, 0.45, 1.0)
-    img = img / (1 + 0.55 * img)   # le ciel entre dans la plage d'affichage avant de poser la gemme
+    c = np.sqrt((xx - sx) ** 2 + ((yy - (horizon - 0.015 * h)) * 1.35) ** 2)
+    img = img + ((np.exp(-c / (0.050 * h)) * 1.9 + np.exp(-c / (0.14 * h)) * 0.95) * ciel)[..., None] * _vec(1.0, 0.72, 0.40)
+    img = img / (1 + 0.55 * img)   # la lumière entre dans la plage d'affichage
     img = img ** (1 / 1.12)
 
-    # --- la gemme, avec son éclat ; elle garde ses vraies couleurs
-    couleur_gemme, opacite = gemme(taille)
-    x0, y0 = int(gx - taille / 2), int(gy - taille / 2)
-    fond_gemme = np.zeros((h, w, 3), np.float32)
-    alpha = np.zeros((h, w), np.float32)
-    fond_gemme[y0:y0 + taille, x0:x0 + taille] = couleur_gemme
-    alpha[y0:y0 + taille, x0:x0 + taille] = opacite
-    reflet = np.clip((yy - (gy + taille * 0.05)) / (taille * 0.40), 0, 1) ** 1.5   # reflet chaud côté horizon
-    fond_gemme = fond_gemme * (1 - 0.30 * reflet[..., None]) + (0.30 * reflet * alpha)[..., None] * _vec(1.0, 0.70, 0.42)
-    img = img * (1 - alpha[..., None]) + fond_gemme
-    eclat = flou(alpha, 46 * echelle, reduction * 2) * 1.0 + flou(alpha, 14 * echelle, reduction) * 0.45
-    hors_gemme = (1 - alpha) ** 2
-    img = img + (eclat * hors_gemme)[..., None] * _vec(0.22, 0.45, 1.0) * 0.80
-    # lueur d'aube : l'ambre qui court sur l'horizon de part et d'autre de la gemme
-    aube = np.exp(-np.clip(-sd, 0, None) / (0.045 * h)) * np.exp(-((xx - gx) ** 2) / (2 * (0.22 * w) ** 2)) * ciel
-    img = img + (aube * hors_gemme)[..., None] * _vec(1.0, 0.42, 0.10) * 1.30
+    # --- lueur d'aube : l'ambre qui court sur l'horizon de part et d'autre du soleil
+    aube = np.exp(-np.clip(-sd, 0, None) / (0.045 * h)) * np.exp(-((xx - sx) ** 2) / (2 * (0.22 * w) ** 2)) * ciel
+    img = img + aube[..., None] * _vec(1.0, 0.42, 0.10) * 1.30
 
-    # --- la planète : bleu nuit profond, éclairée seulement près de la gemme ; un filet d'atmosphère sur la courbure
+    # --- la planète : bleu nuit profond, éclairée seulement près du soleil ; un filet d'atmosphère sur la courbure
     surface = bruit_fractal(rng, h, w, [90 * echelle, 30 * echelle, 9 * echelle, 3 * echelle], [1.0, 0.8, 0.5, 0.3],
                             reduction)
-    eclairage = np.exp(-((xx - gx) ** 2) / (2 * (0.30 * w) ** 2))
+    eclairage = np.exp(-((xx - sx) ** 2) / (2 * (0.30 * w) ** 2))
     profondeur = np.clip(sd / (0.30 * h), 0, 1)
     lueur = _vec(0.55, 0.26, 0.12) * (eclairage * np.exp(-sd / (0.045 * h)) * 0.55)[..., None]
     lueur = lueur + _vec(0.10, 0.26, 0.85) * (eclairage * np.exp(-sd / (0.16 * h)) * 0.30)[..., None]
@@ -227,13 +274,22 @@ def rendre(largeur=1920, mode="clair", graine=GRAINE):
     corps = np.clip(sd / (1.2 * echelle) + 0.5, 0, 1)
     img = img * (1 - corps[..., None]) + planete * corps[..., None]
     filet = np.exp(-np.abs(sd) / (2.6 * echelle)) * 0.9 + np.exp(-np.clip(-sd, 0, None) / (14 * echelle)) * 0.45 * ciel
-    chaleur = np.exp(-((xx - gx) ** 2) / (2 * (0.20 * w) ** 2))
+    chaleur = np.exp(-((xx - sx) ** 2) / (2 * (0.20 * w) ** 2))
     teinte_filet = melange(np.broadcast_to(_vec(0.35, 0.65, 1.0), (h, w, 3)), np.broadcast_to(_vec(1.0, 0.62, 0.30), (h, w, 3)),
                            chaleur)
     img = img + teinte_filet * filet[..., None] * (0.55 + 0.45 * chaleur[..., None])
     voile = np.exp(-np.clip(-sd, 0, None) / (0.050 * h)) * ciel
     img = img + voile[..., None] * melange(np.broadcast_to(_vec(0.05, 0.16, 0.55), (h, w, 3)),
                                            np.broadcast_to(_vec(0.60, 0.32, 0.20), (h, w, 3)), chaleur) * 0.55
+
+    # --- l'homme qui marche vers l'aube, tout petit sur la courbure de la planète : une forme sombre, sans détail
+    opac, pied_x, pied_y = marcheur(lieux["taille"])
+    xf, yf = lieux["pieds"]
+    x0, y0 = int(xf - pied_x), int(yf - pied_y)
+    zone = (slice(max(y0, 0), min(y0 + opac.shape[0], h)), slice(max(x0, 0), min(x0 + opac.shape[1], w)))
+    masque = np.zeros((h, w), np.float32)
+    masque[zone] = opac[zone[0].start - y0: zone[0].stop - y0, zone[1].start - x0: zone[1].stop - x0]
+    img = img * (1 - masque[..., None]) + _vec(0.004, 0.007, 0.024) * masque[..., None]
 
     # --- vignettage doux, puis un grain très fin contre les bandes des dégradés
     img = img * (1 - 0.28 * np.clip(((u - 0.55) ** 2 * 1.5 + (v - 0.45) ** 2 * 1.2) * 1.6, 0, 1))[..., None]
@@ -263,6 +319,6 @@ def ecrire_fonds(dossier, tailles=((1920, 1080), (3840, 2160)), qualite=92):
 
 if __name__ == "__main__":
     largeur = int(sys.argv[1]) if len(sys.argv) > 1 else 1920
-    sortie = Path(sys.argv[2] if len(sys.argv) > 2 else "lever-de-gemme.png")
+    sortie = Path(sys.argv[2] if len(sys.argv) > 2 else "fond-ecran.png")
     rendre(largeur, sys.argv[3] if len(sys.argv) > 3 else "clair").save(sortie)
     print("ok", sortie)

@@ -150,7 +150,7 @@ jobs:
         run: |
           python3 -m unittest discover -s tests/securite
 
-      # NicOS wallpaper (docs/identite-visuelle.md): the generator is deterministic, and its gem must stay the logo's.
+      # NicOS wallpaper (docs/identite-visuelle.md): the generator is deterministic, and the walker silhouette keeps its shape.
       - name: Test the wallpaper generator
         run: |
           python3 -m pip install --quiet numpy scipy pillow fonttools uharfbuzz

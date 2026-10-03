@@ -8,7 +8,7 @@ Tous les fichiers sont produits à partir de ce script, pour pouvoir retoucher l
     python3 branding/generer.py [--chromium /chemin/vers/chrome] [--installeur-seulement]
 
 Chromium (ou Chrome) sert à rendre les images matricielles de l'écran de démarrage et de l'installeur.
-Le fond d'écran, lui, est calculé par branding/lever_de_gemme.py (numpy, scipy, Pillow).
+Le fond d'écran, lui, est calculé par branding/fond_ecran.py (numpy, scipy, Pillow).
 
 Police : Outfit (SIL Open Font License, voir branding/police/OFL.txt). Le texte est
 converti en tracés : les fichiers produits ne dépendent d'aucune police installée.
@@ -321,9 +321,9 @@ def main():
     mark_h = math.ceil(h) + 8
     renderer.png(svg_doc(240, mark_h, body), 240, mark_h, plymouth / "watermark.png", transparent=True)
 
-    # 4. Fond d'écran NicOS « Lever de gemme » (clair et sombre) : calculé par lever_de_gemme.py, sans Chromium
-    import lever_de_gemme
-    lever_de_gemme.ecrire_fonds(SYSTEM / "usr/share/wallpapers/NicOS/contents")
+    # 4. Fond d'écran NicOS « Le marcheur de l'aube » (clair et sombre) : calculé par fond_ecran.py, sans Chromium
+    import fond_ecran
+    fond_ecran.ecrire_fonds(SYSTEM / "usr/share/wallpapers/NicOS/contents")
 
     # 5. Installeur de l'ISO (Anaconda)
     installer_assets(wm, renderer)
