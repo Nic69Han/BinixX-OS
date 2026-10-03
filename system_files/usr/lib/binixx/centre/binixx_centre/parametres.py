@@ -12,7 +12,7 @@ from . import catalogue, icones
 PARAMETRES = "/usr/share/binixx/parametres/parametres.tsv"
 TYPES = ("kcm", "page", "app", "flatpak", "discover", "info")
 MODES_DISCOVER = ("installed", "update", "browse")
-KCM = re.compile(r"^kcm_[A-Za-z0-9_-]+$")
+KCM = re.compile(r"^kcm[_A-Za-z0-9-]+$")  # « kcm_kscreen », mais aussi « kcmspellchecking »
 CLE_PAGE = re.compile(r"^[a-z][a-z0-9_]*$")
 LANCEUR = re.compile(r"^[A-Za-z0-9._-]+$")
 FLATPAK = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*(\.[A-Za-z0-9_-]+){2,}$")

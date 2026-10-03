@@ -27,7 +27,6 @@ Bluetooth et appareils	Manettes de jeu	manette;manettes;joystick;gamepad;volant	
 Bluetooth et appareils	Tablette graphique	tablette;stylet;wacom;tablette graphique	Régler une tablette graphique et son stylet.	tablet	kcm	kcm_tablet
 Bluetooth et appareils	Écran tactile	écran tactile;tactile;tactile gestes	Régler un écran tactile.	pointer	kcm	kcm_touchscreen
 Bluetooth et appareils	Lecture automatique	lecture automatique;clé usb;disque externe;carte sd;périphérique amovible;insertion	Que faire quand on branche une clé USB, une carte mémoire ou un disque.	play-circle	kcm	kcm_solid_actions
-Bluetooth et appareils	Téléphone	téléphone;smartphone;android;lien avec le téléphone;phone link;kde connect;sms	Relier un téléphone : fichiers, notifications, presse-papiers (KDE Connect).	smartphone	kcm	kcm_kdeconnect
 Réseau et Internet	Wi-Fi, Ethernet et VPN	wifi;wi-fi;réseau;internet;ethernet;câble;vpn;connexion;mot de passe wifi;hotspot;partage de connexion	Se connecter à un réseau, ajouter un VPN d'entreprise.	wifi	kcm	kcm_networkmanagement
 Réseau et Internet	Pare-feu	pare-feu;firewall;ports;connexions entrantes;défender	Quelles connexions peuvent entrer dans ce PC.	shield	kcm	kcm_firewall
 Personnalisation	Arrière-plan	arrière-plan;fond d'écran;image de bureau;papier peint;diaporama	Choisir le fond d'écran.	image	kcm	kcm_wallpaper
@@ -45,12 +44,12 @@ Applications	Types de fichiers	types de fichiers;associations de fichiers;extens
 Applications	Démarrage	démarrage;lancer au démarrage;applications au démarrage;ouverture de session;autostart	Applications lancées à l'ouverture de session.	play	kcm	kcm_autostart
 Applications	Autorisations des applications	autorisations;permissions;accès à la caméra;accès au micro;accès aux fichiers;flatpak;confidentialité des applications	Ce que chaque application a le droit de faire (caméra, fichiers, réseau…).	shield-check	kcm	kcm_app-permissions
 Comptes	Votre compte	compte;utilisateurs;utilisateur;mot de passe;changer le mot de passe;photo de profil;nom d'utilisateur;comptes locaux;administrateur;ajouter un utilisateur	Mot de passe, photo, nom, ajouter ou retirer un utilisateur.	user	kcm	kcm_users
-Comptes	Écran de connexion	écran de connexion;connexion automatique;ouvrir la session automatiquement;options de connexion;sddm	Ouverture de session automatique, apparence de l'écran de connexion.	log-in	kcm	kcm_sddm
+Comptes	Écran de connexion	écran de connexion;connexion automatique;ouvrir la session automatiquement;options de connexion;sddm;plasma login	Ouverture de session automatique, apparence de l'écran de connexion.	log-in	kcm	kcm_plasmalogin
 Comptes	Compte professionnel	domaine;active directory;compte professionnel;compte scolaire;rejoindre un domaine;entreprise	Rejoindre le domaine de l'entreprise : dans l'administration du PC.	briefcase	app	binixx-administration
 Comptes	OneDrive	onedrive;nuage;compte microsoft;synchronisation;fichiers à la demande	Relier OneDrive et synchroniser ses fichiers.	cloud	app	binixx-onedrive
 Heure et langue	Date et heure	date;heure;fuseau horaire;horloge;heure d'été;format de l'heure;synchroniser l'heure	Fuseau horaire, synchronisation automatique, format.	clock	kcm	kcm_clock
 Heure et langue	Langue et région	langue;région;pays;format de la date;format des nombres;monnaie;euro;langue d'affichage	Langue des menus, formats de date, de nombre et de monnaie.	globe	kcm	kcm_regionandlang
-Heure et langue	Saisie et correction	correction automatique;orthographe;correcteur;vérification orthographique;dictionnaire	Correction orthographique dans les applications.	edit	kcm	kcm_spellchecking
+Heure et langue	Saisie et correction	correction automatique;orthographe;correcteur;vérification orthographique;dictionnaire	Correction orthographique dans les applications.	edit	kcm	kcmspellchecking
 Jeux	Jeux	jeux;steam;xbox;manette;proton;epic;gog;minecraft;barre de jeu	Boutiques de jeux, carte graphique, manettes.	gamepad	page	jeux
 Accessibilité	Accessibilité	accessibilité;loupe;lecteur d'écran;narrateur;contraste élevé;clavier visuel;filtres de couleur;sons;touches rémanentes;malvoyant;malentendant	Loupe, lecteur d'écran, touches rémanentes, alertes visuelles.	accessibility	kcm	kcm_access
 Confidentialité et sécurité	Protéger mes données	bitlocker;chiffrement;clé de récupération;protection des données;chiffrer le disque;sécurité	Clé de récupération du disque chiffré, pare-feu.	lock	page	securite

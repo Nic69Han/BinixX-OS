@@ -106,7 +106,7 @@ class Fichier(unittest.TestCase):
         modules = [r for r in self.reglages if r.type == "kcm"]
         self.assertGreaterEqual(len(modules), 30)
         for reglage in modules:
-            self.assertRegex(reglage.cible, r"^kcm_[A-Za-z0-9_-]+$")
+            self.assertRegex(reglage.cible, r"^kcm[_A-Za-z0-9-]+$")
 
 
 class Lecture(unittest.TestCase):
@@ -183,6 +183,23 @@ class Modules(unittest.TestCase):
                          {"kcm_about-distro", "kcm_bluetooth", "kcm_kscreen", "kcm_lookandfeel", "kcm_networkmanagement",
                           "kcm_pulseaudio"})
 
+    def test_un_module_sans_tiret_bas_est_lu(self):
+        # kcmshell6 liste « kcmspellchecking » (sans tiret bas) : ni ignoré à la lecture, ni refusé dans le fichier
+        sortie = KCMSHELL + "  kcmspellchecking            - Correcteur orthographique\n"
+        self.assertIn("kcmspellchecking", p.modules_disponibles(sortie))
+        self.assertTrue(p.KCM.match("kcmspellchecking"))
+        self.assertFalse(p.KCM.match("autre_module"))
+        self.assertFalse(p.KCM.match("kcm_a; rm -rf /"))
+
+    def test_le_fichier_ne_cite_que_des_modules_de_l_image_de_kinoite(self):
+        # modules relevés dans l'image (kcmshell6 --list, build du 3 octobre 2026) : ceux qui ont été corrigés
+        cibles = {r.cible for r in p.charger(FICHIER) if r.type == "kcm"}
+        self.assertNotIn("kcm_sddm", cibles)           # le gestionnaire de connexion est Plasma Login (kcm_plasmalogin)
+        self.assertNotIn("kcm_spellchecking", cibles)  # le module s'appelle kcmspellchecking
+        self.assertNotIn("kcm_kdeconnect", cibles)     # KDE Connect n'est pas dans l'image
+        self.assertIn("kcm_plasmalogin", cibles)
+        self.assertIn("kcmspellchecking", cibles)
+
     def test_sortie_inutilisable_ne_masque_rien(self):
         self.assertIsNone(p.modules_disponibles(""))
         self.assertIsNone(p.modules_disponibles("kcmshell6: command not found"))
@@ -222,7 +239,7 @@ class Page(unittest.TestCase):
     def setUp(self):
         os.environ["BINIXX_PARAMETRES"] = FICHIER
         self.anciens = (launch.run, launch.installed_flatpaks, launch._start)
-        self.tous = {"kcm_" + r.cible[4:] for r in p.charger(FICHIER) if r.type == "kcm"}
+        self.tous = {r.cible for r in p.charger(FICHIER) if r.type == "kcm"}
         self.modules = set(self.tous)
         launch.run = lambda argv, timeout=120: (0, "\n".join(f"  {m} - un module" for m in sorted(self.modules)))
         launch.installed_flatpaks = lambda: {"org.gnome.DejaDup"}

@@ -10,19 +10,19 @@ check "kcmshell6 présent" command -v kcmshell6
 # toujours rien, on se rabat sur les greffons de modules installés (un fichier ou un dossier kcm_xxx par module).
 modules="$(QT_QPA_PLATFORM=offscreen kcmshell6 --list 2>&1 || true)"
 source_modules="kcmshell6 --list"
-if ! grep -q '^ *kcm_' <<<"${modules}"; then
+if ! grep -q '^ *kcm' <<<"${modules}"; then
     modules="$(find /usr/lib64/qt6/plugins /usr/share/kpackage/kcms -maxdepth 5 -name 'kcm_*' -printf '%f\n' 2>/dev/null |
         sed 's/\.so$//' | sort -u || true)"
     source_modules="greffons installés"
 fi
-if grep -q '^ *kcm_' <<<"${modules}"; then
-    pass "$(grep -c '^ *kcm_' <<<"${modules}") modules KDE (${source_modules})"
+if grep -q '^ *kcm' <<<"${modules}"; then
+    pass "$(grep -c '^ *kcm' <<<"${modules}") modules KDE (${source_modules})"
     # Sortie complète du build, pour ajuster les identifiants si Plasma change
     printf '%s\n' "${modules}" | sed 's/^/            /' | head -150
     missing="$(
         python3 - "${modules}" <<'PYEOF'
 import re, sys
-disponibles = {m.split()[0] for m in sys.argv[1].splitlines() if m.strip() and re.match(r"^kcm_", m.strip())}
+disponibles = {m.split()[0] for m in sys.argv[1].splitlines() if m.strip() and re.match(r"^kcm", m.strip())}
 manquants = []
 for ligne in open("/usr/share/binixx/parametres/parametres.tsv", encoding="utf-8"):
     champs = ligne.rstrip("\n").split("\t")
