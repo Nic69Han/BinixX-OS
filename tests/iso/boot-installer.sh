@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 # Démarre l'ISO d'installation publique dans une VM KVM, comme sur un vrai PC : firmware UEFI
 # avec Secure Boot (clés Microsoft), puis shim, GRUB et l'installeur graphique de l'ISO.
-# N'installe rien. Vérifie que l'installeur graphique démarre depuis le volume « NicOS-… », avec
-# l'écran de choix de la langue et le logo NicOS (disk_config/personnaliser-iso.sh), et en fait une
+# N'installe rien. Vérifie que l'installeur graphique démarre depuis le volume « BinixX-OS-… », avec
+# l'écran de choix de la langue et le logo BinixX OS (disk_config/personnaliser-iso.sh), et en fait une
 # capture d'écran.
 # Second démarrage, la langue demandée au lancement (inst.lang, français par défaut) : vérifie que
 # l'installeur s'affiche dans cette langue et en fait une capture.
@@ -130,8 +130,8 @@ sock = socket.socket(socket.AF_UNIX)
 sock.settimeout(2)
 sock.connect(sys.argv[1])
 # Les guillemets coupent les marqueurs dans l'écho de la ligne tapée : seule la sortie
-# de echo contient __NICOS_DEBUT__ et __NICOS_FIN__ en un seul morceau.
-line = 'echo "__NICOS_""DEBUT__"; %s; echo "__NICOS_""FIN__"\n' % sys.argv[2]
+# de echo contient __BINIXX_DEBUT__ et __BINIXX_FIN__ en un seul morceau.
+line = 'echo "__BINIXX_""DEBUT__"; %s; echo "__BINIXX_""FIN__"\n' % sys.argv[2]
 sock.sendall(b"\n" + line.encode())
 received = b""
 deadline = time.time() + 30
@@ -144,10 +144,10 @@ while time.time() < deadline:
         break
     received += chunk
     text = received.decode(errors="replace").replace("\r", "")
-    if "__NICOS_DEBUT__\n" in text:
-        output = text.split("__NICOS_DEBUT__\n", 1)[1]
-        if "__NICOS_FIN__" in output:
-            sys.stdout.write(output.split("__NICOS_FIN__", 1)[0])
+    if "__BINIXX_DEBUT__\n" in text:
+        output = text.split("__BINIXX_DEBUT__\n", 1)[1]
+        if "__BINIXX_FIN__" in output:
+            sys.stdout.write(output.split("__BINIXX_FIN__", 1)[0])
             sys.exit(0)
 sys.exit("pas de réponse du shell de l'installeur")
 PYEOF
@@ -204,7 +204,7 @@ start_vm() { # start_vm <journal série> [paramètres du noyau] : démarre l'ISO
     rm -f "${DISK}" "${QMP_SOCK}" "${CONSOLE_SOCK}"
     qemu-img create -q -f qcow2 "${DISK}" 64G
     qemu-system-x86_64 \
-        -name nicos-iso \
+        -name binixx-iso \
         -machine q35,accel=kvm,smm=on -global driver=cfi.pflash01,property=secure,value=on \
         -cpu host -smp "${VM_CPUS}" -m "${VM_RAM}" \
         -drive "if=pflash,format=raw,unit=0,file=${OVMF_CODE},readonly=on" \
@@ -259,7 +259,7 @@ installer_report() { # état de l'installeur, lu par son shell root
     # L'installeur n'a pas pgrep : on compte les processus dans /proc ([b] évite de compter grep
     # lui-même). La langue est la dernière choisie par Anaconda (journal).
     # shellcheck disable=SC2016  # les $(…) s'évaluent dans l'installeur, pas ici
-    console 'echo "Secure Boot : $(od -An -tu1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c | tr -s " " "\n" | tail -n 1)"; echo "Processus anaconda : $(grep -las "[b]in/anaconda" /proc/[0-9]*/cmdline | wc -l)"; echo "Module de langue : $(grep -las "[p]yanaconda.modules.localization" /proc/[0-9]*/cmdline | wc -l)"; echo "Langue : $(grep -o "setting locale to: .*" /tmp/anaconda.log | tail -n 1 | cut -d " " -f 4)"; echo "Logo : $(md5sum </usr/share/anaconda/pixmaps/nicos/sidebar-logo.png | cut -c 1-32)"; echo "Style : $(test -s /run/install/product/anaconda-gtk.css && echo NicOS)"; echo "Volume : $(sed -n "s/.*inst.stage2=hd:LABEL=\([^ ]*\).*/\1/p" /proc/cmdline)"; echo "--- Nom du produit"; grep -iE "^(product|version|name|pretty_name) *=" /.buildstamp /etc/os-release 2>&1; echo "--- /tmp/anaconda.log (mode d affichage, langue, erreurs)"; grep -iE "display mode|wayland|setting locale|setlocale failed|traceback" /tmp/anaconda.log | tail -n 20' || true
+    console 'echo "Secure Boot : $(od -An -tu1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c | tr -s " " "\n" | tail -n 1)"; echo "Processus anaconda : $(grep -las "[b]in/anaconda" /proc/[0-9]*/cmdline | wc -l)"; echo "Module de langue : $(grep -las "[p]yanaconda.modules.localization" /proc/[0-9]*/cmdline | wc -l)"; echo "Langue : $(grep -o "setting locale to: .*" /tmp/anaconda.log | tail -n 1 | cut -d " " -f 4)"; echo "Logo : $(md5sum </usr/share/anaconda/pixmaps/binixx/sidebar-logo.png | cut -c 1-32)"; echo "Style : $(test -s /run/install/product/anaconda-gtk.css && echo BinixX OS)"; echo "Volume : $(sed -n "s/.*inst.stage2=hd:LABEL=\([^ ]*\).*/\1/p" /proc/cmdline)"; echo "--- Nom du produit"; grep -iE "^(product|version|name|pretty_name) *=" /.buildstamp /etc/os-release 2>&1; echo "--- /tmp/anaconda.log (mode d affichage, langue, erreurs)"; grep -iE "display mode|wayland|setting locale|setlocale failed|traceback" /tmp/anaconda.log | tail -n 20' || true
 }
 
 failures=0
@@ -278,15 +278,15 @@ wait_installer
 report="$(installer_report)"
 printf '%s\n' "${report}" | tee "${LOGS}/installeur.txt"
 screenshot installeur
-logo_md5="$(md5sum <"${BRANDING}/usr/share/anaconda/pixmaps/nicos/sidebar-logo.png" | cut -c 1-32)"
+logo_md5="$(md5sum <"${BRANDING}/usr/share/anaconda/pixmaps/binixx/sidebar-logo.png" | cut -c 1-32)"
 expect "installeur en marche" 'Processus anaconda : [1-9][0-9]*' "${report}"
 if [[ ${SECURE_BOOT} -eq 1 ]]; then
     expect "Secure Boot actif" 'Secure Boot : 1' "${report}"
 fi
 expect "écran « Bienvenue » : choix de la langue (module Localization)" 'Module de langue : [1-9][0-9]*' "${report}"
-expect "logo NicOS (product.img) à la place de celui de Fedora" "Logo : ${logo_md5}" "${report}"
-expect "couleurs NicOS (anaconda-gtk.css)" 'Style : NicOS' "${report}"
-expect "installeur trouvé sur le volume NicOS (nom de la clé USB)" 'Volume : NicOS-[^ ]+' "${report}"
+expect "logo BinixX OS (product.img) à la place de celui de Fedora" "Logo : ${logo_md5}" "${report}"
+expect "couleurs BinixX OS (anaconda-gtk.css)" 'Style : BinixX OS' "${report}"
+expect "installeur trouvé sur le volume BinixX OS (nom de la clé USB)" 'Volume : BinixX-OS-[^ ]+' "${report}"
 if grep -qi 'wayland startup failed' <<<"${report}"; then
     echo "ÉCHEC     l'installeur est passé en mode texte" && failures=$((failures + 1))
 fi
@@ -320,4 +320,4 @@ if [[ -n "${LANGUE}" ]]; then
 fi
 
 [[ ${failures} -eq 0 ]] || die "${failures} vérification(s) de l'installeur en échec"
-log "ISO validée : l'installeur graphique démarre$([[ ${SECURE_BOOT} -eq 1 ]] && echo " avec Secure Boot"), aux couleurs de NicOS, avec le choix de la langue$([[ -n "${LANGUE}" ]] && echo " ; testé en ${LANGUE}") (captures : ${LOGS})"
+log "ISO validée : l'installeur graphique démarre$([[ ${SECURE_BOOT} -eq 1 ]] && echo " avec Secure Boot"), aux couleurs de BinixX OS, avec le choix de la langue$([[ -n "${LANGUE}" ]] && echo " ; testé en ${LANGUE}") (captures : ${LOGS})"

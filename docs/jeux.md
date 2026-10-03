@@ -1,10 +1,10 @@
 # Jeux
 
-Beaucoup d'utilisateurs de Windows jouent. NicOS ne préinstalle **aucune** boutique (image plus légère,
-choix de l'utilisateur, licences des éditeurs) mais, dans le Centre NicOS, la page **Jeux** (et la
+Beaucoup d'utilisateurs de Windows jouent. BinixX OS ne préinstalle **aucune** boutique (image plus légère,
+choix de l'utilisateur, licences des éditeurs) mais, dans le Centre BinixX OS, la page **Jeux** (et la
 recherche « Mon logiciel Windows ») propose chaque boutique au nom qu'on lui connaît sous Windows.
 
-| Sous Windows | Sous NicOS | Licence | Remarque |
+| Sous Windows | Sous BinixX OS | Licence | Remarque |
 | --- | --- | --- | --- |
 | Steam | Steam (Flatpak) | propriétaire | Proton, intégré à Steam, fait tourner des milliers de jeux Windows. À activer dans les réglages de Steam si un jeu ne démarre pas. |
 | Epic Games Store, GOG Galaxy | Heroic Games Launcher | GPL-3.0 | Aussi Amazon Games ; les jeux Windows passent par Proton. |
@@ -21,7 +21,7 @@ Tout s'installe à la demande depuis Flathub, par Discover. Les identifiants son
 - **Carte graphique** : la page indique la ou les cartes détectées. Sur un portable à deux cartes,
   `switcheroo-control` permet de lancer un jeu avec la carte la plus puissante (clic droit sur l'icône →
   « Lancer avec la carte graphique dédiée »). Cartes NVIDIA : les pilotes libres (`nouveau`) suffisent à la
-  bureautique ; pour les jeux 3D exigeants, l'administrateur peut passer à la variante `nicos-nvidia`
+  bureautique ; pour les jeux 3D exigeants, l'administrateur peut passer à la variante `binixx-nvidia`
   (pilotes officiels, **expérimentale** : voir [nvidia.md](nvidia.md)).
 - **Manettes** : accès direct à leur réglage et à leur test dans la Configuration du système.
 - **Un jeu ne démarre pas** : lien vers ProtonDB, qui recense jeu par jeu ce qui fonctionne.
@@ -37,8 +37,8 @@ Tout s'installe à la demande depuis Flathub, par Discover. Les identifiants son
 ## Alternatives écartées
 
 - **Préinstaller Steam** : image alourdie pour tout le monde, licence propriétaire, mises à jour de
-  l'éditeur indépendantes de celles de NicOS.
-- **Image dédiée aux jeux** (comme Bazzite, qui partage la même base) : doublerait la maintenance ; NicOS
+  l'éditeur indépendantes de celles de BinixX OS.
+- **Image dédiée aux jeux** (comme Bazzite, qui partage la même base) : doublerait la maintenance ; BinixX OS
   vise le bureau, et Bazzite reste le bon choix pour une console de salon.
 - **MangoHud, GameMode, Gamescope** : disponibles en extensions Flatpak ; à ajouter à la page si la demande
   existe.

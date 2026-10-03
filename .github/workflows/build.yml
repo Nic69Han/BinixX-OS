@@ -25,7 +25,7 @@ jobs:
   build_push:
     name: Build and push image (${{ matrix.variant }})
     runs-on: ubuntu-26.04
-    # NicOS: two images from the same sources. `nicos` is the standard one; `nicos-nvidia` has the same
+    # BinixX OS: two images from the same sources. `binixx` is the standard one; `binixx-nvidia` has the same
     # content on Universal Blue's NVIDIA base (docs/nvidia.md). Pull requests only build the standard one.
     # A failure of the NVIDIA build never fails the workflow: the standard image keeps being tested and
     # promoted (test-vm.yml starts when this workflow succeeds).
@@ -35,9 +35,9 @@ jobs:
       matrix:
         variant: ${{ fromJSON(github.event_name == 'pull_request' && '["main"]' || '["main","nvidia"]') }}
     env:
-      IMAGE_NAME: ${{ matrix.variant == 'nvidia' && 'nicos-nvidia' || 'nicos' }}
+      IMAGE_NAME: ${{ matrix.variant == 'nvidia' && 'binixx-nvidia' || 'binixx' }}
       BASE_IMAGE: ${{ matrix.variant == 'nvidia' && 'ghcr.io/ublue-os/kinoite-nvidia:44' || '' }}
-      NICOS_VARIANT: ${{ matrix.variant == 'nvidia' && 'nvidia' || '' }}
+      BINIXX_VARIANT: ${{ matrix.variant == 'nvidia' && 'nvidia' || '' }}
 
     permissions:
       contents: read
@@ -128,7 +128,7 @@ jobs:
             "${DEFAULT_TAG}" \
             "${ALIAS_TAGS}"
 
-      # NicOS: check the image from the inside (packages, fonts, KDE defaults, services)
+      # BinixX OS: check the image from the inside (packages, fonts, KDE defaults, services)
       # before anything is published. Runs on pull requests too.
       - name: Test image contents
         run: |
@@ -136,19 +136,25 @@ jobs:
             "${IMAGE_NAME}" \
             "${DEFAULT_TAG}"
 
-      # NicOS: the enterprise template (entreprise/) must keep building on top of this image
+      # BinixX OS: the enterprise template (entreprise/) must keep building on top of this image
       - name: Test enterprise image template
         run: |
           just test-entreprise \
             "${IMAGE_NAME}" \
             "${DEFAULT_TAG}"
 
-      # NicOS supply chain (docs/securite.md): the tools are tested, then the image gets its software bill of
+      # BinixX OS supply chain (docs/securite.md): the tools are tested, then the image gets its software bill of
       # materials (SBOM) and its pending Fedora security advisories are listed. Both run on pull requests too,
       # before anything is published; an advisory at or above the threshold stops the build.
       - name: Test supply-chain tools
         run: |
           python3 -m unittest discover -s tests/securite
+
+      # BinixX OS wallpaper (docs/identite-visuelle.md): the generator is deterministic, and the walker silhouette keeps its shape.
+      - name: Test the wallpaper generator
+        run: |
+          python3 -m pip install --quiet numpy scipy pillow fonttools uharfbuzz
+          python3 -m unittest discover -s tests/branding
 
       - name: Software bill of materials (SBOM)
         run: |
@@ -219,7 +225,7 @@ jobs:
       # Signing needs a Cosign key pair (`COSIGN_PASSWORD="" cosign generate-key-pair`):
       # cosign.key goes in the SIGNING_SECRET repository secret and is never committed,
       # cosign.pub is committed at the root of the repository.
-      # NicOS: until the secret exists the image is published unsigned, with a warning,
+      # BinixX OS: until the secret exists the image is published unsigned, with a warning,
       # so that the very first build of the repository can succeed.
       - name: Install Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
@@ -245,7 +251,7 @@ jobs:
           # use old bundle format, so we can use newer cosign 3.X.X instead of 2.X.X
           cosign sign -y --new-bundle-format=false --use-signing-config=false --key env://COSIGN_PRIVATE_KEY ${IMAGE_REGISTRY}/${IMAGE_NAME}@${DIGEST}
 
-      # NicOS: provenance (which workflow, which commit built this digest) and SBOM, attached to the image in the
+      # BinixX OS: provenance (which workflow, which commit built this digest) and SBOM, attached to the image in the
       # registry. They never block publication (the image is already pushed and signed): a failure is reported
       # as a warning. Not available on a private repository without GitHub Enterprise.
       - name: Attest build provenance

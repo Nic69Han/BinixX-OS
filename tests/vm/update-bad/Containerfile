@@ -2,12 +2,12 @@
 # l'écran de connexion ne démarre plus. run-vm-test.sh la publie dans un registre local ; la VM doit
 # redémarrer trois fois, puis revenir toute seule à la version précédente (greenboot).
 #
-# Le compteur /var/log/nicos-test-boots compte les démarrages de cette image défectueuse : il doit
+# Le compteur /var/log/binixx-test-boots compte les démarrages de cette image défectueuse : il doit
 # valoir trois à la fin (greenboot essaie trois fois avant de revenir en arrière).
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
-RUN echo "Mise à jour défectueuse de test NicOS" > /usr/share/nicos/update-bad-marker && \
+RUN echo "Mise à jour défectueuse de test BinixX OS" > /usr/share/binixx/update-bad-marker && \
     ln -sf /dev/null /etc/systemd/system/display-manager.service && \
-    printf '%s\n' '#!/usr/bin/bash' 'echo "$(date +%s) $(cat /proc/sys/kernel/random/boot_id)" >> /var/log/nicos-test-boots' \
+    printf '%s\n' '#!/usr/bin/bash' 'echo "$(date +%s) $(cat /proc/sys/kernel/random/boot_id)" >> /var/log/binixx-test-boots' \
         > /etc/greenboot/check/required.d/00-test-compteur.sh && \
     chmod +x /etc/greenboot/check/required.d/00-test-compteur.sh

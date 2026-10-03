@@ -16,10 +16,10 @@ import tempfile
 import unittest
 
 ICI = os.path.dirname(__file__)
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/nicos/centre"))
-LIBEXEC = os.environ.get("NICOS_LIBEXEC", os.path.join(ICI, "../../../system_files/usr/libexec/nicos"))
-OUTIL = os.path.join(LIBEXEC, "nicos-migrer")
-CAPTURES = os.environ.get("NICOS_CAPTURES")
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/binixx/centre"))
+LIBEXEC = os.environ.get("BINIXX_LIBEXEC", os.path.join(ICI, "../../../system_files/usr/libexec/binixx"))
+OUTIL = os.path.join(LIBEXEC, "binixx-migrer")
+CAPTURES = os.environ.get("BINIXX_CAPTURES")
 sys.path.insert(0, RACINE)
 
 try:
@@ -388,8 +388,8 @@ class Page(Monde):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
-        from nicos_centre import launch, theme
-        from nicos_centre.pages import migration
+        from binixx_centre import launch, theme
+        from binixx_centre.pages import migration
         cls.launch, cls.migration = launch, migration
         cls.app.setStyleSheet(theme.STYLE)
 

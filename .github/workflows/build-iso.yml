@@ -1,7 +1,7 @@
 ---
 name: Build installer ISO
 
-# Builds the NicOS installer ISO from the image published on GHCR by build.yml.
+# Builds the BinixX OS installer ISO from the image published on GHCR by build.yml.
 # Run it by hand from the Actions tab once build.yml has published an image
 # (the ISO embeds the published image, not the one from a pull request).
 on:
@@ -14,7 +14,7 @@ on:
         type: boolean
 
 env:
-  IMAGE_NAME: ${{ github.event.repository.name }} # output of build.yml, keep in sync
+  IMAGE_NAME: binixx # image published by build.yml (IMAGE_NAME in binixx.env), whatever the repository is called
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"  # do not edit
   DEFAULT_TAG: "stable"  # the ISO embeds the last image validated by the VM test
   BIB_IMAGE: "quay.io/centos-bootc/bootc-image-builder:latest"
@@ -75,8 +75,8 @@ jobs:
           additional-args: --use-librepo=True
 
       # bootc-image-builder names the volume "Fedora-S-dvd-…" and builds the installer from Fedora
-      # packages (Fedora logo), with no option for either: rename the volume "NicOS-…" everywhere
-      # the boot menus use it, and add images/product.img with the NicOS logo (see the script).
+      # packages (Fedora logo), with no option for either: rename the volume "BinixX-OS-…" everywhere
+      # the boot menus use it, and add images/product.img with the BinixX OS logo (see the script).
       - name: Brand the ISO
         env:
           OUTPUT_DIR: ${{ steps.build.outputs.output-directory }}
@@ -90,7 +90,7 @@ jobs:
         if: inputs.upload-to-s3 != true
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: nicos-installer-iso
+          name: binixx-installer-iso
           path: ${{ steps.build.outputs.output-directory }}
           if-no-files-found: error
           retention-days: 0
@@ -115,7 +115,7 @@ jobs:
 
       # Smoke test of the ISO that was just published: boot it in a VM like a real PC
       # (UEFI with Secure Boot, the ISO's own shim and GRUB), check that the graphical
-      # installer starts with the language choice and the NicOS logo, then boot it again
+      # installer starts with the language choice and the BinixX OS logo, then boot it again
       # in French; screenshots of both. Nothing is installed (tests/iso/).
       - name: Enable KVM
         run: |

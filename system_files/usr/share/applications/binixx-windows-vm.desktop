@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Windows complet
+GenericName=Windows en machine virtuelle
+Comment=Faire tourner Windows dans une fenêtre : prérequis du PC, Boxes, WinBoat, Windows 365
+Exec=/usr/libexec/binixx/binixx-centre --page windows
+Icon=computer
+Terminal=false
+Categories=System;
+Keywords=windows;machine virtuelle;vm;virtualbox;vmware;parallels;hyper-v;boxes;winboat;logiciel métier;
+StartupNotify=true
+StartupWMClass=binixx-centre

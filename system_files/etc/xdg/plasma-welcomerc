@@ -1,5 +1,5 @@
-# Le Centre de bienvenue de KDE (Konqi) ne s'ouvre pas tout seul : l'accueil de NicOS
-# (usr/lib/nicos/centre, ouvert par etc/xdg/autostart/nicos-accueil.desktop) le remplace.
+# Le Centre de bienvenue de KDE (Konqi) ne s'ouvre pas tout seul : l'accueil de BinixX OS
+# (usr/lib/binixx/centre, ouvert par etc/xdg/autostart/binixx-accueil.desktop) le remplace.
 # Une version « déjà vue » supérieure à toute version de Plasma l'empêche aussi après une mise à jour.
 [General]
 LastSeenVersion=99.0.0

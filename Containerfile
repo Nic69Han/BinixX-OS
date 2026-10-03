@@ -1,7 +1,7 @@
-# Image de base et variante : NicOS (kinoite-main) ou NicOS NVIDIA (kinoite-nvidia, pilotes NVIDIA signés
+# Image de base et variante : BinixX OS (kinoite-main) ou BinixX OS NVIDIA (kinoite-nvidia, pilotes NVIDIA signés
 # par Universal Blue). La CI construit les deux ; voir docs/nvidia.md.
 ARG BASE_IMAGE=ghcr.io/ublue-os/kinoite-main:44
-ARG NICOS_VARIANT=""
+ARG BINIXX_VARIANT=""
 
 # Contexte de build : ces fichiers servent pendant le build sans être copiés tels quels dans l'image
 FROM scratch AS ctx
@@ -19,10 +19,10 @@ COPY entreprise /entreprise
 # à la version suivante ne se fait jamais tout seul.
 # Changer de version = modifier ce numéro dans une pull request et la valider,
 # test en VM compris : `sudo just build` puis
-# `sudo tests/vm/run-vm-test.sh --image localhost/nicos:testing` (voir tests/README.md).
+# `sudo tests/vm/run-vm-test.sh --image localhost/binixx:testing` (voir tests/README.md).
 # À faire avant la fin du support de Fedora 44 (environ un mois après la sortie de Fedora 46).
 FROM ${BASE_IMAGE}
-ARG NICOS_VARIANT
+ARG BINIXX_VARIANT
 
 ### PERSONNALISATION
 ## Tout se passe dans build_files/build.sh (paquets, réglages KDE, services)
@@ -30,7 +30,7 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
-    NICOS_VARIANT="${NICOS_VARIANT}" /ctx/build.sh
+    BINIXX_VARIANT="${BINIXX_VARIANT}" /ctx/build.sh
 
 ### VÉRIFICATION
 ## Contrôle que l'image finale est une image bootc valide

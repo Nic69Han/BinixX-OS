@@ -4,9 +4,9 @@
 # pkexec lui-même (fenêtre d'authentification) ne se teste pas sans écran ; ici on lance l'outil en root, comme pkexec.
 check_cle_disque() {
     section "Clé de récupération du disque chiffré"
-    local outil=/usr/libexec/nicos/nicos-cle-recuperation
-    local image=/var/tmp/nicos-test-luks.img mdp='mot de passe de test' disque out code cle nouvelle
-    check "action polkit connue de polkitd" pkaction --action-id org.nicos.cle-recuperation
+    local outil=/usr/libexec/binixx/binixx-cle-recuperation
+    local image=/var/tmp/binixx-test-luks.img mdp='mot de passe de test' disque out code cle nouvelle
+    check "action polkit connue de polkitd" pkaction --action-id org.binixx.cle-recuperation
     rm -f "${image}"
     truncate -s 64M "${image}"
     if ! printf '%s' "${mdp}" | cryptsetup luksFormat --batch-mode --type luks2 --pbkdf pbkdf2 --pbkdf-force-iterations 1000 --key-file=- "${image}"; then

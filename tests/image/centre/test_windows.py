@@ -8,13 +8,13 @@ import sys
 import unittest
 
 ICI = os.path.dirname(__file__)
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/nicos/centre"))
-FICHIER = os.environ.get("NICOS_CATALOGUE", os.path.join(
-    ICI, "../../../system_files/usr/share/nicos/catalogue-windows/catalogue.tsv"))
-CAPTURES = os.environ.get("NICOS_CAPTURES")
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/binixx/centre"))
+FICHIER = os.environ.get("BINIXX_CATALOGUE", os.path.join(
+    ICI, "../../../system_files/usr/share/binixx/catalogue-windows/catalogue.tsv"))
+CAPTURES = os.environ.get("BINIXX_CAPTURES")
 sys.path.insert(0, RACINE)
 
-from nicos_centre import catalogue, launch, virtualisation as v  # noqa: E402
+from binixx_centre import catalogue, launch, virtualisation as v  # noqa: E402
 
 try:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -109,8 +109,8 @@ class Page(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
-        from nicos_centre import theme
-        from nicos_centre.pages import catalogue as page_catalogue, windows
+        from binixx_centre import theme
+        from binixx_centre.pages import catalogue as page_catalogue, windows
         cls.windows, cls.page_catalogue = windows, page_catalogue
         cls.app.setStyleSheet(theme.STYLE)
 
@@ -124,11 +124,11 @@ class Page(unittest.TestCase):
         v.verifier.__wrapped__ = self.anciens[2]
         v.outils_winboat = lambda: [("Podman", True), ("Podman Compose", False), ("FreeRDP", True)]
         catalogue.fournies = lambda listes=None: set()
-        os.environ["NICOS_CATALOGUE"] = FICHIER
+        os.environ["BINIXX_CATALOGUE"] = FICHIER
 
     def tearDown(self):
         launch.installed_flatpaks, launch._start, v.verifier, v.outils_winboat, catalogue.fournies = self.anciens
-        os.environ.pop("NICOS_CATALOGUE", None)
+        os.environ.pop("BINIXX_CATALOGUE", None)
 
     def textes(self, page):
         from PySide6.QtWidgets import QLabel

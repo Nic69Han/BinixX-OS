@@ -21,7 +21,7 @@ zerombr
 clearpart --all --initlabel --disklabel=gpt
 autopart --noswap --type=btrfs
 rootpw --lock
-user --name=testeur --groups=wheel --password=nicos-test --plaintext
+user --name=testeur --groups=wheel --password=binixx-test --plaintext
 sshkey --username=testeur "@SSH_PUBKEY@"
 services --enabled=sshd
 # Sans cette ligne, une installation en mode texte règle le démarrage sur multi-user.target :
@@ -31,18 +31,18 @@ poweroff
 
 %post --erroronfail
 @SWITCH_CMD@
-echo 'testeur ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-nicos-test
-chmod 0440 /etc/sudoers.d/90-nicos-test
+echo 'testeur ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-binixx-test
+chmod 0440 /etc/sudoers.d/90-binixx-test
 # Compte déjà créé : pas d'assistant de premier démarrage
 touch /etc/plasma-setup-done
 # Session Plasma ouverte automatiquement, pour vérifier le bureau et en faire une capture
 mkdir -p /etc/plasmalogin.conf.d
-printf '[Autologin]\\nUser=testeur\\nSession=plasma\\n' > /etc/plasmalogin.conf.d/90-nicos-test.conf
+printf '[Autologin]\\nUser=testeur\\nSession=plasma\\n' > /etc/plasmalogin.conf.d/90-binixx-test.conf
 %end
 
 %post --nochroot
 # Signal de fin d'installation, lu sur la console série par run-vm-test.sh
-echo NICOS-INSTALL-OK > /dev/ttyS0
+echo BINIXX-INSTALL-OK > /dev/ttyS0
 %end
 """
 

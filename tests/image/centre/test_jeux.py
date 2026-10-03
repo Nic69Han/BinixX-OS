@@ -8,13 +8,13 @@ import sys
 import unittest
 
 ICI = os.path.dirname(__file__)
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/nicos/centre"))
-FICHIER = os.environ.get("NICOS_CATALOGUE", os.path.join(
-    ICI, "../../../system_files/usr/share/nicos/catalogue-windows/catalogue.tsv"))
-CAPTURES = os.environ.get("NICOS_CAPTURES")
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/binixx/centre"))
+FICHIER = os.environ.get("BINIXX_CATALOGUE", os.path.join(
+    ICI, "../../../system_files/usr/share/binixx/catalogue-windows/catalogue.tsv"))
+CAPTURES = os.environ.get("BINIXX_CAPTURES")
 sys.path.insert(0, RACINE)
 
-from nicos_centre import catalogue, launch, materiel  # noqa: E402
+from binixx_centre import catalogue, launch, materiel  # noqa: E402
 
 try:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -141,13 +141,13 @@ class Page(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
-        from nicos_centre import theme
-        from nicos_centre.pages import jeux
+        from binixx_centre import theme
+        from binixx_centre.pages import jeux
         cls.jeux = jeux
         cls.app.setStyleSheet(theme.STYLE)
 
     def setUp(self):
-        os.environ["NICOS_CATALOGUE"] = FICHIER
+        os.environ["BINIXX_CATALOGUE"] = FICHIER
         self.anciens = (launch.installed_flatpaks, launch._start, materiel.cartes_graphiques, catalogue.fournies)
         launch.installed_flatpaks = lambda: {"net.lutris.Lutris"}
         catalogue.fournies = lambda listes=None: set()
@@ -157,7 +157,7 @@ class Page(unittest.TestCase):
 
     def tearDown(self):
         launch.installed_flatpaks, launch._start, materiel.cartes_graphiques, catalogue.fournies = self.anciens
-        os.environ.pop("NICOS_CATALOGUE", None)
+        os.environ.pop("BINIXX_CATALOGUE", None)
 
     def test_une_carte_par_application_et_les_boutons_agissent(self):
         page = self.jeux.build(None)

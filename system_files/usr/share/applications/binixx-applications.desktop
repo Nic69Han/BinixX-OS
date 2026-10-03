@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Installer des applications
+GenericName=Applications connues sous Windows
+Comment=Cocher les applications à installer d'un coup : VLC, LibreOffice, Spotify, Discord, Bitwarden…
+Exec=/usr/libexec/binixx/binixx-centre --page applications
+Icon=system-software-install
+Terminal=false
+Categories=System;Utility;
+Keywords=applications;logiciels;installer;ninite;flathub;vlc;chrome;spotify;discord;libreoffice;télécharger;
+StartupNotify=true
+StartupWMClass=binixx-centre

@@ -1,0 +1,3 @@
+Fichiers de l'entreprise : tout ce qui est déposé dans entreprise/system_files/ est copié à la
+racine du système. Exemples : etc/xdg/kdeglobals (réglages KDE), usr/share/wallpapers/BinixX/ (fond
+d'écran de l'entreprise), etc/cups/ (imprimantes), etc/sssd/ (domaine).

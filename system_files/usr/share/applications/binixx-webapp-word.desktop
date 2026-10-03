@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Word (web)
+GenericName=Traitement de texte Microsoft 365 (web)
+Comment=Documents Word en ligne, enregistrés sur OneDrive
+Exec=/usr/libexec/binixx/binixx-webapp https://word.cloud.microsoft/
+Icon=x-office-document
+Terminal=false
+Categories=Office;
+Keywords=word;microsoft;365;document;docx;
+StartupNotify=true
+# Classe de fenêtre de Chromium en mode application, pour grouper la fenêtre sous cette icône
+StartupWMClass=chrome-word.cloud.microsoft__-Default

@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# Windows dans une machine virtuelle (page « Windows complet » du Centre NicOS).
+# Windows dans une machine virtuelle (page « Windows complet » du Centre BinixX OS).
 # - Boxes (Flatpak, installé à la demande) n'a besoin de rien de plus dans l'image.
 # - WinBoat (projet libre MIT, en bêta, que l'utilisateur télécharge lui-même : il n'est pas sur Flathub) pilote
 #   Windows dans un conteneur Podman et affiche ses fenêtres avec FreeRDP 3 : Podman est dans l'image de base,

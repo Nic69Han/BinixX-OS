@@ -1,0 +1,69 @@
+#!/usr/bin/bash
+# Remet le bureau de l'utilisateur comme au premier jour (barre, thème, raccourcis, fenêtres), sans toucher
+# à ses fichiers, à ses applications, à sa langue ni à son clavier. Rien n'est supprimé : les anciens
+# réglages sont rangés dans ~/.local/share/binixx/sauvegardes/.
+#
+# Plasma réécrit ses réglages à la fermeture de la session : les déplacer pendant qu'elle tourne ne servirait
+# à rien. On programme donc la remise à zéro (« programmer »), l'utilisateur ferme sa session, et le script
+# de démarrage etc/xdg/plasma-workspace/env/90-binixx-reinitialiser.sh l'applique (« appliquer »)
+# à l'ouverture suivante, avant que Plasma ne démarre.
+#
+# Usage : binixx-reinitialiser-bureau programmer | annuler | appliquer | liste | etat
+
+set -uo pipefail
+
+CONFIG="${XDG_CONFIG_HOME:-${HOME}/.config}"
+STATE="${XDG_STATE_HOME:-${HOME}/.local/state}/binixx"
+DATA="${XDG_DATA_HOME:-${HOME}/.local/share}/binixx/sauvegardes"
+MARQUE="${STATE}/reinitialiser-bureau"
+
+# Réglages d'apparence et de comportement du bureau. Volontairement absents : plasma-localerc (langue),
+# kxkbrc (clavier), kscreen (écrans), kwalletrc, mimeapps.list, profils de Firefox et de Thunderbird.
+FICHIERS=(
+    plasma-org.kde.plasma.desktop-appletsrc plasmashellrc plasmarc kdeglobals kwinrc kwinrulesrc
+    kglobalshortcutsrc kscreenlockerrc ksplashrc krunnerrc dolphinrc kdedefaults
+)
+
+presents() {
+    local f
+    for f in "${FICHIERS[@]}"; do
+        [[ -e "${CONFIG}/${f}" ]] && printf '%s\n' "${f}"
+    done
+}
+
+case "${1:-}" in
+programmer)
+    mkdir -p "${STATE}"
+    date '+%Y-%m-%d %H:%M:%S' >"${MARQUE}"
+    echo "Remise à zéro du bureau programmée : elle s'applique à la prochaine ouverture de session."
+    ;;
+annuler)
+    rm -f "${MARQUE}"
+    echo "Remise à zéro du bureau annulée."
+    ;;
+etat)
+    if [[ -e "${MARQUE}" ]]; then echo programmee; else echo aucune; fi
+    ;;
+liste)
+    presents
+    ;;
+appliquer)
+    [[ -e "${MARQUE}" ]] || exit 0
+    rm -f "${MARQUE}"
+    mapfile -t a_ranger < <(presents)
+    [[ ${#a_ranger[@]} -gt 0 ]] || exit 0
+    dossier="${DATA}/bureau-$(date '+%Y%m%d-%H%M%S')"
+    mkdir -p "${dossier}"
+    for f in "${a_ranger[@]}"; do
+        mv -- "${CONFIG}/${f}" "${dossier}/${f}"
+    done
+    cat >"${dossier}/LISEZMOI.txt" <<TXT
+Anciens réglages du bureau BinixX OS, rangés lors de la remise à zéro du $(date '+%d/%m/%Y').
+Pour en retrouver un : fermer la session, copier le fichier voulu de ce dossier vers ~/.config, rouvrir la session.
+TXT
+    ;;
+*)
+    echo "Usage : $0 programmer | annuler | appliquer | liste | etat" >&2
+    exit 2
+    ;;
+esac

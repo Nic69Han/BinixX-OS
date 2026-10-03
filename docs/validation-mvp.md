@@ -20,7 +20,7 @@ Préparer, sous Windows avec Microsoft Office, un jeu de fichiers de test à con
 - **.xlsx** : plusieurs feuilles, formules courantes (SOMME, SI, RECHERCHEV, dates), mise en forme
   conditionnelle, cellules fusionnées, graphique, tableau croisé dynamique, figer les volets.
 
-Pour chaque fichier, sous NicOS :
+Pour chaque fichier, sous BinixX OS :
 
 1. Ouvrir dans OnlyOffice : comparer visuellement avec une capture faite sous Windows (même nombre de pages,
    mêmes sauts de ligne, pas de police de remplacement visible).

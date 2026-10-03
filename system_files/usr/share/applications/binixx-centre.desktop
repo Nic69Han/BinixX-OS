@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Bienvenue dans BinixX OS
+GenericName=Centre BinixX OS
+Comment=Premiers pas, équivalents de vos logiciels Windows, aide
+Exec=/usr/libexec/binixx/binixx-centre
+Icon=binixx
+Terminal=false
+Categories=System;
+Keywords=bienvenue;accueil;démarrer;premiers pas;windows;logiciel windows;équivalent;catalogue;aide;
+StartupNotify=true
+StartupWMClass=binixx-centre

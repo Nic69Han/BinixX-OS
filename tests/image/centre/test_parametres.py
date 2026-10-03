@@ -12,15 +12,15 @@ import unittest
 
 ICI = os.path.dirname(__file__)
 DEPOT = os.path.join(ICI, "../../..")
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(DEPOT, "system_files/usr/lib/nicos/centre"))
-FICHIER = os.environ.get("NICOS_PARAMETRES", os.path.join(DEPOT, "system_files/usr/share/nicos/parametres/parametres.tsv"))
-LANCEURS = os.environ.get("NICOS_LANCEURS", os.path.join(DEPOT, "system_files/usr/share/applications"))
-CATALOGUE = os.environ.get("NICOS_CATALOGUE", os.path.join(DEPOT, "system_files/usr/share/nicos/catalogue-windows/catalogue.tsv"))
-FOURNIES = os.environ.get("NICOS_FLATPAKS", os.path.join(DEPOT, "flatpaks/system-flatpaks.list"))
-CAPTURES = os.environ.get("NICOS_CAPTURES")
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(DEPOT, "system_files/usr/lib/binixx/centre"))
+FICHIER = os.environ.get("BINIXX_PARAMETRES", os.path.join(DEPOT, "system_files/usr/share/binixx/parametres/parametres.tsv"))
+LANCEURS = os.environ.get("BINIXX_LANCEURS", os.path.join(DEPOT, "system_files/usr/share/applications"))
+CATALOGUE = os.environ.get("BINIXX_CATALOGUE", os.path.join(DEPOT, "system_files/usr/share/binixx/catalogue-windows/catalogue.tsv"))
+FOURNIES = os.environ.get("BINIXX_FLATPAKS", os.path.join(DEPOT, "flatpaks/system-flatpaks.list"))
+CAPTURES = os.environ.get("BINIXX_CAPTURES")
 sys.path.insert(0, RACINE)
 
-from nicos_centre import catalogue, launch, parametres as p  # noqa: E402
+from binixx_centre import catalogue, launch, parametres as p  # noqa: E402
 
 try:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -42,7 +42,7 @@ KCMSHELL = """The following modules are available:
 
 def lire_cles_des_pages():
     cles = set()
-    for fichier in glob.glob(os.path.join(RACINE, "nicos_centre/pages/*.py")):
+    for fichier in glob.glob(os.path.join(RACINE, "binixx_centre/pages/*.py")):
         with open(fichier, encoding="utf-8") as lecture:
             cles.update(re.findall(r'^KEY = "([a-z_]+)"', lecture.read(), re.M))
     return cles
@@ -88,13 +88,13 @@ class Fichier(unittest.TestCase):
                 self.assertIn(reglage.cible, connues, reglage.cible)
 
     def test_chaque_reglage_a_une_icone_dessinee(self):
-        from nicos_centre import icones
+        from binixx_centre import icones
         for reglage in self.reglages:
             self.assertIn(reglage.icone, icones.ICONES, reglage.nom)
 
     def test_les_icones_sont_du_svg_bien_forme(self):
         import xml.etree.ElementTree as ET
-        from nicos_centre import icones
+        from binixx_centre import icones
         for nom in icones.ICONES:
             racine = ET.fromstring(icones.svg(nom, "#123456"))
             self.assertTrue(racine.tag.endswith("svg"), nom)
@@ -106,7 +106,7 @@ class Fichier(unittest.TestCase):
         modules = [r for r in self.reglages if r.type == "kcm"]
         self.assertGreaterEqual(len(modules), 30)
         for reglage in modules:
-            self.assertRegex(reglage.cible, r"^kcm_[A-Za-z0-9_-]+$")
+            self.assertRegex(reglage.cible, r"^kcm[_A-Za-z0-9-]+$")
 
 
 class Lecture(unittest.TestCase):
@@ -183,6 +183,23 @@ class Modules(unittest.TestCase):
                          {"kcm_about-distro", "kcm_bluetooth", "kcm_kscreen", "kcm_lookandfeel", "kcm_networkmanagement",
                           "kcm_pulseaudio"})
 
+    def test_un_module_sans_tiret_bas_est_lu(self):
+        # kcmshell6 liste « kcmspellchecking » (sans tiret bas) : ni ignoré à la lecture, ni refusé dans le fichier
+        sortie = KCMSHELL + "  kcmspellchecking            - Correcteur orthographique\n"
+        self.assertIn("kcmspellchecking", p.modules_disponibles(sortie))
+        self.assertTrue(p.KCM.match("kcmspellchecking"))
+        self.assertFalse(p.KCM.match("autre_module"))
+        self.assertFalse(p.KCM.match("kcm_a; rm -rf /"))
+
+    def test_le_fichier_ne_cite_que_des_modules_de_l_image_de_kinoite(self):
+        # modules relevés dans l'image (kcmshell6 --list, build du 3 octobre 2026) : ceux qui ont été corrigés
+        cibles = {r.cible for r in p.charger(FICHIER) if r.type == "kcm"}
+        self.assertNotIn("kcm_sddm", cibles)           # le gestionnaire de connexion est Plasma Login (kcm_plasmalogin)
+        self.assertNotIn("kcm_spellchecking", cibles)  # le module s'appelle kcmspellchecking
+        self.assertNotIn("kcm_kdeconnect", cibles)     # KDE Connect n'est pas dans l'image
+        self.assertIn("kcm_plasmalogin", cibles)
+        self.assertIn("kcmspellchecking", cibles)
+
     def test_sortie_inutilisable_ne_masque_rien(self):
         self.assertIsNone(p.modules_disponibles(""))
         self.assertIsNone(p.modules_disponibles("kcmshell6: command not found"))
@@ -193,9 +210,20 @@ class Modules(unittest.TestCase):
         noms = {r.nom for r in visibles}
         self.assertIn("Affichage", noms)
         self.assertNotIn("Écran tactile", noms)
-        self.assertIn("Barre des tâches", noms)  # « info » : jamais masqué
+        self.assertIn("Barre des tâches", noms)  # page du Centre : jamais masquée
         self.assertIn("Protéger mes données", noms)  # page du Centre : jamais masquée
         self.assertEqual(len(p.visibles(reglages, None)), len(reglages))
+
+    def test_une_ligne_info_n_est_jamais_masquee(self):
+        explication = p.charger(self._ecrire("C\tB\tz\tTexte.\tinfo\tinfo\n"))
+        self.assertEqual(p.visibles(explication, set()), explication)
+
+    def _ecrire(self, contenu):
+        fichier = tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False, encoding="utf-8")
+        self.addCleanup(os.unlink, fichier.name)
+        fichier.write(contenu)
+        fichier.close()
+        return fichier.name
 
 
 @unittest.skipUnless(AVEC_QT, "PySide6 absent")
@@ -203,15 +231,15 @@ class Page(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
-        from nicos_centre import theme
-        from nicos_centre.pages import parametres
+        from binixx_centre import theme
+        from binixx_centre.pages import parametres
         cls.module = parametres
         cls.app.setStyleSheet(theme.STYLE)
 
     def setUp(self):
-        os.environ["NICOS_PARAMETRES"] = FICHIER
+        os.environ["BINIXX_PARAMETRES"] = FICHIER
         self.anciens = (launch.run, launch.installed_flatpaks, launch._start)
-        self.tous = {"kcm_" + r.cible[4:] for r in p.charger(FICHIER) if r.type == "kcm"}
+        self.tous = {r.cible for r in p.charger(FICHIER) if r.type == "kcm"}
         self.modules = set(self.tous)
         launch.run = lambda argv, timeout=120: (0, "\n".join(f"  {m} - un module" for m in sorted(self.modules)))
         launch.installed_flatpaks = lambda: {"org.gnome.DejaDup"}
@@ -222,7 +250,7 @@ class Page(unittest.TestCase):
 
     def tearDown(self):
         launch.run, launch.installed_flatpaks, launch._start = self.anciens
-        os.environ.pop("NICOS_PARAMETRES", None)
+        os.environ.pop("BINIXX_PARAMETRES", None)
 
     def carte(self, page, nom):
         return next(t for t in page.tuiles if t.reglage.nom == nom)
@@ -244,7 +272,7 @@ class Page(unittest.TestCase):
         self.carte(page, "Son").click()
         self.assertEqual(self.lances[-1], ["systemsettings", "kcm_pulseaudio"])
         self.carte(page, "Stockage et disques").click()
-        self.assertEqual(self.lances[-1], ["kioclient", "exec", "/usr/share/applications/nicos-administration.desktop"])
+        self.assertEqual(self.lances[-1], ["kioclient", "exec", "/usr/share/applications/binixx-administration.desktop"])
         if CAPTURES:
             os.makedirs(CAPTURES, exist_ok=True)
             page.resize(1120, 860)
@@ -320,14 +348,25 @@ class Page(unittest.TestCase):
         self.assertEqual(self.pages[-1], "aide")
 
     def test_une_explication_n_est_pas_cliquable(self):
+        fichier = tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False, encoding="utf-8")
+        self.addCleanup(os.unlink, fichier.name)
+        fichier.write("Système\tUne explication\texplication\tRien à ouvrir ici.\tmonitor\tinfo\t\n"
+                      "Système\tAffichage\técran\tÉcrans.\tmonitor\tkcm\tkcm_kscreen\n")
+        fichier.close()
+        os.environ["BINIXX_PARAMETRES"] = fichier.name
         page = self.module.build(self.centre)
-        self.choisir(page, "Personnalisation")
-        info = self.carte(page, "Barre des tâches")
+        info = self.carte(page, "Une explication")
         self.assertFalse(info.actionnable)
         self.assertTrue(info.property("info"))
         info.click()
         self.assertEqual(self.lances, [])
-        self.assertTrue(self.carte(page, "Arrière-plan").actionnable)
+        self.assertTrue(self.carte(page, "Affichage").actionnable)
+
+    def test_la_barre_des_taches_ouvre_sa_page(self):
+        page = self.module.build(self.centre)
+        self.choisir(page, "Personnalisation")
+        self.carte(page, "Barre des tâches").click()
+        self.assertEqual(self.pages, ["barre"])
 
     def test_application_flatpak_installee_ou_a_installer(self):
         page = self.module.build(self.centre)
@@ -369,7 +408,7 @@ class Page(unittest.TestCase):
         self.addCleanup(os.unlink, fichier.name)
         fichier.write("Nouveauté\tUn réglage\tmot;clé\tExplication.\tstar\tkcm\tkcm_kscreen\n")
         fichier.close()
-        os.environ["NICOS_PARAMETRES"] = fichier.name
+        os.environ["BINIXX_PARAMETRES"] = fichier.name
         page = self.module.build(self.centre)
         self.assertEqual(page.liste.count(), 1)
         self.assertEqual(len(page.tuiles), 1)

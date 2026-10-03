@@ -6,7 +6,7 @@ l'identique, voir docs/compatibilite.md), placés dans system_files/usr/share/te
 lanceur .desktop. Les fichiers sont versionnés : ce script ne sert qu'à les refaire.
 
 Usage : branding/fabriquer-modeles.py
-Prérequis (hors NicOS, dans un environnement temporaire) : pip install python-docx openpyxl python-pptx
+Prérequis (hors BinixX OS, dans un environnement temporaire) : pip install python-docx openpyxl python-pptx
 """
 
 import datetime

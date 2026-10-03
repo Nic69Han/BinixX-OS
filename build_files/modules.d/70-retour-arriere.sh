@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 # Retour arrière automatique : si une mise à jour empêche l'écran de connexion de démarrer, le PC revient
 # tout seul à la version précédente après trois tentatives (greenboot, licence BSD-3-Clause, conçu pour bootc).
-# Les contrôles de NicOS sont dans system_files/etc/greenboot/check/required.d/ ; docs/mises-a-jour.md.
+# Les contrôles de BinixX OS sont dans system_files/etc/greenboot/check/required.d/ ; docs/mises-a-jour.md.
 
 set -ouex pipefail
 

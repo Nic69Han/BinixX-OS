@@ -1,4 +1,4 @@
-# Administrer NicOS à la souris
+# Administrer BinixX OS à la souris
 
 Tout se fait sans terminal, depuis trois endroits :
 
@@ -39,6 +39,6 @@ Tout se fait sans terminal, depuis trois endroits :
 Il n'écoute que sur le PC lui-même (adresses `127.0.0.1` et `::1`) : personne ne peut s'y connecter
 depuis le réseau. Pour administrer un poste à distance, l'administrateur ouvre explicitement le
 service « cockpit » dans le pare-feu et change les adresses d'écoute (voir le commentaire de
-`/usr/lib/systemd/system/cockpit.socket.d/50-nicos-localhost.conf`).
+`/usr/lib/systemd/system/cockpit.socket.d/50-binixx-localhost.conf`).
 
 Pour une PME qui équipe plusieurs postes : [image-entreprise.md](image-entreprise.md).

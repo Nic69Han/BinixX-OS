@@ -4,12 +4,12 @@ import os
 import sys
 import unittest
 
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(os.path.dirname(__file__), "../../../system_files/usr/lib/nicos/centre"))
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(os.path.dirname(__file__), "../../../system_files/usr/lib/binixx/centre"))
 sys.path.insert(0, RACINE)
-FICHIER = os.environ.get("NICOS_CATALOGUE", os.path.join(os.path.dirname(__file__),
-                         "../../../system_files/usr/share/nicos/catalogue-windows/catalogue.tsv"))
+FICHIER = os.environ.get("BINIXX_CATALOGUE", os.path.join(os.path.dirname(__file__),
+                         "../../../system_files/usr/share/binixx/catalogue-windows/catalogue.tsv"))
 
-from nicos_centre import catalogue  # noqa: E402
+from binixx_centre import catalogue  # noqa: E402
 
 
 class Catalogue(unittest.TestCase):
@@ -56,7 +56,7 @@ class Catalogue(unittest.TestCase):
         self.assertEqual(len(noms), len(set(noms)))
 
     def test_chaque_categorie_a_son_pictogramme(self):
-        from nicos_centre import icones
+        from binixx_centre import icones
         for categorie in {e.categorie for e in self.entrees}:
             self.assertIn(categorie, catalogue.ICONES_CATEGORIES, categorie)
         for icone in catalogue.ICONES_CATEGORIES.values():

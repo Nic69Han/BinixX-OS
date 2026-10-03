@@ -1,9 +1,9 @@
-# Image de l'entreprise : NicOS + ses logiciels, ses réglages, son nom.
+# Image de l'entreprise : BinixX OS + ses logiciels, ses réglages, son nom.
 # Construction : `podman build -t ghcr.io/<votre-organisation>/<nom-image>:stable entreprise/`
 # (ou la CI : voir github-actions.yml.modele). Guide : docs/image-entreprise.md
 
-# Image NicOS de départ. `stable` n'est publiée qu'après le test complet en VM.
-ARG BASE=ghcr.io/nic69han/nicos:stable
+# Image BinixX OS de départ. `stable` n'est publiée qu'après le test complet en VM.
+ARG BASE=ghcr.io/nic69han/binixx:stable
 
 # Contexte de build : ces fichiers servent pendant le build sans être copiés tels quels dans l'image
 FROM scratch AS ctx

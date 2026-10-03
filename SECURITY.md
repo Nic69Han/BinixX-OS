@@ -2,7 +2,7 @@
 
 ## Versions prises en charge
 
-Seule la version publiée sous l'étiquette `stable` (`ghcr.io/nic69han/nicos:stable`) reçoit des
+Seule la version publiée sous l'étiquette `stable` (`ghcr.io/nic69han/binixx:stable`) reçoit des
 correctifs. Les postes installés la suivent et se mettent à jour automatiquement.
 
 ## Signaler une faille

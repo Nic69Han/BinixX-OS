@@ -1,7 +1,7 @@
 """Tests de la page « Installer des applications » : liste tirée du catalogue, licences, commande, page.
 
 python3 -m unittest discover -s tests/image/centre -p 'test_applications.py'   (la partie Qt est ignorée sans PySide6)
-Flatpak est remplacé par un petit script (NICOS_FLATPAK) : rien n'est installé pour de vrai.
+Flatpak est remplacé par un petit script (BINIXX_FLATPAK) : rien n'est installé pour de vrai.
 """
 
 import os
@@ -12,15 +12,15 @@ import time
 import unittest
 
 ICI = os.path.dirname(__file__)
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/nicos/centre"))
-DONNEES = os.path.join(ICI, "../../../system_files/usr/share/nicos/catalogue-windows")
-FICHIER = os.environ.get("NICOS_CATALOGUE", os.path.join(DONNEES, "catalogue.tsv"))
-LICENCES = os.environ.get("NICOS_LICENCES", os.path.join(DONNEES, "licences.tsv"))
-FOURNIES = os.environ.get("NICOS_FLATPAKS", os.path.join(ICI, "../../../flatpaks/system-flatpaks.list"))
-CAPTURES = os.environ.get("NICOS_CAPTURES")
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/binixx/centre"))
+DONNEES = os.path.join(ICI, "../../../system_files/usr/share/binixx/catalogue-windows")
+FICHIER = os.environ.get("BINIXX_CATALOGUE", os.path.join(DONNEES, "catalogue.tsv"))
+LICENCES = os.environ.get("BINIXX_LICENCES", os.path.join(DONNEES, "licences.tsv"))
+FOURNIES = os.environ.get("BINIXX_FLATPAKS", os.path.join(ICI, "../../../flatpaks/system-flatpaks.list"))
+CAPTURES = os.environ.get("BINIXX_CAPTURES")
 sys.path.insert(0, RACINE)
 
-from nicos_centre import applications as a, catalogue, launch  # noqa: E402
+from binixx_centre import applications as a, catalogue, launch  # noqa: E402
 
 try:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -162,8 +162,8 @@ class Page(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
-        from nicos_centre import theme
-        from nicos_centre.pages import applications
+        from binixx_centre import theme
+        from binixx_centre.pages import applications
         cls.module = applications
         cls.app.setStyleSheet(theme.STYLE)
 
@@ -178,7 +178,7 @@ class Page(unittest.TestCase):
         with open(faux, "w") as fichier:
             fichier.write(FAUX_FLATPAK)
         os.chmod(faux, os.stat(faux).st_mode | stat.S_IXUSR)
-        os.environ.update({"NICOS_CATALOGUE": FICHIER, "NICOS_LICENCES": LICENCES, "NICOS_FLATPAK": faux,
+        os.environ.update({"BINIXX_CATALOGUE": FICHIER, "BINIXX_LICENCES": LICENCES, "BINIXX_FLATPAK": faux,
                            "FAUX_JOURNAL": self.journal, "FAUX_ETAT": self.etat})
         os.environ.pop("FAUX_CODE", None)
         self.anciens = (launch.installed_flatpaks, catalogue.fournies)
@@ -188,7 +188,7 @@ class Page(unittest.TestCase):
 
     def tearDown(self):
         launch.installed_flatpaks, catalogue.fournies = self.anciens
-        for cle in ("NICOS_CATALOGUE", "NICOS_LICENCES", "NICOS_FLATPAK", "FAUX_JOURNAL", "FAUX_ETAT", "FAUX_CODE",
+        for cle in ("BINIXX_CATALOGUE", "BINIXX_LICENCES", "BINIXX_FLATPAK", "FAUX_JOURNAL", "FAUX_ETAT", "FAUX_CODE",
                     "FAUX_ERREUR"):
             os.environ.pop(cle, None)
 
@@ -262,7 +262,7 @@ class Page(unittest.TestCase):
         self.assertFalse(page.progression.isVisible())
 
     def test_flatpak_introuvable(self):
-        os.environ["NICOS_FLATPAK"] = "/inexistant/flatpak"
+        os.environ["BINIXX_FLATPAK"] = "/inexistant/flatpak"
         page = self.module.build(None)
         page.cases["org.videolan.VLC"].setChecked(True)
         page.installer()
@@ -277,7 +277,7 @@ class Page(unittest.TestCase):
         self.assertIn("aucune application", page.statut.text())
 
     def test_l_accueil_renvoie_vers_la_page(self):
-        from nicos_centre.pages import accueil
+        from binixx_centre.pages import accueil
         appels = []
         centre = type("Centre", (), {"show_page": lambda self, cle: appels.append(cle)})()
         carte = next(c for c in accueil.CARTES if c[2] == "Choisir mes applications")

@@ -15,10 +15,10 @@ import tempfile
 import unittest
 
 ICI = os.path.dirname(__file__)
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/nicos/centre"))
-LIBEXEC = os.environ.get("NICOS_LIBEXEC", os.path.join(ICI, "../../../system_files/usr/libexec/nicos"))
-OUTIL = os.path.join(LIBEXEC, "nicos-cle-recuperation")
-CAPTURES = os.environ.get("NICOS_CAPTURES")  # dossier où enregistrer des captures de la page (facultatif)
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/binixx/centre"))
+LIBEXEC = os.environ.get("BINIXX_LIBEXEC", os.path.join(ICI, "../../../system_files/usr/libexec/binixx"))
+OUTIL = os.path.join(LIBEXEC, "binixx-cle-recuperation")
+CAPTURES = os.environ.get("BINIXX_CAPTURES")  # dossier où enregistrer des captures de la page (facultatif)
 sys.path.insert(0, RACINE)
 
 try:
@@ -201,8 +201,8 @@ class Page(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
-        from nicos_centre import launch, theme
-        from nicos_centre.pages import securite
+        from binixx_centre import launch, theme
+        from binixx_centre.pages import securite
         cls.launch, cls.securite = launch, securite
         cls.app.setStyleSheet(theme.STYLE)
 

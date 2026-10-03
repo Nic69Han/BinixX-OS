@@ -15,7 +15,7 @@ Pourquoi maintenant :
 - **État et Europe** : la DINUM a annoncé en avril 2026 le passage des postes de l'État à Linux ;
   chaque ministère rend son plan à l'automne 2026. Danemark et Schleswig-Holstein font de même.
 - **Précédents** : Zorin OS 18 (2 millions de téléchargements en 3 mois, aux trois quarts des
-  utilisateurs Windows) et Bazzite (même base que NicOS, devenue connue grâce à une promesse simple).
+  utilisateurs Windows) et Bazzite (même base que BinixX OS, devenue connue grâce à une promesse simple).
 
 ## Règles pour chaque PR
 
@@ -35,18 +35,18 @@ automatiques testées avec retour arrière, applications isolées (Flatpak), les
 
 | PR | Contenu | Critères d'acceptation |
 | --- | --- | --- |
-| **S1. Durcissement du poste** | Pare-feu : zone `nicos` par défaut (aucune connexion entrante sauf découverte du réseau local, voisinage Windows, KDE Connect), au lieu de la zone Fedora qui ouvre les ports 1025 à 65535. SSH désactivé par défaut. Réglages du noyau (journaux du noyau et adresses réservés à l'administrateur, pas de débogage d'un autre programme, pas de redirections ICMP). Firefox : uBlock Origin installé d'office, mode HTTPS uniquement, télémétrie coupée. Guide `securite.md` et politique de signalement des failles (`SECURITY.md`). | Image : zone et services du pare-feu, SSH non activé, fichier sysctl, règles Firefox valides. VM : pare-feu actif sur la zone `nicos`, valeurs du noyau appliquées, mises à jour automatiques (système et Flatpak) programmées. |
-| **S2. Images signées et vérifiées** | Signature Cosign à chaque publication ; sur les postes, refus de toute image de `ghcr.io/nic69han/nicos` non signée par la clé NicOS (aujourd'hui : acceptée sans vérification). **Action du propriétaire** : créer la paire de clés et le secret `SIGNING_SECRET`. | Image : clé publique et règle `sigstoreSigned`. VM : mise à jour signée acceptée ; image non signée refusée. |
+| **S1. Durcissement du poste** | Pare-feu : zone `binixx` par défaut (aucune connexion entrante sauf découverte du réseau local, voisinage Windows, KDE Connect), au lieu de la zone Fedora qui ouvre les ports 1025 à 65535. SSH désactivé par défaut. Réglages du noyau (journaux du noyau et adresses réservés à l'administrateur, pas de débogage d'un autre programme, pas de redirections ICMP). Firefox : uBlock Origin installé d'office, mode HTTPS uniquement, télémétrie coupée. Guide `securite.md` et politique de signalement des failles (`SECURITY.md`). | Image : zone et services du pare-feu, SSH non activé, fichier sysctl, règles Firefox valides. VM : pare-feu actif sur la zone `binixx`, valeurs du noyau appliquées, mises à jour automatiques (système et Flatpak) programmées. |
+| **S2. Images signées et vérifiées** | Signature Cosign à chaque publication ; sur les postes, refus de toute image de `ghcr.io/nic69han/binixx` non signée par la clé BinixX OS (aujourd'hui : acceptée sans vérification). **Action du propriétaire** : créer la paire de clés et le secret `SIGNING_SECRET`. | Image : clé publique et règle `sigstoreSigned`. VM : mise à jour signée acceptée ; image non signée refusée. |
 | **S3. Chaîne d'approvisionnement** | **Livré** : inventaire des logiciels de chaque image (SBOM CycloneDX), avis de sécurité Fedora en attente avec seuil bloquant (`Critical` par défaut, réglable), attestations de provenance et de SBOM GitHub : [securite.md](securite.md#chaîne-dapprovisionnement--ce-quil-y-a-dans-limage-doù-elle-vient). Trivy et Grype ne couvrent pas Fedora : la source est celle de Fedora (`dnf updateinfo`). | SBOM et rapport joints à chaque build ; build rouge si une vulnérabilité critique corrigeable est présente. |
-| **S4. Chiffrement et PC perdu** | Chiffrement proposé à l'installation, déverrouillage par la puce TPM sans mot de passe supplémentaire (`ujust setup-luks-tpm-unlock`, déjà dans l'image), documenté pas à pas ; option antivirus (ClamTk) pour les PME qui doivent en justifier un. **Livré** : page « Protéger mes données » du Centre NicOS, avec création et remplacement de la **clé de récupération** du disque chiffré. | Test VM d'une installation chiffrée qui redémarre seule grâce au TPM virtuel. Test VM de la clé de récupération sur un volume LUKS2 : **fait**. |
+| **S4. Chiffrement et PC perdu** | Chiffrement proposé à l'installation, déverrouillage par la puce TPM sans mot de passe supplémentaire (`ujust setup-luks-tpm-unlock`, déjà dans l'image), documenté pas à pas ; option antivirus (ClamTk) pour les PME qui doivent en justifier un. **Livré** : page « Protéger mes données » du Centre BinixX OS, avec création et remplacement de la **clé de récupération** du disque chiffré. | Test VM d'une installation chiffrée qui redémarre seule grâce au TPM virtuel. Test VM de la clé de récupération sur un volume LUKS2 : **fait**. |
 
 ## Lot 2 — Applications
 
 | PR | Contenu | Critères d'acceptation |
 | --- | --- | --- |
-| **A1. Choix des applications** | **Livré en grande partie** : page « Installer des applications » du Centre NicOS, comme Ninite : cases à cocher avec les noms connus sous Windows (VLC, LibreOffice, Spotify, Discord, Bitwarden, GIMP, RustDesk…), licence affichée et applications propriétaires signalées, installation d'un coup avec un seul mot de passe ([centre-nicos.md](centre-nicos.md#installer-des-applications)). Reste : la proposer à la première ouverture de session ; sélection par fichier pour les images d'entreprise. | Test VM : la commande de la page installe une vraie application depuis Flathub : **fait**. |
+| **A1. Choix des applications** | **Livré en grande partie** : page « Installer des applications » du Centre BinixX OS, comme Ninite : cases à cocher avec les noms connus sous Windows (VLC, LibreOffice, Spotify, Discord, Bitwarden, GIMP, RustDesk…), licence affichée et applications propriétaires signalées, installation d'un coup avec un seul mot de passe ([centre-binixx.md](centre-binixx.md#installer-des-applications)). Reste : la proposer à la première ouverture de session ; sélection par fichier pour les images d'entreprise. | Test VM : la commande de la page installe une vraie application depuis Flathub : **fait**. |
 | **A2. Microsoft 365 en applications** | Lanceurs Outlook, Word, Excel, PowerPoint et OneDrive en ligne, comme les web apps Teams/Zoom. | Lanceurs valides ; ouverture dans une fenêtre dédiée. |
-| **A3. Programmes Windows** | **Livré en grande partie** (« Mon logiciel Windows », lot 6) : au double-clic sur un `.exe` ou un `.msi`, le Centre NicOS cherche l'équivalent connu ; Bottles est proposé **à la demande** (pas préinstallé : compatibilité non garantie, il ne faut pas la promettre). Reste : table des installeurs courants plus large. | Test : un installeur connu propose son équivalent ; un inconnu propose Bottles. |
+| **A3. Programmes Windows** | **Livré en grande partie** (« Mon logiciel Windows », lot 6) : au double-clic sur un `.exe` ou un `.msi`, le Centre BinixX OS cherche l'équivalent connu ; Bottles est proposé **à la demande** (pas préinstallé : compatibilité non garantie, il ne faut pas la promettre). Reste : table des installeurs courants plus large. | Test : un installeur connu propose son équivalent ; un inconnu propose Bottles. |
 
 ## Lot 3 — Migration et matériel
 
@@ -54,7 +54,7 @@ automatiques testées avec retour arrière, applications isolées (Flatpak), les
 | --- | --- | --- |
 | **M1. Assistant de migration** | **Livré** (« Récupérer mes fichiers Windows ») : Documents, Bureau, Images, Musique, Vidéos, Téléchargements et favoris du navigateur depuis l'ancien disque Windows, une clé USB ou un dossier, sans rien écraser : [migration-windows.md](migration-windows.md#récupérer-ses-fichiers--récupérer-mes-fichiers-windows). Reste : lire une sauvegarde « Historique des fichiers », importer les mots de passe. | Test VM avec un faux profil Windows : fichiers et favoris retrouvés. |
 | **M2. Vieux PC** | Cible 4 Go de mémoire : le test VM tourne avec 4 Go ; services d'arrière-plan allégés si besoin. | Test VM complet vert à 4 Go. |
-| **M3. Essayer sans installer** | ISO « live » : NicOS démarre depuis la clé USB, sans toucher au disque, avec un bouton « Installer ». | Test de démarrage de l'ISO live jusqu'au bureau. |
+| **M3. Essayer sans installer** | ISO « live » : BinixX OS démarre depuis la clé USB, sans toucher au disque, avec un bouton « Installer ». | Test de démarrage de l'ISO live jusqu'au bureau. |
 
 ## Lot 4 — Zéro terminal
 
@@ -64,7 +64,7 @@ doit se faire à la souris ; la documentation donne d'abord le chemin graphique.
 | PR | Contenu | Critères d'acceptation |
 | --- | --- | --- |
 | **U1. Centre d'administration** | Cockpit, la console d'administration web de Fedora, accessible seulement depuis le PC lui-même (lanceur « Administration du PC ») : rejoindre un domaine Active Directory, mises à jour et retour arrière, pare-feu, disques et chiffrement, services, journaux, comptes. Pare-feu aussi dans Configuration du système (plasma-firewall). Guide `administration.md` : chaque tâche, son chemin à la souris. | Image : paquets, socket limité à localhost, lanceur. VM : console joignable en local seulement, modules détectés. |
-| **U2. Assistants NicOS sans terminal** | Page « NicOS » dans le centre d'administration : déverrouillage du disque par la puce TPM (avec l'avertissement AMD Zen 1 à 3), ouverture de l'accès à distance (SSH, bureau à distance) en un clic, et OneDrive avec connexion par le navigateur et fichiers à la demande (montage rclone) au lieu de l'assistant en terminal. | Test VM de chaque action sans saisie au clavier. |
+| **U2. Assistants BinixX OS sans terminal** | Page « BinixX OS » dans le centre d'administration : déverrouillage du disque par la puce TPM (avec l'avertissement AMD Zen 1 à 3), ouverture de l'accès à distance (SSH, bureau à distance) en un clic, et OneDrive avec connexion par le navigateur et fichiers à la demande (montage rclone) au lieu de l'assistant en terminal. | Test VM de chaque action sans saisie au clavier. |
 | **U3. Console Active Directory** | Pour l'administrateur d'une PME : ADMC (équivalent libre des consoles Windows « Utilisateurs et ordinateurs » et « Gestion des stratégies de groupe »), à empaqueter : il n'est ni dans Fedora ni sur Flathub. | Construction reproductible ; démarrage de l'application en VM. |
 
 ## Lot 5 — Se faire connaître
@@ -84,12 +84,12 @@ Pro, Windows Autopilot). Chaque ligne est une pull request, empilée sur le socl
 
 | PR | Contenu | État |
 | --- | --- | --- |
-| **C1. Centre NicOS : Accueil** (#18) | Application PySide6 à pages ; accueil en français pour qui vient de Windows, ouvert une fois à la première session ; Centre de bienvenue de KDE désactivé. | Livré |
+| **C1. Centre BinixX OS : Accueil** (#18) | Application PySide6 à pages ; accueil en français pour qui vient de Windows, ouvert une fois à la première session ; Centre de bienvenue de KDE désactivé. | Livré |
 | **C2. Mon logiciel Windows** (#19) | Catalogue de 64 équivalents (Word, Excel, Sage, Photoshop…), recherche sans accents, ouverture des `.exe` / `.msi` ; Bottles à la demande. | Livré |
 | **C3. Obtenir de l'aide** (#20) | Sept cas fréquents sans IA, rapport de diagnostic sans secret, bureau réinitialisable. | Livré |
 | **E1. Image d'entreprise** (#17) | Gabarit `entreprise/` (nom, paquets, Flatpak, page d'accueil, proxy), modèles de CI et d'ISO, guide en six étapes. | Livré |
 | **R1. Retour arrière automatique** (#21) | greenboot : trois démarrages en échec, retour à la version précédente ; test VM de bout en bout. | Livré |
-| **G1. Variante NVIDIA** (#22) | Image `nicos-nvidia` construite et testée comme `nicos`. Fusionnée comme **expérimentale** ; validation sur matériel réel attendue. | Livré (expérimental) |
+| **G1. Variante NVIDIA** (#22) | Image `binixx-nvidia` construite et testée comme `binixx`. Fusionnée comme **expérimentale** ; validation sur matériel réel attendue. | Livré (expérimental) |
 | **D1. Créer nouveau** (#23) | Document texte, Classeur, Présentation vierges (.docx, .xlsx, .pptx) dans Dolphin. | Livré |
 
 ## Lot 7 — Études (aucun code livré)
@@ -101,7 +101,7 @@ Pro, Windows Autopilot). Chaque ligne est une pull request, empilée sur le socl
 | Gestion d'un parc de PC | [gestion-de-flotte.md](gestion-de-flotte.md) | Besoin réel des PME visées |
 | Traité | Clé de récupération du disque chiffré, pack jeux, remise à zéro du système, Windows en machine virtuelle | Voir le lot 8 : la « réinstallation complète » a été remplacée par « Réparer le système », jugée plus sûre |
 
-## Lot 8 — Autour du Centre NicOS (2 octobre 2026)
+## Lot 8 — Autour du Centre BinixX OS (2 octobre 2026)
 
 Ce que les études du lot 7 sont devenues. Chaque ligne est une pull request ; « Livré » = fusionnée après construction et test VM verts.
 
@@ -109,12 +109,12 @@ Ce que les études du lot 7 sont devenues. Chaque ligne est une pull request ; �
 | --- | --- | --- |
 | **K1. Clé de récupération du disque chiffré** (#26) | Page « Protéger mes données » : création et remplacement de la clé (équivalent de celle de BitLocker), testée sur un vrai volume LUKS2. | Livré |
 | **J1. Jeux à la demande** (#27) | Steam, Heroic, Lutris, Prism, ProtonUp-Qt, jeu en streaming : rien d'installé d'office, carte graphique et manettes détectées. | Livré |
-| **R2. Réparer le système** (#28) | Remet **un réglage** de `/etc` comme dans l'image, avec sauvegarde et annulation ; remplace le « Réinitialiser NicOS » complet, qui aurait effacé comptes et réseaux. | Livré |
+| **R2. Réparer le système** (#28) | Remet **un réglage** de `/etc` comme dans l'image, avec sauvegarde et annulation ; remplace le « Réinitialiser BinixX OS » complet, qui aurait effacé comptes et réseaux. | Livré |
 | **W1. Windows complet** (#29) | Le PC est-il prêt (virtualisation, mémoire, espace) ? Boxes, WinBoat (expérimental) ou Windows 365 ; Podman Compose et FreeRDP 3 dans l'image. **WinBoat reste à valider à la main sur un vrai PC.** | Livré |
 | **T1. Test VM : retour arrière** (#30) | Le test n'exige plus d'attraper par SSH la mise à jour défectueuse (créneau de quelques secondes) : il lit un compteur de démarrages. Avait fait échouer `main` et la variante NVIDIA. | Livré |
 | **M1. Récupérer mes fichiers Windows** (#31) | Documents, photos, musique, favoris depuis l'ancien disque, une clé USB ou un dossier, sans rien écraser. | Livré |
 | **S3. Chaîne d'approvisionnement** (#32) | SBOM CycloneDX, avis de sécurité Fedora avec seuil bloquant, attestations de provenance. | Livré |
-| **G1. Variante NVIDIA** (#22) | Fusionnée comme **expérimentale** (image séparée `nicos-nvidia`) ; tests VM des deux images verts. | Livré (expérimental) |
+| **G1. Variante NVIDIA** (#22) | Fusionnée comme **expérimentale** (image séparée `binixx-nvidia`) ; tests VM des deux images verts. | Livré (expérimental) |
 
 Reste à faire, sans décision du propriétaire : choix des applications au premier démarrage (A1), notes de version (L2), console
 Active Directory (U3), assistants sans terminal (U2).
@@ -125,11 +125,12 @@ Choisies avec le propriétaire après comparaison ; chaque ligne est une pull re
 
 | PR | Contenu | Inspiré de | État |
 | --- | --- | --- | --- |
-| **P1. Paramètres** | Un seul écran, catégories et noms de Windows 11, recherche, touche Windows + I : [centre-nicos.md](centre-nicos.md#paramètres). | Centre de contrôle de Deepin | En test |
-| **Style commun** | Le style moderne de Paramètres (en-tête en dégradé, cartes à pastille, pictogrammes) appliqué à toutes les pages, une couleur par page : [centre-nicos.md](centre-nicos.md#présentation-commune). | Retour du propriétaire | En test |
-| **P2. Disposition de la barre** | Barre en bas (comme Windows) ou en haut, en un clic dans le Centre. | Zorin Appearance | À faire |
+| **P1. Paramètres** | Un seul écran, catégories et noms de Windows 11, recherche, touche Windows + I : [centre-binixx.md](centre-binixx.md#paramètres). | Centre de contrôle de Deepin | Livré |
+| **Style commun** | Le style moderne de Paramètres (en-tête en dégradé, cartes à pastille, pictogrammes) appliqué à toutes les pages, une couleur par page : [centre-binixx.md](centre-binixx.md#présentation-commune). | Retour du propriétaire | Livré |
+| **Fond d'écran signature** | « Le marcheur de l'aube » : un homme seul, simple silhouette sombre, marche vers le soleil qui se lève sur une planète, ciel étoilé (clin d'œil au Petit Prince) ; clair et sombre, 1080p et 4K, calculé par `branding/fond_ecran.py` : [identite-visuelle.md](identite-visuelle.md#le-fond-décran). | Le fond « Bliss » de Windows XP | En test |
+| **P2. Disposition de la barre** | Barre en bas (comme Windows) ou en haut, en un clic : page ouverte depuis Paramètres, maquette de chaque choix, déplacement immédiat dans la session : [centre-binixx.md](centre-binixx.md#barre-des-tâches--en-bas-ou-en-haut). | Zorin Appearance | En test |
 | **P3. Créer une application web** | Transformer n'importe quel site (intranet, logiciel de gestion en ligne) en application du menu. | Outil « Web Apps » de Zorin OS 18 | À faire |
-| **P4. Clé USB bootable** | « Rufus / Etcher » dans le catalogue, vers l'outil KDE d'écriture d'ISO : installer NicOS sur le PC suivant. | Deepin Boot Maker | À faire |
+| **P4. Clé USB bootable** | « Rufus / Etcher » dans le catalogue, vers l'outil KDE d'écriture d'ISO : installer BinixX OS sur le PC suivant. | Deepin Boot Maker | À faire |
 | **P5. Poste partagé** | Option de l'image d'entreprise : la session repart propre à chaque redémarrage (réception, borne, salle de formation). | « Restauration sans souci » de Deepin 25 | À faire |
 
 Écartés pour l'instant : synchronisation des réglages dans le nuage (serveur nécessaire), IA intégrée (en attente),
@@ -144,7 +145,7 @@ Choisies avec le propriétaire après comparaison ; chaque ligne est une pull re
 3. ~~Suite bureautique par défaut~~ **Décidé** : OnlyOffice (meilleure fidélité Microsoft) ; LibreOffice reste proposée dans A1.
 4. Publication du README et du site (L1).
 5. ~~Variante NVIDIA (G1)~~ **Décidé** : fusion comme variante expérimentale. À faire : un essai sur une vraie carte, puis
-   décision sur l'assistant de passage à `nicos-nvidia`.
+   décision sur l'assistant de passage à `binixx-nvidia`.
 6. **En attente** (le propriétaire a demandé de patienter) : copilote IA (moteur par défaut, « aucun » recommandé ; niveau de
    départ) et Coucou (réécriture pour Plasma ou idée seulement). Rien n'est lancé tant que ce n'est pas tranché.
 7. **ISO publique : refaite en dernier**, une fois `stable` à jour avec tous les chantiers ci-dessus.

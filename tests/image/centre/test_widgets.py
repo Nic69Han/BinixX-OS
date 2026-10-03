@@ -8,7 +8,7 @@ import sys
 import unittest
 
 ICI = os.path.dirname(__file__)
-RACINE = os.environ.get("NICOS_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/nicos/centre"))
+RACINE = os.environ.get("BINIXX_CENTRE", os.path.join(ICI, "../../../system_files/usr/lib/binixx/centre"))
 sys.path.insert(0, RACINE)
 
 try:
@@ -23,7 +23,7 @@ except ImportError:
 class Elements(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        from nicos_centre import theme, widgets
+        from binixx_centre import theme, widgets
         cls.app = QApplication.instance() or QApplication([])
         cls.app.setStyleSheet(theme.STYLE)
         cls.widgets, cls.theme = widgets, theme
@@ -127,7 +127,7 @@ class Pages(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        from nicos_centre import app, icones, pages, theme
+        from binixx_centre import app, icones, pages, theme
         cls.app = QApplication.instance() or QApplication([])
         cls.app.setStyleSheet(theme.STYLE)
         cls.icones, cls.theme, cls.modules = icones, theme, pages.discover()
@@ -149,21 +149,31 @@ class Pages(unittest.TestCase):
 
     def test_la_barre_laterale_montre_une_icone_par_page(self):
         boutons = self.centre.boutons.buttons()
-        self.assertEqual(len(boutons), len(self.modules))
+        avec_bouton = [m for m in self.modules if getattr(m, "MENU", True)]
+        self.assertEqual(len(boutons), len(avec_bouton))
+        self.assertLess(len(avec_bouton), len(self.modules))  # au moins une page s'ouvre depuis une autre (Barre des tâches)
         for bouton in boutons:
             self.assertFalse(bouton.icon().isNull(), bouton.text())
             self.assertIsInstance(bouton, QPushButton)
+
+    def test_une_page_sans_bouton_allume_celui_de_sa_page_parente(self):
+        self.assertTrue(self.centre.show_page("barre"))
+        self.assertEqual(self.centre.pile.currentWidget(), self.centre.widgets["barre"])
+        parent = self.centre.boutons.button(self.centre.keys.index("parametres"))
+        self.assertTrue(parent.isChecked())
+        self.assertTrue(self.centre.show_page("accueil"))
+        self.assertFalse(parent.isChecked())
 
     def test_aucune_page_en_erreur(self):
         self.assertEqual(self.centre.errors, [])
 
     def test_chaque_action_d_aide_a_son_pictogramme(self):
-        from nicos_centre.pages import aide
+        from binixx_centre.pages import aide
         for _, _, _, action in aide.PROBLEMES:
             self.assertIn(aide.ICONES_ACTIONS[action], self.icones.ICONES, action)
 
     def test_les_cartes_de_l_accueil_ont_icone_et_couleur(self):
-        from nicos_centre.pages import accueil
+        from binixx_centre.pages import accueil
         for titre, _, bouton, action, icone, couleurs in accueil.CARTES:
             self.assertIn(icone, self.icones.ICONES, titre)
             self.assertIn(couleurs, self.theme.ACCENTS.values(), titre)

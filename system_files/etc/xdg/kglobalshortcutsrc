@@ -1,4 +1,4 @@
-# Raccourcis globaux fournis par NicOS (les réglages de l'utilisateur passent avant) :
+# Raccourcis globaux fournis par BinixX OS (les réglages de l'utilisateur passent avant) :
 # la touche Windows + I ouvre « Paramètres », comme sous Windows.
-[services][nicos-parametres.desktop]
+[services][binixx-parametres.desktop]
 _launch=Meta+I

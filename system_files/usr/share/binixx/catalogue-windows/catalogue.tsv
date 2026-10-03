@@ -1,0 +1,84 @@
+# Catalogue « Mon logiciel Windows » : quel équivalent sous BinixX OS ?
+# Colonnes séparées par une tabulation :
+#   windows  alias (mots de recherche, séparés par « ; »)  catégorie  type  cible  remplaçant  remarque
+# type : inclus  = déjà dans BinixX OS ; cible = lanceur (nom du fichier .desktop, sans l'extension)
+#        flatpak = application Flatpak (Flathub) ; cible = identifiant ; déjà fournie si elle figure dans
+#                  flatpaks/system-flatpaks.list
+#        web     = version en ligne ; cible = adresse https
+#        info    = réponse sans rien installer ; cible vide
+#        windows = pas d'équivalent : compatibilité Windows ou version en ligne ; cible vide
+# Les identifiants Flathub se vérifient avec tests/centre/verifier_flathub.py
+Microsoft Word	word;docx;doc;traitement de texte;lettre	Bureautique	flatpak	org.onlyoffice.desktopeditors	OnlyOffice Documents	Ouvre et enregistre les .docx ; mise en page fidèle (polices Carlito et Liberation).
+Microsoft Excel	excel;xlsx;xls;tableur;classeur	Bureautique	flatpak	org.onlyoffice.desktopeditors	OnlyOffice Classeur	Ouvre et enregistre les .xlsx ; les macros VBA ne sont pas toutes reprises.
+Microsoft PowerPoint	powerpoint;pptx;ppt;diaporama;présentation	Bureautique	flatpak	org.onlyoffice.desktopeditors	OnlyOffice Présentation	Ouvre et enregistre les .pptx.
+Microsoft 365 (Office en ligne)	office 365;m365;office	Bureautique	web	https://www.microsoft365.com/	Microsoft 365 dans le navigateur	Aussi disponible en application dans le menu : Word, Excel, PowerPoint, Outlook, Teams.
+LibreOffice	libre office;odt;ods;odp	Bureautique	flatpak	org.libreoffice.LibreOffice	LibreOffice	Suite bureautique libre, au format OpenDocument, si vous la préférez à OnlyOffice.
+Microsoft Outlook	outlook;courriel;mail;messagerie;emails	Communication	flatpak	org.mozilla.thunderbird_esr	Thunderbird	Comptes Microsoft 365, IMAP et POP ; Outlook en ligne existe aussi dans le menu.
+Microsoft Teams	teams;visioconférence;réunion	Communication	inclus	binixx-webapp-teams	Teams (application web)	Appels vidéo et partage d'écran fonctionnent sous BinixX OS.
+Zoom	zoom;visio;réunion	Communication	inclus	binixx-webapp-zoom	Zoom (application web)	Partage d'écran via le portail KDE.
+Slack	slack;messagerie d'équipe	Communication	inclus	binixx-webapp-slack	Slack (application web)	
+Skype	skype	Communication	inclus	binixx-webapp-teams	Teams (application web)	Skype est arrêté par Microsoft ; Teams le remplace.
+WhatsApp Desktop	whatsapp;wa	Communication	web	https://web.whatsapp.com/	WhatsApp Web	Scannez le code QR avec le téléphone.
+Discord	discord	Communication	flatpak	com.discordapp.Discord	Discord	
+Thunderbird	thunderbird;courriel	Communication	flatpak	org.mozilla.thunderbird_esr	Thunderbird	
+Microsoft Edge	edge;navigateur;internet	Navigateur	inclus	org.mozilla.firefox	Firefox	Favoris et mots de passe s'importent depuis Edge ou Chrome (menu Firefox → Importer).
+Google Chrome	chrome;google;navigateur	Navigateur	flatpak	org.chromium.Chromium	Chromium	Même moteur que Chrome ; les extensions du Chrome Web Store s'y installent.
+Adobe Acrobat Reader	acrobat;pdf;lecteur pdf;foxit	Documents PDF	flatpak	org.kde.okular	Okular	Lit, annote et signe des PDF ; remplit les formulaires simples.
+Adobe Acrobat Pro	acrobat pro;modifier pdf;fusionner pdf	Documents PDF	flatpak	com.github.jeromerobert.pdfarranger	PDF Arranger	Fusionner, trier, découper, faire pivoter des pages ; modifier le texte d'un PDF : OnlyOffice.
+Scanner de documents	numériser;scan;scanner	Documents PDF	inclus	org.kde.skanpage	Skanpage	Scanners réseau et USB reconnus automatiquement.
+Imprimer en PDF	pdf;imprimante pdf;microsoft print to pdf	Documents PDF	info		Imprimante « PDF » (déjà installée)	Choisissez l'imprimante « PDF » dans la fenêtre Imprimer ; le fichier arrive dans le dossier PDF.
+Adobe Photoshop	photoshop;psd;retouche photo	Images et design	flatpak	org.gimp.GIMP	GIMP	Ouvre les .psd ; Krita convient mieux au dessin.
+Adobe Illustrator	illustrator;ai;vectoriel;logo	Images et design	flatpak	org.inkscape.Inkscape	Inkscape	Dessin vectoriel (SVG, PDF, EPS).
+Adobe Lightroom	lightroom;photos raw;retouche	Images et design	flatpak	org.darktable.Darktable	darktable	Développement de photos RAW.
+Paint	paint;dessin;mspaint	Images et design	flatpak	org.kde.kolourpaint	KolourPaint	
+Photos (Windows)	photos;visionneuse;images	Images et design	flatpak	org.kde.gwenview	Gwenview	
+Outil Capture d'écran	capture;snipping tool;impr écran	Images et design	inclus	org.kde.spectacle	Spectacle	Touche Impr. écran.
+Krita	krita;dessin numérique;peinture	Images et design	flatpak	org.kde.krita	Krita	
+Microsoft Publisher	publisher;plaquette;mise en page	Images et design	flatpak	net.scribus.Scribus	Scribus	Mise en page professionnelle ; ne lit pas les .pub.
+Microsoft Visio	visio;diagramme;organigramme;schéma	Images et design	flatpak	com.jgraph.drawio.desktop	draw.io	Diagrammes et organigrammes ; ouvre les .vsdx.
+Adobe Premiere Pro	premiere;montage vidéo;vidéo	Vidéo et audio	flatpak	org.kde.kdenlive	Kdenlive	Montage vidéo.
+OBS Studio	obs;enregistrer l'écran;streaming	Vidéo et audio	flatpak	com.obsproject.Studio	OBS Studio	Enregistrement de l'écran sous Wayland via PipeWire.
+VLC	vlc;lecteur vidéo	Vidéo et audio	flatpak	org.videolan.VLC	VLC	Haruna, déjà installé, lit aussi presque tout.
+Windows Media Player	media player;lecteur;vidéo;film	Vidéo et audio	flatpak	org.kde.haruna	Haruna	Lit AVI, WMV, MP4, MKV.
+iTunes	itunes;musique;lecteur de musique	Vidéo et audio	flatpak	org.kde.elisa	Elisa	Bibliothèque musicale.
+Spotify	spotify;musique;streaming	Vidéo et audio	flatpak	com.spotify.Client	Spotify	
+Audacity	audacity;audio;enregistrement sonore	Vidéo et audio	flatpak	org.audacityteam.Audacity	Audacity	
+OneDrive	onedrive;microsoft;sync	Fichiers et cloud	inclus	binixx-onedrive	OneDrive (assistant BinixX OS)	Dossier OneDrive synchronisé dans le dossier personnel.
+Dropbox	dropbox	Fichiers et cloud	flatpak	com.dropbox.Client	Dropbox	
+Google Drive	google drive;drive	Fichiers et cloud	web	https://drive.google.com/	Google Drive dans le navigateur	Pas d'application officielle pour Linux.
+Nextcloud	nextcloud;partage;cloud	Fichiers et cloud	flatpak	com.nextcloud.desktopclient.nextcloud	Nextcloud	
+Explorateur de fichiers	explorateur;fichiers;dossiers	Fichiers et cloud	inclus	org.kde.dolphin	Dolphin	
+7-Zip	7zip;7-zip;zip;rar;winrar;archives;compresser	Fichiers et cloud	inclus	org.kde.ark	Ark	Zip, 7z, rar, tar… clic droit sur un fichier → Compresser.
+WinSCP	winscp;sftp;ftp	Fichiers et cloud	inclus	org.kde.dolphin	Dolphin (sftp://)	Tapez sftp://serveur dans la barre d'adresse de Dolphin.
+PuTTY	putty;ssh;terminal	Utilitaires	inclus	org.kde.konsole	Konsole	Le terminal : tapez ssh utilisateur@serveur.
+FileZilla	filezilla;ftp	Fichiers et cloud	flatpak	org.filezillaproject.Filezilla	FileZilla	
+Bloc-notes	bloc-notes;notepad;notepad++;texte	Utilitaires	inclus	org.kde.kate	Kate	Éditeur de texte et de code.
+Calculatrice	calculatrice;calc	Utilitaires	flatpak	org.kde.kcalc	KCalc	
+Gestionnaire des tâches	gestionnaire des tâches;processus;task manager	Utilitaires	inclus	org.kde.plasma-systemmonitor	Moniteur système	Ctrl+Échap.
+Pense-bêtes	sticky notes;notes;post-it;bloc notes	Utilitaires	flatpak	org.kde.klevernotes	KleverNotes	Notes en Markdown, classées en carnets.
+Bitwarden	bitwarden;mots de passe;coffre	Sécurité	flatpak	com.bitwarden.desktop	Bitwarden	
+KeePass	keepass;mots de passe;kdbx	Sécurité	flatpak	org.keepassxc.KeePassXC	KeePassXC	Ouvre les coffres .kdbx de KeePass.
+Antivirus (Defender, Norton, Kaspersky…)	antivirus;defender;norton;kaspersky;avast;malware	Sécurité	info		Aucun antivirus à installer	Système en lecture seule, applications isolées, pare-feu actif. Pour analyser un fichier reçu : ClamTk.
+TeamViewer	teamviewer;assistance;bureau à distance;prise en main	Accès à distance	flatpak	com.rustdesk.RustDesk	RustDesk	TeamViewer n'existe pas en Flatpak : RustDesk (libre) ou AnyDesk font la même chose.
+AnyDesk	anydesk;bureau à distance	Accès à distance	flatpak	com.anydesk.Anydesk	AnyDesk	
+Bureau à distance Windows (RDP)	rdp;mstsc;bureau à distance;connexion bureau	Accès à distance	flatpak	org.remmina.Remmina	Remmina	Se connecte aux postes et serveurs Windows.
+VPN d'entreprise	vpn;cisco;anyconnect;openvpn;wireguard	Accès à distance	inclus	systemsettings	Configuration du système → Réseaux	Prend en charge OpenVPN, WireGuard, L2TP, SSTP et IPsec.
+Visual Studio Code	vscode;code;programmation;développement	Développement	flatpak	com.visualstudio.code	Visual Studio Code	
+Git (GitHub Desktop)	git;github;gitlab	Développement	flatpak	io.github.shiftey.Desktop	GitHub Desktop	
+Steam	steam;jeux;valve	Jeux	flatpak	com.valvesoftware.Steam	Steam	Des milliers de jeux Windows fonctionnent grâce à Proton, intégré à Steam : activez-le dans les réglages de Steam si un jeu ne démarre pas.
+Epic Games Store	epic;epic games;fortnite;rocket league	Jeux	flatpak	com.heroicgameslauncher.hgl	Heroic Games Launcher	Se connecte à votre compte Epic, GOG ou Amazon Games ; les jeux Windows passent par Proton.
+GOG Galaxy	gog;galaxy;good old games;witcher	Jeux	flatpak	com.heroicgameslauncher.hgl	Heroic Games Launcher	Se connecte à votre compte GOG, Epic ou Amazon Games ; les jeux Windows passent par Proton.
+Battle.net	battle net;blizzard;diablo;overwatch;warcraft	Jeux	flatpak	net.lutris.Lutris	Lutris	Lutris propose des scripts d'installation pour Battle.net et d'autres boutiques ; le résultat varie selon les jeux, sans garantie.
+EA app (Origin)	ea;origin;ea app;fifa;sims	Jeux	flatpak	net.lutris.Lutris	Lutris	Lutris propose des scripts d'installation pour la boutique EA ; le résultat varie selon les jeux, sans garantie.
+Ubisoft Connect	ubisoft;uplay;assassin;far cry	Jeux	flatpak	net.lutris.Lutris	Lutris	Lutris propose des scripts d'installation pour Ubisoft Connect ; le résultat varie selon les jeux, sans garantie.
+Minecraft Launcher	minecraft;minecraft java;mojang	Jeux	flatpak	org.prismlauncher.PrismLauncher	Prism Launcher	Gère plusieurs installations de Minecraft Java ; un compte Minecraft acheté reste nécessaire.
+Jeux Windows : compatibilité Proton	proton;protondb;ge-proton;jeu qui ne démarre pas	Jeux	flatpak	net.davidotek.pupgui2	ProtonUp-Qt	Installe d'autres versions de Proton (GE-Proton) pour les jeux qui refusent de démarrer avec celle de Steam.
+Xbox Game Pass (jeux sur PC)	xbox;game pass;xbox cloud;xcloud	Jeux	web	https://www.xbox.com/play	Xbox Cloud Gaming (dans le navigateur)	Jeu en streaming, sans installation ; il faut un abonnement Game Pass Ultimate.
+NVIDIA GeForce NOW	geforce now;nvidia;cloud gaming	Jeux	web	https://play.geforcenow.com	GeForce NOW (dans le navigateur)	Jeu en streaming, sans installation ; vos jeux Steam, Epic ou Ubisoft doivent être pris en charge par le service.
+AutoCAD	autocad;dwg;dao;plans	Technique	flatpak	org.freecad.FreeCAD	FreeCAD	Pas d'équivalent exact : FreeCAD (3D) ou LibreCAD (2D) ; les .dwg se lisent, sans garantie.
+Sage, EBP, Ciel, Cegid (comptabilité, gestion)	sage;ebp;ciel;cegid;quadratus;compta;comptabilité;paie;facturation	Comptabilité et gestion	windows		Souvent une version en ligne	Beaucoup d'éditeurs proposent une version en ligne : vérifiez sur leur site. Sinon, voir « Windows complet » (Windows dans une machine virtuelle) ou « Compatibilité Windows ».
+QuickBooks	quickbooks;comptabilité	Comptabilité et gestion	web	https://quickbooks.intuit.com/	QuickBooks en ligne	La version de bureau n'existe que pour Windows.
+Microsoft Access	access;base de données;mdb;accdb	Comptabilité et gestion	windows		LibreOffice Base (bases simples)	LibreOffice Base ouvre des bases simples ; une application métier sur Access demande Windows : voir « Windows complet ».
+Programme Windows (autre)	exe;msi;setup;installer;wine;bottles;compatibilité	Compatibilité Windows	flatpak	com.usebottles.bottles	Bottles	Fait tourner certains programmes Windows (.exe), sans garantie : à essayer, pas à promettre.
+Windows complet (machine virtuelle)	machine virtuelle;vm;virtualbox;vmware;parallels;hyper v;logiciel metier;logiciel indispensable	Compatibilité Windows	flatpak	org.gnome.Boxes	Boxes	Fait tourner Windows dans une fenêtre, pour un logiciel sans équivalent. Il faut une licence Windows et un PC assez puissant : voir la page « Windows complet ».
+Windows 365 (PC Windows dans le nuage)	windows 365;cloud pc;azure virtual desktop;avd;bureau a distance windows	Compatibilité Windows	web	https://windows365.microsoft.com/	Windows 365 (dans le navigateur)	Un PC Windows dans le nuage, sans installation ni virtualisation ; abonnement Microsoft nécessaire, souvent déjà fourni par l'entreprise.

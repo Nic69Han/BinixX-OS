@@ -2,4 +2,4 @@
 # run-vm-test.sh la publie dans un registre local, la VM s'y met à jour puis revient en arrière.
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
-RUN echo "Mise à jour de test NicOS" > /usr/share/nicos/update-test-marker
+RUN echo "Mise à jour de test BinixX OS" > /usr/share/binixx/update-test-marker

@@ -10,8 +10,8 @@ check_windows_vm() {
     local out
     out="$(runuser -u "${TEST_USER}" -- python3 -c "
 import sys
-sys.path.insert(0, '/usr/lib/nicos/centre')
-from nicos_centre import virtualisation as v
+sys.path.insert(0, '/usr/lib/binixx/centre')
+from binixx_centre import virtualisation as v
 for r in v.verifier():
     print(r.cle, r.etat, r.titre)
 " 2>&1)"

@@ -8,5 +8,5 @@ for pkg in cockpit cockpit-files cockpit-networkmanager cockpit-ostree cockpit-s
 done
 check "centre d'administration démarré à la demande (cockpit.socket)" test "$(systemctl is-enabled cockpit.socket 2>/dev/null)" = enabled
 check "centre d'administration limité au PC lui-même" \
-    grep -qx 'ListenStream=127.0.0.1:9090' /usr/lib/systemd/system/cockpit.socket.d/50-nicos-localhost.conf
-check "lanceur « Administration du PC » valide" desktop-file-validate /usr/share/applications/nicos-administration.desktop
+    grep -qx 'ListenStream=127.0.0.1:9090' /usr/lib/systemd/system/cockpit.socket.d/50-binixx-localhost.conf
+check "lanceur « Administration du PC » valide" desktop-file-validate /usr/share/applications/binixx-administration.desktop

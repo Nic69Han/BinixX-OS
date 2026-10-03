@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Slack
+GenericName=Visioconférence et messagerie (web)
+Comment=Messagerie d'équipe Slack dans sa propre fenêtre
+Exec=/usr/libexec/binixx/binixx-webapp https://app.slack.com/client
+Icon=internet-group-chat
+Terminal=false
+Categories=Network;Chat;VideoConference;
+Keywords=slack;chat;messagerie;
+StartupNotify=true
+# Classe de fenêtre de Chromium en mode application, pour grouper la fenêtre sous cette icône
+StartupWMClass=chrome-app.slack.com__client-Default

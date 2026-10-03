@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Accueil BinixX OS
+Comment=Ouvre le Centre BinixX OS à la première ouverture de session
+Exec=/usr/libexec/binixx/binixx-centre --premier-demarrage
+OnlyShowIn=KDE;
+NoDisplay=true

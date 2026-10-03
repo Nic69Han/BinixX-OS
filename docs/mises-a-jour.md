@@ -1,6 +1,6 @@
 # Mises à jour et canaux
 
-NicOS se met à jour comme un tout : une nouvelle image système est téléchargée en arrière-plan
+BinixX OS se met à jour comme un tout : une nouvelle image système est téléchargée en arrière-plan
 et s'applique au redémarrage suivant. La version précédente reste disponible pour revenir en
 arrière. Les applications Flatpak se mettent à jour séparément, chaque jour.
 
@@ -31,11 +31,27 @@ D'ici là, le workflow de l'ISO (qui embarque `stable`) ne peut pas aboutir.
 ```bash
 rpm-ostree status                          # version en cours et version précédente
 sudo bootc rollback                        # revenir à la version précédente (puis redémarrer)
-sudo bootc switch ghcr.io/nic69han/nicos:testing   # devenir testeur
-sudo bootc switch ghcr.io/nic69han/nicos:stable    # revenir au canal stable
+sudo bootc switch ghcr.io/nic69han/binixx:testing   # devenir testeur
+sudo bootc switch ghcr.io/nic69han/binixx:stable    # revenir au canal stable
 ```
 
 La version précédente est aussi proposée dans le menu de démarrage.
+
+## Postes installés sous l'ancien nom (NicOS)
+
+Le projet s'appelait NicOS jusqu'au 3 octobre 2026 ; l'image se publie maintenant sous `ghcr.io/nic69han/binixx`
+(variante NVIDIA : `binixx-nvidia`). Un poste installé avant ce changement suit encore l'ancienne adresse
+(`ghcr.io/nic69han/nicos`), qui ne reçoit plus de mises à jour. Pour le faire passer au nouveau nom, une seule fois :
+
+```bash
+sudo bootc switch ghcr.io/nic69han/binixx:stable      # (ou binixx-nvidia:stable)
+systemctl reboot
+```
+
+Les documents et les réglages de l'utilisateur ne bougent pas. Seuls les noms internes changent : les sauvegardes
+faites avant le changement par « Réparer le système » ou « Réinitialiser le bureau » restent sur le disque
+(`/var/lib/nicos`, `~/.local/share/nicos`) mais ne sont plus proposées dans la liste ; l'écran d'accueil peut
+s'afficher une fois de plus.
 
 ## Retour arrière automatique
 
@@ -46,7 +62,7 @@ pour bootc) :
 
 1. après une mise à jour, le chargeur de démarrage compte les essais (trois au plus) ;
 2. à chaque démarrage, greenboot lance les contrôles de `/etc/greenboot/check/required.d/` ; le seul
-   contrôle de NicOS est `10-nicos-connexion.sh` : le service de l'écran de connexion
+   contrôle de BinixX OS est `10-binixx-connexion.sh` : le service de l'écran de connexion
    (`display-manager.service`) doit démarrer ;
 3. contrôle réussi : le démarrage est déclaré bon, la mise à jour est adoptée ; contrôle en échec : le PC
    redémarre ; au troisième échec, il démarre la version précédente.

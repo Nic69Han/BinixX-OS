@@ -1,8 +1,9 @@
-set dotenv-filename := "nicos.env"
+set dotenv-filename := "binixx.env"
 set dotenv-load
 
 export image_name := env_var("IMAGE_NAME")
 export repo_organization := env_var("REPO_ORGANIZATION")
+export repo_name := env_var("REPO_NAME")
 export image_desc := env_var("IMAGE_DESC")
 export image_keywords := env_var("IMAGE_KEYWORDS")
 export image_logo_url := env_var("IMAGE_LOGO_URL")
@@ -99,16 +100,16 @@ build $target_image=image_name $tag=default_tag:
     set -euox pipefail
 
     BUILD_ARGS=()
-    # Variante de l'image (CI : matrice de build.yml) ; sans ces variables, image NicOS standard
+    # Variante de l'image (CI : matrice de build.yml) ; sans ces variables, image BinixX OS standard
     [[ -z "${BASE_IMAGE:-}" ]] || BUILD_ARGS+=(--build-arg "BASE_IMAGE=${BASE_IMAGE}")
-    [[ -z "${NICOS_VARIANT:-}" ]] || BUILD_ARGS+=(--build-arg "NICOS_VARIANT=${NICOS_VARIANT}")
+    [[ -z "${BINIXX_VARIANT:-}" ]] || BUILD_ARGS+=(--build-arg "BINIXX_VARIANT=${BINIXX_VARIANT}")
     LABELS=()
     if [[ -z "$(git status -s)" ]]; then
         GIT_SHA=$(git rev-parse --short HEAD)
-        LABELS+=("--label" "io.artifacthub.package.readme-url=https://raw.githubusercontent.com/{{ repo_organization }}/{{ image_name }}/${GIT_SHA}/README.md")
-        LABELS+=("--label" "org.opencontainers.image.documentation=https://raw.githubusercontent.com/{{ repo_organization }}/{{ image_name }}/${GIT_SHA}/README.md")
-        LABELS+=("--label" "org.opencontainers.image.source=https://github.com/{{ repo_organization }}/{{ image_name }}/blob/${GIT_SHA}/Containerfile")
-        LABELS+=("--label" "org.opencontainers.image.url=https://github.com/{{ repo_organization }}/{{ image_name }}/tree/${GIT_SHA}")
+        LABELS+=("--label" "io.artifacthub.package.readme-url=https://raw.githubusercontent.com/{{ repo_organization }}/{{ repo_name }}/${GIT_SHA}/README.md")
+        LABELS+=("--label" "org.opencontainers.image.documentation=https://raw.githubusercontent.com/{{ repo_organization }}/{{ repo_name }}/${GIT_SHA}/README.md")
+        LABELS+=("--label" "org.opencontainers.image.source=https://github.com/{{ repo_organization }}/{{ repo_name }}/blob/${GIT_SHA}/Containerfile")
+        LABELS+=("--label" "org.opencontainers.image.url=https://github.com/{{ repo_organization }}/{{ repo_name }}/tree/${GIT_SHA}")
         LABELS+=("--label" "org.opencontainers.image.version={{ default_tag }}.$(date +%Y%m%d)-${GIT_SHA}")
     fi
 
@@ -449,7 +450,7 @@ lint:
     fi
     # Run shellcheck on all Bash scripts (and the extension-less helpers shipped in the image)
     find . -iname "*.sh" -type f -not -path "./.git/*" -exec shellcheck "{}" +
-    shellcheck system_files/usr/libexec/nicos/*
+    shellcheck system_files/usr/libexec/binixx/*
 
 # Runs shfmt on all Bash scripts
 format:
@@ -517,11 +518,11 @@ test-entreprise $target_image=image_name $tag=default_tag:
     [[ "${base}" == */* ]] || base="localhost/${base}"
     podman build --pull=never \
       --build-arg "BASE=${base}" \
-      --tag localhost/nicos-entreprise-test:latest \
+      --tag localhost/binixx-entreprise-test:latest \
       --file entreprise/Containerfile entreprise
     podman run --rm --pull=never \
       --volume "${PWD}/tests/entreprise:/tests:ro,Z" \
-      localhost/nicos-entreprise-test:latest \
+      localhost/binixx-entreprise-test:latest \
       bash /tests/check.sh
 
 # Install the ISO in a VM, boot it, then test an update and a rollback (needs KVM and root)

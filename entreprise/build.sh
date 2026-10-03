@@ -14,10 +14,10 @@ cp -avf /ctx/system_files/. /
 if [[ ${#PAQUETS[@]} -gt 0 ]]; then
     dnf5 -y install "${PAQUETS[@]}"
 fi
-# Applications Flatpak : ajoutées à celles de NicOS (liste complémentaire lue au premier démarrage)
-install -Dm0644 /ctx/flatpaks/entreprise.list /usr/share/nicos/flatpaks/system-flatpaks.d/entreprise.list
+# Applications Flatpak : ajoutées à celles de BinixX OS (liste complémentaire lue au premier démarrage)
+install -Dm0644 /ctx/flatpaks/entreprise.list /usr/share/binixx/flatpaks/system-flatpaks.d/entreprise.list
 
-### 3. Identité : NicOS reste le système, l'entreprise est la « variante » (os-release)
+### 3. Identité : BinixX OS reste le système, l'entreprise est la « variante » (os-release)
 sed -i -e '/^VARIANT=/d' -e '/^VARIANT_ID=/d' /usr/lib/os-release
 variant_id="$(tr '[:upper:]' '[:lower:]' <<<"${NOM_ENTREPRISE}" | tr -cs 'a-z0-9' '-' | sed 's/^-*//; s/-*$//')"
 {
@@ -25,12 +25,12 @@ variant_id="$(tr '[:upper:]' '[:lower:]' <<<"${NOM_ENTREPRISE}" | tr -cs 'a-z0-9
     printf 'VARIANT_ID=%s\n' "${variant_id:-entreprise}"
 } >>/usr/lib/os-release
 
-# Mémo pour le support : /etc/nicos/entreprise.conf (lisible par tous, aucun secret)
-install -d /etc/nicos
+# Mémo pour le support : /etc/binixx/entreprise.conf (lisible par tous, aucun secret)
+install -d /etc/binixx
 {
     printf 'NOM_ENTREPRISE="%s"\n' "${NOM_ENTREPRISE//\"/}"
     printf 'DOMAINE_AD="%s"\n' "${DOMAINE_AD}"
-} >/etc/nicos/entreprise.conf
+} >/etc/binixx/entreprise.conf
 
 ### 4. Firefox : page d'accueil et proxy imposés (politiques d'entreprise de Firefox)
 POLICIES=/etc/firefox/policies/policies.json

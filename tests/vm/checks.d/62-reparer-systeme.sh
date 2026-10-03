@@ -4,10 +4,10 @@
 # écran : l'outil est lancé en root, comme le fait pkexec. Le système est laissé comme on l'a trouvé.
 check_reparer_systeme() {
     section "Réparer le système"
-    local outil=/usr/libexec/nicos/nicos-reparer-systeme
-    local modifie=/etc/xdg/plasma-welcomerc supprime=/etc/xdg/kicker-extra-favoritesrc ajoute=/etc/sysctl.d/99-nicos-test.conf
+    local outil=/usr/libexec/binixx/binixx-reparer-systeme
+    local modifie=/etc/xdg/plasma-welcomerc supprime=/etc/xdg/kicker-extra-favoritesrc ajoute=/etc/sysctl.d/99-binixx-test.conf
     local sum_m sum_s ctx_m out code
-    check "action polkit connue de polkitd" pkaction --action-id org.nicos.reparer-systeme
+    check "action polkit connue de polkitd" pkaction --action-id org.binixx.reparer-systeme
     check "image de référence /usr/etc présente" test -d /usr/etc
     check "fichiers de test présents dans l'image" test -f "${modifie}" -a -f "${supprime}"
     [[ -f ${modifie} && -f ${supprime} ]] || return
@@ -35,7 +35,7 @@ check_reparer_systeme() {
     rm -f "${supprime}"
     printf 'vm.swappiness=60\n' >"${ajoute}"
     out="$("${outil}" liste --texte 2>&1)"
-    for attendu in "modifie .*xdg/plasma-welcomerc" "supprime .*xdg/kicker-extra-favoritesrc" "ajoute .*sysctl.d/99-nicos-test.conf"; do
+    for attendu in "modifie .*xdg/plasma-welcomerc" "supprime .*xdg/kicker-extra-favoritesrc" "ajoute .*sysctl.d/99-binixx-test.conf"; do
         if grep -qE "${attendu}" <<<"${out}"; then pass "vu : ${attendu%% *} ${attendu##*.\*}"; else fail "changement non vu : ${attendu}"; fi
     done
 
@@ -46,7 +46,7 @@ check_reparer_systeme() {
         if [[ ${code} -eq 2 ]]; then pass "« ${intrus} » refusé (code 2)"; else fail "« ${intrus} » : code ${code} au lieu de 2"; fi
     done
 
-    out="$("${outil}" restaurer xdg/plasma-welcomerc xdg/kicker-extra-favoritesrc sysctl.d/99-nicos-test.conf 2>&1)"
+    out="$("${outil}" restaurer xdg/plasma-welcomerc xdg/kicker-extra-favoritesrc sysctl.d/99-binixx-test.conf 2>&1)"
     code=$?
     if [[ ${code} -eq 0 ]]; then pass "réparation faite"; else fail "réparation : code ${code} : ${out}"; fi
     if [[ "$(sha256sum "${modifie}" | cut -d' ' -f1)" == "${sum_m}" ]]; then pass "fichier modifié : remis à l'identique de l'image"; else fail "fichier modifié : contenu différent de l'image"; fi
@@ -54,9 +54,9 @@ check_reparer_systeme() {
     if [[ ! -e ${ajoute} ]]; then pass "fichier ajouté : retiré"; else fail "fichier ajouté : toujours là"; fi
     if [[ "$(stat -c %C "${modifie}")" == "${ctx_m}" ]]; then pass "contexte SELinux conservé (${ctx_m})"; else fail "contexte SELinux changé : ${ctx_m} -> $(stat -c %C "${modifie}")"; fi
     out="$("${outil}" liste --texte 2>&1)"
-    if grep -qE "plasma-welcomerc|kicker-extra-favoritesrc|99-nicos-test" <<<"${out}"; then fail "les fichiers réparés sont encore listés"; else pass "plus rien à réparer parmi les fichiers de l'essai"; fi
-    check "sauvegarde gardée (copie de la version remplacée)" bash -c "ls /var/lib/nicos/sauvegardes-etc/*/etc/sysctl.d/99-nicos-test.conf"
-    check "dossier des sauvegardes réservé à l'administrateur" bash -c "[ \"\$(stat -c %a /var/lib/nicos/sauvegardes-etc)\" = 700 ]"
+    if grep -qE "plasma-welcomerc|kicker-extra-favoritesrc|99-binixx-test" <<<"${out}"; then fail "les fichiers réparés sont encore listés"; else pass "plus rien à réparer parmi les fichiers de l'essai"; fi
+    check "sauvegarde gardée (copie de la version remplacée)" bash -c "ls /var/lib/binixx/sauvegardes-etc/*/etc/sysctl.d/99-binixx-test.conf"
+    check "dossier des sauvegardes réservé à l'administrateur" bash -c "[ \"\$(stat -c %a /var/lib/binixx/sauvegardes-etc)\" = 700 ]"
 
     "${outil}" annuler >/dev/null 2>&1
     code=$?
@@ -68,7 +68,7 @@ check_reparer_systeme() {
     fi
 
     # retour à l'état d'origine pour la suite du test
-    "${outil}" restaurer xdg/plasma-welcomerc xdg/kicker-extra-favoritesrc sysctl.d/99-nicos-test.conf >/dev/null 2>&1
+    "${outil}" restaurer xdg/plasma-welcomerc xdg/kicker-extra-favoritesrc sysctl.d/99-binixx-test.conf >/dev/null 2>&1
     if [[ "$(sha256sum "${modifie}" | cut -d' ' -f1)" == "${sum_m}" && "$(sha256sum "${supprime}" | cut -d' ' -f1)" == "${sum_s}" && ! -e ${ajoute} ]]; then
         pass "système remis comme avant l'essai"
     else
