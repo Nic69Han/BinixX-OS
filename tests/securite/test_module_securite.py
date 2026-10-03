@@ -1,5 +1,6 @@
-"""Tests du module de build build_files/modules.d/20-securite.sh : il applique les correctifs de sécurité déjà publiés,
-sans toucher au noyau, et s'exécute avant le contrôle des avis.
+"""Tests du script de build build_files/securite.sh : il applique les correctifs de sécurité déjà publiés, sans toucher
+au noyau, et build.sh le lance AVANT toute personnalisation (sinon la mise à jour d'un paquet comme Firefox remet ses
+fichiers d'origine par-dessus ceux de BinixX OS).
 
 python3 -m unittest discover -s tests/securite
 """
@@ -11,7 +12,7 @@ import unittest
 
 ICI = os.path.dirname(__file__)
 DEPOT = os.path.join(ICI, "../..")
-MODULE = os.path.join(DEPOT, "build_files/modules.d/20-securite.sh")
+MODULE = os.path.join(DEPOT, "build_files/securite.sh")
 BUILD = os.path.join(DEPOT, "build_files/build.sh")
 
 
@@ -59,12 +60,30 @@ class Module(unittest.TestCase):
 
 
 class Ordre(unittest.TestCase):
-    def test_build_sh_lance_les_modules_dans_l_ordre_et_celui_ci_est_pris(self):
-        texte = lire(BUILD)
-        self.assertIn("for module in /ctx/modules.d/*.sh", texte)  # ordre alphabétique : 20- passe avant 45-, 50-, 70-…
-        noms = sorted(f for f in os.listdir(os.path.dirname(MODULE)) if f.endswith(".sh"))
-        self.assertIn("20-securite.sh", noms)
-        self.assertEqual(noms[0], "20-securite.sh")  # avant les modules de fonctionnalités : tout ce qu'ils installent est à jour
+    def setUp(self):
+        self.lignes = lire(BUILD).splitlines()
+
+    def numero(self, motif):
+        """Numéro (à partir de 0) de la première ligne de build.sh qui contient `motif`."""
+        return next(i for i, ligne in enumerate(self.lignes) if motif in ligne)
+
+    def test_build_sh_lance_le_script_de_securite(self):
+        self.assertEqual([l for l in self.lignes if "securite.sh" in l and not l.lstrip().startswith("#")],
+                         ["bash /ctx/securite.sh"])
+
+    def test_il_passe_avant_toute_personnalisation(self):
+        securite = self.numero("bash /ctx/securite.sh")
+        self.assertLess(securite, self.numero("cp -avf /ctx/system_files/. /"))   # avant les fichiers système
+        self.assertLess(securite, self.numero("FIREFOX_DIR="))                    # avant les réglages de Firefox
+        self.assertLess(securite, self.numero("for module in /ctx/modules.d/"))   # avant les modules
+
+    def test_pas_de_mise_a_jour_apres_la_personnalisation(self):
+        # une seule mise à jour, celle du script : build.sh et modules.d n'en lancent aucune autre
+        fichiers = [BUILD] + [os.path.join(DEPOT, "build_files/modules.d", f)
+                              for f in os.listdir(os.path.join(DEPOT, "build_files/modules.d")) if f.endswith(".sh")]
+        for fichier in fichiers:
+            for ligne in commandes(lire(fichier)):
+                self.assertNotRegex(ligne, r"\b(dnf5?|rpm-ostree)\b.*\b(upgrade|update|distro-sync)\b", fichier)
 
 
 if __name__ == "__main__":

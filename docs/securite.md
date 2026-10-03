@@ -41,8 +41,8 @@ Limites assumées :
 - **Pourquoi pas Trivy ou Grype ?** Ils ne disposent pas d'une base d'avis pour Fedora : ils annonceraient « aucune
   faille » à tort. Les avis de Fedora eux-mêmes sont la source fiable.
 - **Un avis publié depuis moins de vingt-quatre heures** peut ne pas encore être dans l'image de base. Le build n'attend
-  donc pas sa reconstruction : `build_files/modules.d/20-securite.sh` applique les correctifs de sécurité que Fedora a déjà
-  publiés, **sauf le noyau et ses modules** (`kernel*`, `kmod-*`, `akmod-*`) : Universal Blue compile ceux de la variante
+  donc pas sa reconstruction : `build_files/securite.sh` applique les correctifs de sécurité que Fedora a déjà
+  publiés (en tout premier dans `build.sh`, pour ne pas écraser les réglages de BinixX OS), **sauf le noyau et ses modules** (`kernel*`, `kmod-*`, `akmod-*`) : Universal Blue compile ceux de la variante
   NVIDIA pour un noyau précis, et en changer sans les recompiler casserait le pilote. Il ne reste alors de bloquant que ce
   que cette exclusion garde ou que le dépôt Fedora n'a pas encore : dans ce cas, avec le seuil `Critical`, le build du jour
   échoue et celui du lendemain, reconstruit sur la base à jour, passe.
