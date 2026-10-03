@@ -343,9 +343,12 @@ class Page(unittest.TestCase):
         self.assertEqual(self.pages, ["securite"])
         self.choisir(page, "Mises à jour et récupération")
         self.carte(page, "Mises à jour du système").click()
-        self.assertEqual(self.lances[-1], ["plasma-discover", "--mode", "update"])
+        self.assertEqual(self.pages[-1], "mises_a_jour")
         self.carte(page, "Récupération").click()
         self.assertEqual(self.pages[-1], "aide")
+        self.choisir(page, "Applications")
+        self.carte(page, "Applications installées").click()
+        self.assertEqual(self.lances[-1], ["plasma-discover", "--mode", "installed"])
 
     def test_une_explication_n_est_pas_cliquable(self):
         fichier = tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False, encoding="utf-8")

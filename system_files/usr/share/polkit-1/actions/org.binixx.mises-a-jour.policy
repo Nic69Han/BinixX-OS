@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>BinixX OS</vendor>
+  <vendor_url>https://github.com/Nic69Han/BinixX-OS</vendor_url>
+  <action id="org.binixx.mises-a-jour">
+    <description>Install a BinixX OS update or go back to the previous version</description>
+    <description xml:lang="fr">Installer une mise à jour de BinixX OS ou revenir à la version précédente</description>
+    <message>Authentication is required to update BinixX OS or go back to the previous version</message>
+    <message xml:lang="fr">Une authentification est nécessaire pour mettre à jour BinixX OS ou revenir à la version précédente</message>
+    <icon_name>system-software-update</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/binixx/binixx-mises-a-jour</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
+</policyconfig>

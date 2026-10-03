@@ -19,6 +19,7 @@ ACCENTS = {
     "sarcelle": ("#0F766E", "#2DD4BF"),
     "cyan": ("#0891B2", "#22D3EE"),
     "bleu-fonce": ("#1D4ED8", "#60A5FA"),
+    "lime": ("#4D7C0F", "#A3E635"),
 }
 
 STYLE = f"""
