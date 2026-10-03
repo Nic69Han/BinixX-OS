@@ -1,6 +1,6 @@
 # Feuille de route
 
-État au 2 octobre 2026. Une ligne = une pull request.
+État au 3 octobre 2026. Une ligne = une pull request.
 
 ## Objectif
 
@@ -137,6 +137,69 @@ Choisies avec le propriétaire après comparaison ; chaque ligne est une pull re
 édition « Lite » (seconde image à maintenir), partitions système et données séparées et instantanés des fichiers Btrfs
 (à voir à la refonte de l'ISO).
 
+## Lot 10 — Idées prises à Omarchy et aux distributions en vogue (3 octobre 2026)
+
+Veille du 3 octobre 2026. Rien n'est lancé : **le propriétaire choisit** dans la première table (« Proposé »). Critères de tri :
+servir un particulier ou une PME qui quitte Windows, tenir dans Plasma et dans l'image `bootc`, se tester en VM. Omarchy vise des
+développeurs au clavier (Hyprland, mosaïque de fenêtres) : on lui prend le principe « tout est déjà choisi et cohérent », pas son
+bureau.
+
+| PR | Contenu | Inspiré de | Preuve attendue | État |
+| --- | --- | --- | --- | --- |
+| **O1. Recherche unique** | Une touche (Windows + S) ouvre une seule recherche : applications, réglages (l'index de Paramètres), fichiers, catalogue « Mon logiciel Windows », aide. | Palette de commandes d'Omarchy 4 (une touche, lanceur et menu réunis) | VM : « imprimante » ouvre le réglage d'impression | Proposé |
+| **O2. Aide-mémoire des raccourcis** | Page « Raccourcis » : les combinaisons de Windows que l'on a dans les doigts (Windows + E, D, L, V, point pour les émojis, flèches, Maj + S pour la capture) et qui marchent. **Aujourd'hui, l'image n'en fournit qu'une : Windows + I** ; on vérifie ce que KDE fait déjà et on ajoute le reste. | Aide-mémoire d'Omarchy (Super + K) | VM : chaque raccourci annoncé est enregistré dans la session | Proposé |
+| **O3. Ambiances** | Un clic change d'un coup thème clair ou sombre, couleur d'accent, fond d'écran, icônes et pointeur : *Aube* (clair), *Nuit* (sombre), *Contraste élevé*, *Grand texte*. Prolonge « Thèmes : clair ou sombre ». | Thèmes cohérents d'Omarchy (terminal, éditeur, notifications, verrouillage) | Image : chaque ambiance pose les réglages attendus. VM : elle survit au redémarrage | Proposé |
+| **O4. Taille du texte, un seul curseur** | Un réglage agrandit le texte partout (bureau, applications Qt et GTK, Firefox), comme « Taille du texte » de Windows > Accessibilité ; aujourd'hui il faut passer par Polices et Affichage. | Réglage unique d'échelle du texte d'Omarchy 4 | VM : valeurs relues dans la session | Proposé |
+| **O5. Un clic pour le rapport d'erreurs** | Quand une application plante, proposer d'ouvrir le rapport de diagnostic sans secret (C3) et de l'enregistrer ou de l'envoyer à l'informaticien. *Idée de synthèse, pas une fonction d'Omarchy.* | Esprit « le système aide » ; Rapport d'erreurs Windows | VM : plantage provoqué, rapport créé sans mot de passe | Proposé |
+| **O6. Canaux de mise à jour** | Choix « Stable » (par défaut) ou « En avance » ; en entreprise, un poste pilote reçoit la version avant le parc (anneaux, comme Windows Update). **L'étiquette `testing` n'a pas encore passé le test VM** : réservée aux testeurs. | Canaux stable, RC, edge et dev d'Omarchy | VM : passage à `testing` et retour à `stable`, retour arrière compris | Proposé |
+| **O7. Page « Mises à jour » complète** | Aujourd'hui Paramètres renvoie à Discover. Une page à part : version installée et date du test, « Redémarrer pour appliquer », « Revenir à la version précédente », taille du téléchargement. | Update Manager de Linux Mint ; retour arrière visible de KDE Linux | VM : état lu dans `bootc status`, retour arrière (R1) | Proposé |
+| **O8. Poste préconfiguré** | L'image d'entreprise prépare le PC (compte, domaine Active Directory, Wi-Fi, applications) avant la livraison ; l'utilisateur n'a plus qu'à ouvrir sa session. À étudier avec E1 (gabarit d'entreprise). | Mise en service différée d'Omarchy 4 ; Windows Autopilot | VM : un fichier de réglages pose le compte et le domaine | À étudier |
+| **O9. Fonctionnalités facultatives** | Une page comme « Activer ou désactiver des fonctionnalités Windows » : Windows en machine virtuelle (W1), jeux (J1), conteneurs de développement, accès à distance, imprimantes… réunis, avec leur état. | AnduinOS : composants à la carte (boutique d'applications, outils pro, conteneurs, WSL) | VM : chaque interrupteur testé | Proposé |
+| **O10. Capture et texte d'une image** | Windows + Maj + S pour capturer, enregistrer l'écran, copier le texte d'une image (OCR), pipette à couleur. **À vérifier d'abord : ce que Spectacle (déjà présent) sait faire.** | Raccourcis capture, enregistrement, OCR et pipette d'Omarchy | Image : outil et raccourcis présents | À étudier |
+
+**À garder pour la refonte de l'ISO** (voir la décision 7) :
+
+- **Installer à côté de Windows** : double démarrage guidé, sans effacer Windows (Omarchy 4 vient de l'ajouter ; c'est l'étape intermédiaire de beaucoup de nouveaux venus).
+- **ISO plus légère et installation plus rapide** : Omarchy 4 a retiré plus d'un gigaoctet et gagné 30 %. Notre ISO pèse environ 5 Go.
+- **Instantanés des fichiers (Btrfs)** : CachyOS (Snapper) et Omarchy en proposent. BinixX OS protège le *système* (`bootc`, greenboot) mais l'historique des *fichiers* repose sur Déjà Dup. À trancher avec le choix du système de fichiers à l'installation.
+- **Démarrage discret, menu de secours après un échec** (KDE Linux) : à comparer avec ce que greenboot et GRUB font déjà.
+- **Clé USB persistante** (MX Linux), à rapprocher de M3 (essayer sans installer).
+
+**Déjà couvert, aucune nouvelle PR** : retour arrière des mises à jour (R1), « réinitialiser l'ordinateur » d'Omarchy (remplacé volontairement par R2, plus sûr : il n'efface pas les comptes), applications web préconfigurées (A2 et P3), mosaïque et dispositions de fenêtres (PR #15, inspirée de Zorin).
+
+**Ordre proposé** si le propriétaire valide : O2, puis O7 (voir que les mises à jour et le retour arrière existent rassure), O1, O4, O3 ; le reste ensuite.
+
+### Ce que font les distributions en vogue
+
+Classement DistroWatch cité par la presse en juin et juillet 2026 : il mesure les **visites de pages par jour**, pas le nombre
+d'utilisateurs. Tendances communes : **spécialisation** plutôt que distribution généraliste, systèmes **immuables** de plus en plus
+courants, **jeux** devenus grand public, **passage depuis Windows** simplifié (Windows 10 : fin des mises à jour fin 2025, prolongée
+pour les particuliers jusqu'au 12 octobre 2027).
+
+| Distribution | Pourquoi on en parle | Ce qu'on en retient pour BinixX OS |
+| --- | --- | --- |
+| **CachyOS** (1re, depuis plus de 18 mois) | Noyau et paquets optimisés pour les processeurs récents, KDE Plasma, Btrfs et Snapper (retour arrière), ISO pour consoles portables, outils graphiques malgré la base Arch | Instantanés de fichiers (ISO). Recompiler pour chaque processeur : hors de portée sur une base Fedora |
+| **Linux Mint** (2e) | La porte d'entrée classique : Cinnamon proche de Windows, stabilité, aucune surprise | O7 : un gestionnaire de mises à jour clair ; « rien ne change sans prévenir » |
+| **MX Linux** (3e) | Vieux PC, MX Tools (réglages et instantanés à la souris), clé USB persistante | M2 est déjà là ; O9 ; clé persistante à étudier |
+| **Pop!_OS 24.04 et COSMIC 1.0** (5e) | Bureau écrit en Rust, mosaïque de fenêtres par espace de travail, fenêtres empilées en onglets, bon support NVIDIA | Rien à ajouter : nos dispositions de fenêtres (PR #15) couvrent le besoin d'un utilisateur de Windows |
+| **Zorin OS 18** (6e) | Plus de 2 millions de téléchargements en 3 mois, trois quarts depuis Windows | Notre référence directe : lot 9 |
+| **Fedora 44** (7e) | GNOME 50, NTSYNC pour les jeux | Hérité gratuitement de la base |
+| **AnduinOS** (9e) | Windows 11 sur Ubuntu 26.04 et GNOME 50, composants à la carte, version ARM64, **IA locale facultative** (2.0.1, juillet 2026) | O9. Argument de plus pour l'étude du copilote IA (en attente) : facultative, jamais d'office. ARM64 impossible : notre base n'existe qu'en x86_64 |
+| **Bazzite** (10e) | Immuable et jeux, mode console, **même base que BinixX OS** | J1 est déjà livré ; prouve que l'immuable passe auprès du grand public |
+| **KDE Linux** (alpha depuis septembre 2025) | Distribution officielle de KDE, immuable ; mises à jour par différences (de 7 Go à 1 ou 2 Go) ; menu de démarrage caché sauf après un échec | **À surveiller** : concurrent direct sur « KDE immuable ». Notre différence : le passage depuis Windows, un test de chaque version, les PME |
+| **Omarchy** (DHH, 37signals) | Tout est choisi d'avance, clavier, thèmes cohérents, canaux de mise à jour, retour arrière par instantanés | Voir O1 à O10 |
+
+Sources consultées le 3 octobre 2026 : [Omarchy 4.0](https://newreleases.io/project/github/omacom/omarchy/release/v4.0.0),
+[manuel d'Omarchy](https://learn.omacom.io/2/the-omarchy-manual.md),
+[top 10 de juin et juillet 2026](https://linux.how2shout.com/top-10-most-popular-linux-distributions-in-june-july-2026/),
+[CachyOS, Mint et MX Linux comparés](https://www.howtogeek.com/most-popular-linux-distros-april-2026-ranked/),
+[Zorin OS et la fin de Windows 10](https://www.windowscentral.com/microsoft/windows-10/windows-10-retirement-pushes-780-000-users-to-linux-as-zorin-os-hits-1m-downloads),
+[AnduinOS](https://www.neowin.net/news/windows-11-like-anduinos-14-and-15-lts-plans-revealed/),
+[KDE Linux](https://news.itsfoss.com/kde-linux-alpha),
+[COSMIC 1.0](https://linuxiac.com/pop_os-24-04-lts-launches-with-cosmic-desktop-1-0-stable/),
+[Bazzite](https://en.wikipedia.org/wiki/Bazzite_(operating_system)),
+[prolongation de Windows 10 à octobre 2027](https://office-watch.com/2026/windows-10-extended-security-updates-2027/).
+
 ## Décisions et actions du propriétaire
 
 1. Créer la clé de signature (S2) : `cosign generate-key-pair`, contenu de `cosign.key` dans le secret
@@ -150,3 +213,4 @@ Choisies avec le propriétaire après comparaison ; chaque ligne est une pull re
    départ) et Coucou (réécriture pour Plasma ou idée seulement). Rien n'est lancé tant que ce n'est pas tranché.
 7. **ISO publique : refaite en dernier**, une fois `stable` à jour avec tous les chantiers ci-dessus.
 8. Essais sur matériel réel avant de promettre : WinBoat (W1), disque Windows NTFS et BitLocker (M1), carte NVIDIA (G1).
+9. Choisir dans le lot 10 (O1 à O10) ce qui est lancé, et dans quel ordre ; ordre proposé : O2, O7, O1, O4, O3.
