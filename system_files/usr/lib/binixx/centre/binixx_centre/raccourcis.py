@@ -244,17 +244,11 @@ def conflits(presents):
 def touches_du_fichier_xdg(chemin=None):
     """{lanceur : touches} des « _launch » que l'image fournit (etc/xdg/kglobalshortcutsrc)."""
     chemin = chemin or os.environ.get("BINIXX_XDG_RACCOURCIS", XDG_RACCOURCIS)
-    fournis, lanceur, retirees = {}, None, False
+    fournis, lanceur = {}, None
     try:
         with open(chemin, encoding="utf-8") as fichier:
             for ligne in fichier:
                 ligne = ligne.strip()
-                if ligne in (DEBUT_SURCHARGES, FIN_SURCHARGES):      # le bloc des touches retirées n'en fournit aucune
-                    retirees = ligne == DEBUT_SURCHARGES
-                    lanceur = None
-                    continue
-                if retirees:
-                    continue
                 section = re.fullmatch(r"\[services\]\[(.+\.desktop)\]", ligne)
                 if section:
                     lanceur = section.group(1)
@@ -269,12 +263,12 @@ def touches_du_fichier_xdg(chemin=None):
 
 # --- une touche, un seul propriétaire ------------------------------------------------------------------------------------
 # Les lanceurs de KDE (Spectacle, Configuration du système…) déclarent leurs touches dans leur fichier .desktop
-# (X-KDE-Shortcuts, pour l'entrée principale ou pour une action). Si l'un d'eux prend une touche que BinixX OS annonce,
-# KDE ne la donne qu'à l'un des deux, au hasard de l'ordre de démarrage : au build, on retire la touche à l'autre
-# (kglobalshortcutsrc : « action=touches gardées », ou « none ») ; le test VM vérifie qu'il ne reste aucun conflit.
+# (X-KDE-Shortcuts, pour l'entrée principale ou pour une action) : c'est ce que le service de raccourcis de KDE lit.
+# Si l'un d'eux prend une touche que BinixX OS annonce, KDE ne la donne qu'à l'un des deux, au hasard de l'ordre de
+# démarrage. Au build, on retire donc la touche dans le .desktop de l'autre (le test VM vérifie qu'il ne reste aucun
+# conflit). Un « [services] » dans kglobalshortcutsrc n'y suffit pas : KDE le laisse de côté pour ces lanceurs.
 APPLICATIONS = "/usr/share/applications"
-DEBUT_SURCHARGES = "# --- touches retirées aux autres lanceurs (généré par binixx-raccourcis surcharger) ---"
-FIN_SURCHARGES = "# --- fin des touches retirées ---"
+JOURNAL_RETRAITS = "/usr/share/binixx/raccourcis/touches-retirees.txt"
 
 
 def _code_ou_rien(touches):
@@ -284,6 +278,14 @@ def _code_ou_rien(touches):
         return None
 
 
+def _action_de_section(ligne):
+    """« _launch » pour [Desktop Entry], le nom de l'action pour [Desktop Action X], None pour le reste."""
+    nom = ligne.strip().strip("[]")
+    if nom == "Desktop Entry":
+        return "_launch"
+    return nom[len("Desktop Action "):] if nom.startswith("Desktop Action ") else None
+
+
 def touches_du_lanceur(chemin):
     """{action : [touches]} des X-KDE-Shortcuts d'un .desktop : « _launch » pour l'entrée principale, le nom de l'action
     pour une [Desktop Action X]."""
@@ -291,57 +293,27 @@ def touches_du_lanceur(chemin):
     try:
         with open(chemin, encoding="utf-8", errors="replace") as fichier:
             for ligne in fichier:
-                ligne = ligne.strip()
-                if ligne.startswith("["):
-                    nom = ligne.strip("[]")
-                    action = "_launch" if nom == "Desktop Entry" else nom[len("Desktop Action "):] if nom.startswith(
-                        "Desktop Action ") else None
+                if ligne.lstrip().startswith("["):
+                    action = _action_de_section(ligne)
                 elif action and ligne.startswith("X-KDE-Shortcuts="):
-                    actions[action] = [t for t in re.split(r"[,\t;]", ligne.split("=", 1)[1]) if t]
+                    actions[action] = [t for t in re.split(r"[,\t;]", ligne.rstrip("\n").split("=", 1)[1]) if t]
     except OSError:
         pass
     return actions
-
-
-def lire_surcharges(chemin=None):
-    """{lanceur : {action : [touches]}} du bloc que `surcharger` a écrit dans kglobalshortcutsrc ({} s'il n'y en a pas)."""
-    chemin = chemin or os.environ.get("BINIXX_XDG_RACCOURCIS", XDG_RACCOURCIS)
-    resultat, lanceur, dedans = {}, None, False
-    try:
-        with open(chemin, encoding="utf-8") as fichier:
-            for ligne in fichier:
-                ligne = ligne.rstrip("\n")
-                if ligne == DEBUT_SURCHARGES:
-                    dedans = True
-                elif ligne == FIN_SURCHARGES:
-                    dedans = False
-                elif dedans:
-                    section = re.fullmatch(r"\[services\]\[(.+\.desktop)\]", ligne)
-                    if section:
-                        lanceur = section.group(1)
-                    elif "=" in ligne and lanceur:
-                        action, valeur = ligne.split("=", 1)
-                        resultat.setdefault(lanceur, {})[action] = [] if valeur == "none" else valeur.split("\t")
-    except OSError:
-        pass
-    return resultat
 
 
 def surcharges(raccourcis, dossier=None, chemin_xdg=None):
     """{lanceur : {action : [touches à garder]}} : ce qu'il reste à retirer aux lanceurs qui ne sont pas à BinixX OS pour que
     chaque touche de source « binixx » n'ait qu'un propriétaire. Vide quand il n'y a plus de conflit."""
     dossier = dossier or os.environ.get("BINIXX_LANCEURS", APPLICATIONS)
-    chemin_xdg = chemin_xdg or os.environ.get("BINIXX_XDG_RACCOURCIS", XDG_RACCOURCIS)
     prises = {code_qt(r.touches) for r in raccourcis if r.source == "binixx"}
-    fournis = touches_du_fichier_xdg(chemin_xdg)
-    deja = lire_surcharges(chemin_xdg)
+    fournis = touches_du_fichier_xdg(chemin_xdg)       # un lanceur auquel l'image donne elle-même une touche la garde
     resultat = {}
     for chemin in sorted(glob.glob(os.path.join(dossier, "*.desktop"))):
         lanceur = os.path.basename(chemin)
         if lanceur.startswith("binixx-"):
             continue
         for action, touches in touches_du_lanceur(chemin).items():
-            touches = deja.get(lanceur, {}).get(action, touches)       # ce que KDE en retiendra déjà
             gardees = [t for t in touches
                        if _code_ou_rien(t) not in prises or (action == "_launch" and fournis.get(lanceur) == t)]
             if len(gardees) != len(touches):
@@ -349,24 +321,31 @@ def surcharges(raccourcis, dossier=None, chemin_xdg=None):
     return resultat
 
 
-def ecrire_surcharges(retirees, chemin=None):
-    """Remplace dans kglobalshortcutsrc le bloc des touches retirées (écrit une seule fois : on peut relancer)."""
-    chemin = chemin or os.environ.get("BINIXX_XDG_RACCOURCIS", XDG_RACCOURCIS)
-    with open(chemin, encoding="utf-8") as fichier:
-        lignes = fichier.read().split("\n")
-    if DEBUT_SURCHARGES in lignes and FIN_SURCHARGES in lignes:
-        debut, fin = lignes.index(DEBUT_SURCHARGES), lignes.index(FIN_SURCHARGES)
-        lignes = lignes[:debut] + lignes[fin + 1:]
-    while lignes and lignes[-1] == "":
-        lignes.pop()
-    if retirees:
-        lignes += ["", DEBUT_SURCHARGES]
-        for lanceur, actions in sorted(retirees.items()):
-            lignes.append(f"[services][{lanceur}]")
-            lignes += [f"{action}={chr(9).join(touches) if touches else 'none'}" for action, touches in sorted(actions.items())]
-        lignes.append(FIN_SURCHARGES)
-    with open(chemin, "w", encoding="utf-8") as fichier:
-        fichier.write("\n".join(lignes) + "\n")
+def retirer_des_lanceurs(retirees, dossier=None):
+    """Réécrit les .desktop : pour chaque (lanceur, action), X-KDE-Shortcuts ne garde que les touches données (la ligne
+    disparaît s'il n'en reste aucune). Les autres lignes ne changent pas."""
+    dossier = dossier or os.environ.get("BINIXX_LANCEURS", APPLICATIONS)
+    for lanceur, actions in retirees.items():
+        chemin = os.path.join(dossier, lanceur)
+        with open(chemin, encoding="utf-8") as fichier:
+            lignes = fichier.read().split("\n")
+        sortie, action = [], None
+        for ligne in lignes:
+            if ligne.lstrip().startswith("["):
+                action = _action_de_section(ligne)
+            elif action in actions and ligne.startswith("X-KDE-Shortcuts="):
+                if actions[action]:
+                    sortie.append("X-KDE-Shortcuts=" + ",".join(actions[action]))
+                continue
+            sortie.append(ligne)
+        with open(chemin, "w", encoding="utf-8") as fichier:
+            fichier.write("\n".join(sortie))
+
+
+def decrire_retraits(avant, apres):
+    """Les lignes du journal : « lanceur / action : touches d'origine -> touches gardées »."""
+    return [f"{lanceur} / {action} : {', '.join(avant[lanceur][action])} -> {', '.join(touches) or 'aucune'}"
+            for lanceur, actions in sorted(apres.items()) for action, touches in sorted(actions.items())]
 
 
 def main(argv=None, run=launch.run, sortie=print):
@@ -391,11 +370,21 @@ def main(argv=None, run=launch.run, sortie=print):
                     sortie(f"CONFLIT  {lanceur} / {action} garde une touche de BinixX OS")
             sortie(f"{sum(len(a) for a in retirees.values())} conflits de touches entre lanceurs")
             return 1 if retirees else 0
-        ecrire_surcharges({**lire_surcharges(), **retirees})
-        for lanceur, actions in sorted(retirees.items()):
-            for action, touches in sorted(actions.items()):
-                sortie(f"touches retirées : {lanceur} / {action} garde {', '.join(touches) or 'rien'}")
-        sortie(f"{sum(len(a) for a in retirees.values())} touches retirées à d'autres lanceurs")
+        dossier = os.environ.get("BINIXX_LANCEURS", APPLICATIONS)
+        avant = {lanceur: touches_du_lanceur(os.path.join(dossier, lanceur)) for lanceur in retirees}
+        retirer_des_lanceurs(retirees)
+        lignes = decrire_retraits(avant, retirees)
+        for ligne in lignes:
+            sortie(f"touche retirée : {ligne}")
+        journal = os.environ.get("BINIXX_JOURNAL_RETRAITS", JOURNAL_RETRAITS)
+        try:
+            os.makedirs(os.path.dirname(journal), exist_ok=True)
+            with open(journal, "w", encoding="utf-8") as fichier:
+                fichier.write("# Touches retirées aux lanceurs de KDE au build (binixx-raccourcis surcharger) : elles appartiennent à BinixX OS\n"
+                              + "".join(ligne + "\n" for ligne in lignes))
+        except OSError as erreur:
+            sortie(f"journal non écrit : {erreur}")
+        sortie(f"{len(lignes)} touches retirées à d'autres lanceurs")
         return 0
     if args.action == "liste":
         for raccourci in raccourcis:

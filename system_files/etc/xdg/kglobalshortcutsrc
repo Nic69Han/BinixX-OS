@@ -2,7 +2,7 @@
 # que KDE n'offre pas d'office. La liste annoncée par la page « Raccourcis » est usr/share/binixx/raccourcis/raccourcis.tsv ;
 # chaque touche de source « binixx » y doit avoir sa ligne ici (tests/image/checks.d/78-raccourcis.sh).
 # Les lanceurs de KDE qui prendraient aussi l'une de ces touches la perdent au build : build_files/modules.d/78-raccourcis.sh
-# écrit le bloc « touches retirées » en bas de ce fichier.
+# réécrit leur X-KDE-Shortcuts (ce fichier-ci n'y suffit pas : KDE lit surtout les .desktop).
 # Windows + I : Paramètres
 [services][binixx-parametres.desktop]
 _launch=Meta+I

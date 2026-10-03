@@ -28,8 +28,10 @@ for touches in 'Meta+I' 'Meta+E' 'Meta+R' 'Ctrl+Shift+Esc'; do
     check "touche ${touches} fournie par l'image" grep -q "^_launch=${touches}\$" /etc/xdg/kglobalshortcutsrc
 done
 # Une touche annoncée n'a qu'un propriétaire : les lanceurs de KDE qui la déclarent aussi (Spectacle, Configuration du système…) la
-# perdent au build (module 78-raccourcis.sh) ; on liste ce qui a été retiré, et il ne doit rester aucun conflit
-sed -n '/^# --- touches retirées/,/^# --- fin des touches retirées/p' /etc/xdg/kglobalshortcutsrc | sed 's/^/            retiré : /'
+# perdent au build (module 78-raccourcis.sh, qui réécrit leur X-KDE-Shortcuts) ; on liste ce qui a été retiré, et il ne doit
+# rester aucun conflit
+check "journal des touches retirées présent" test -f /usr/share/binixx/raccourcis/touches-retirees.txt
+sed 's/^/            /' /usr/share/binixx/raccourcis/touches-retirees.txt
 out="$(/usr/libexec/binixx/binixx-raccourcis surcharger --verifier 2>&1 || true)"
 if /usr/libexec/binixx/binixx-raccourcis surcharger --verifier >/dev/null 2>&1; then
     pass "aucun lanceur de KDE ne dispute une touche de BinixX OS (${out##*$'\n'})"

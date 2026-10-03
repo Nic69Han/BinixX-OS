@@ -454,50 +454,75 @@ class UneToucheUnProprietaire(unittest.TestCase):
         self.assertNotIn("org.kde.dolphin.desktop", retirees)      # Meta+E : l'image le lui donne elle-même
         self.assertNotIn("autre.desktop", retirees)
 
-    def test_un_lanceur_qui_perd_toutes_ses_touches_est_ecrit_none(self):
-        ecrire(os.path.join(self.apps, "seul.desktop"), "[Desktop Entry]\nX-KDE-Shortcuts=Meta+R\n")
-        R.ecrire_surcharges(self.calculer(), self.xdg)
-        with open(self.xdg, encoding="utf-8") as f:
-            texte = f.read()
-        self.assertIn("[services][seul.desktop]\n_launch=none", texte)
-        self.assertIn("[services][systemsettings.desktop]\n_launch=Tools", texte)
+    def lire(self, nom):
+        with open(os.path.join(self.apps, nom), encoding="utf-8") as fichier:
+            return fichier.read()
 
-    def test_apres_l_ecriture_il_ne_reste_aucun_conflit(self):
-        R.ecrire_surcharges(self.calculer(), self.xdg)
+    def test_les_touches_sont_retirees_dans_les_fichiers_desktop(self):
+        avant = self.lire("org.kde.spectacle.desktop")
+        R.retirer_des_lanceurs(self.calculer(), self.apps)
+        apres = self.lire("org.kde.spectacle.desktop")
+        self.assertIn("[Desktop Action RecordRegion]\nName=Record\nX-KDE-Shortcuts=Meta+Shift+R\n", apres)
+        self.assertNotIn("Meta+R,", apres)
+        # tout le reste du fichier est intact
+        self.assertEqual(avant.replace("Meta+R,Meta+Shift+R", "Meta+Shift+R"), apres)
+        self.assertIn("X-KDE-Shortcuts=Tools\n", self.lire("systemsettings.desktop"))
+        self.assertEqual(self.lire("org.kde.dolphin.desktop"), "[Desktop Entry]\nName=Dolphin\nX-KDE-Shortcuts=Meta+E\n")
+
+    def test_un_lanceur_qui_perd_toutes_ses_touches_n_a_plus_de_ligne(self):
+        ecrire(os.path.join(self.apps, "seul.desktop"), "[Desktop Entry]\nName=Seul\nX-KDE-Shortcuts=Meta+R\nExec=seul\n")
+        R.retirer_des_lanceurs(self.calculer(), self.apps)
+        self.assertEqual(self.lire("seul.desktop"), "[Desktop Entry]\nName=Seul\nExec=seul\n")
+        self.assertEqual(R.touches_du_lanceur(os.path.join(self.apps, "seul.desktop")), {})
+
+    def test_apres_la_reecriture_il_ne_reste_aucun_conflit(self):
+        R.retirer_des_lanceurs(self.calculer(), self.apps)
         self.assertEqual(self.calculer(), {})
-        self.assertEqual(R.lire_surcharges(self.xdg)["org.kde.spectacle.desktop"], {"RecordRegion": ["Meta+Shift+R"]})
 
-    def test_ecrire_deux_fois_donne_le_meme_fichier_et_garde_le_reste(self):
-        R.ecrire_surcharges(self.calculer(), self.xdg)
-        with open(self.xdg, encoding="utf-8") as f:
-            premier = f.read()
-        R.ecrire_surcharges({**R.lire_surcharges(self.xdg), **self.calculer()}, self.xdg)
-        with open(self.xdg, encoding="utf-8") as f:
-            self.assertEqual(f.read(), premier)
-        self.assertTrue(premier.startswith("# test\n[services][org.kde.dolphin.desktop]\n_launch=Meta+E\n"))
-        self.assertEqual(premier.count(R.DEBUT_SURCHARGES), 1)
-        self.assertEqual(premier.count(R.FIN_SURCHARGES), 1)
+    def test_recommencer_ne_change_plus_rien(self):
+        R.retirer_des_lanceurs(self.calculer(), self.apps)
+        un = {nom: self.lire(nom) for nom in os.listdir(self.apps)}
+        R.retirer_des_lanceurs(self.calculer(), self.apps)
+        self.assertEqual({nom: self.lire(nom) for nom in os.listdir(self.apps)}, un)
 
-    def test_le_bloc_des_touches_retirees_ne_compte_pas_comme_touches_fournies(self):
-        R.ecrire_surcharges(self.calculer(), self.xdg)
-        self.assertEqual(R.touches_du_fichier_xdg(self.xdg),
-                         {"org.kde.dolphin.desktop": "Meta+E", "binixx-executer.desktop": "Meta+R"})
+    def test_une_touche_du_meme_nom_dans_une_autre_action_n_est_pas_touchee(self):
+        ecrire(os.path.join(self.apps, "deux.desktop"),
+               "[Desktop Entry]\nX-KDE-Shortcuts=Meta+R\n\n[Desktop Action Autre]\nX-KDE-Shortcuts=Meta+Alt+R\n")
+        retirees = self.calculer()
+        self.assertEqual(retirees["deux.desktop"], {"_launch": []})
+        R.retirer_des_lanceurs(retirees, self.apps)
+        self.assertEqual(self.lire("deux.desktop"), "[Desktop Entry]\n\n[Desktop Action Autre]\nX-KDE-Shortcuts=Meta+Alt+R\n")
+
+    def test_decrire_les_retraits(self):
+        retirees = self.calculer()
+        avant = {nom: R.touches_du_lanceur(os.path.join(self.apps, nom)) for nom in retirees}
+        self.assertEqual(R.decrire_retraits(avant, retirees), [
+            "org.kde.spectacle.desktop / RecordRegion : Meta+R, Meta+Shift+R -> Meta+Shift+R",
+            "systemsettings.desktop / _launch : Tools, Meta+I -> Tools"])
 
     def test_ligne_de_commande(self):
-        anciens = {cle: os.environ.get(cle) for cle in ("BINIXX_RACCOURCIS", "BINIXX_LANCEURS", "BINIXX_XDG_RACCOURCIS")}
+        journal = os.path.join(self.dossier, "journal.txt")
+        anciens = {cle: os.environ.get(cle) for cle in
+                   ("BINIXX_RACCOURCIS", "BINIXX_LANCEURS", "BINIXX_XDG_RACCOURCIS", "BINIXX_JOURNAL_RETRAITS")}
         os.environ.update({"BINIXX_RACCOURCIS": fichier_tsv(("Cat", "Meta+R", "Exécuter", "", "binixx"),
                                                             ("Cat", "Meta+I", "Paramètres", "", "binixx")),
-                           "BINIXX_LANCEURS": self.apps, "BINIXX_XDG_RACCOURCIS": self.xdg})
+                           "BINIXX_LANCEURS": self.apps, "BINIXX_XDG_RACCOURCIS": self.xdg,
+                           "BINIXX_JOURNAL_RETRAITS": journal})
         try:
             sortie = []
             self.assertEqual(R.main(["surcharger", "--verifier"], sortie=sortie.append), 1)       # des conflits au départ
             self.assertIn("CONFLIT  org.kde.spectacle.desktop / RecordRegion", "\n".join(sortie))
             sortie = []
             self.assertEqual(R.main(["surcharger"], sortie=sortie.append), 0)
-            self.assertIn("touches retirées : systemsettings.desktop / _launch garde Tools", "\n".join(sortie))
+            self.assertIn("touche retirée : systemsettings.desktop / _launch : Tools, Meta+I -> Tools", "\n".join(sortie))
+            with open(journal, encoding="utf-8") as fichier:
+                self.assertIn("org.kde.spectacle.desktop / RecordRegion : Meta+R, Meta+Shift+R -> Meta+Shift+R", fichier.read())
             sortie = []
             self.assertEqual(R.main(["surcharger", "--verifier"], sortie=sortie.append), 0)       # plus aucun après
             self.assertIn("0 conflits", "\n".join(sortie))
+            sortie = []
+            self.assertEqual(R.main(["surcharger"], sortie=sortie.append), 0)                     # relancer : rien de plus
+            self.assertIn("0 touches retirées", "\n".join(sortie))
         finally:
             for cle, valeur in anciens.items():
                 if valeur is None:

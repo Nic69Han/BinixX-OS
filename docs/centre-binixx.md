@@ -92,11 +92,14 @@ ou en ajouter.
 - **Comment** : `etc/xdg/kglobalshortcutsrc` (`_launch=` par lanceur), et chaque lanceur ajouté déclare la même touche
   (`X-KDE-Shortcuts=`) : `binixx-executer.desktop`, `binixx-gestionnaire-taches.desktop`.
   Les réglages de l'utilisateur passent avant : s'il change une touche, la sienne reste.
-- **Une touche, un seul propriétaire** : KDE ne sert qu'une action par touche. Spectacle prend déjà Windows + R (enregistrement
-  d'écran) et la Configuration du système Windows + I : sans précaution, nos raccourcis marcheraient parfois seulement. Au build,
-  `build_files/modules.d/78-raccourcis.sh` lance `binixx-raccourcis surcharger` : il lit les `X-KDE-Shortcuts` des lanceurs de KDE
-  et écrit, en bas de `kglobalshortcutsrc`, le bloc « touches retirées » (`action=touches gardées`, ou `none`). Il ne touche ni
-  aux touches de source `kde`, ni à nos lanceurs `binixx-*`. Le build échoue s'il reste un conflit.
+- **Une touche, un seul propriétaire** : KDE ne sert qu'une action par touche. Spectacle prend déjà Windows + R (une de ses
+  actions d'enregistrement d'écran) et la Configuration du système Windows + I : sans précaution, nos raccourcis ne marcheraient
+  que par moments. Constaté dans le test VM : un `[services]` dans `kglobalshortcutsrc` ne retire pas la touche à ces lanceurs,
+  KDE lit la déclaration `X-KDE-Shortcuts` de leur fichier `.desktop`. Au build, `build_files/modules.d/78-raccourcis.sh` lance donc
+  `binixx-raccourcis surcharger` : il lit les `X-KDE-Shortcuts` des lanceurs de KDE (entrée principale ou `[Desktop Action X]`),
+  retire nos touches (source `binixx`) dans le `.desktop` de ceux qui ne sont pas à nous, et note ce qu'il a retiré dans
+  `/usr/share/binixx/raccourcis/touches-retirees.txt`. Il ne touche ni aux touches de source `kde`, ni à nos lanceurs `binixx-*`.
+  Le build échoue s'il reste un conflit.
 - **La liste** : `usr/share/binixx/raccourcis/raccourcis.tsv` (catégorie, touches à la KDE, action, précision, source).
   Ajouter un raccourci = ajouter une ligne ; si sa source est `binixx`, ajouter aussi son `_launch` dans
   `kglobalshortcutsrc` (un test l'exige, et un test refuse l'inverse : une touche posée par l'image sans être annoncée).
