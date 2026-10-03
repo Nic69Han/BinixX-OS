@@ -11,5 +11,5 @@ chacun dans son propre `bash`, après les sections 1 à 7 et avant la régénér
 - Ajouter ses vérifications dans `tests/image/checks.d/NN-nom.sh` et `tests/vm/checks.d/NN-nom.sh`
   (voir `tests/README.md`).
 
-Numéros utilisés : 40 administration (vérifications seulement, ses paquets sont dans `build.sh`).
+Numéros utilisés : 20 mises à jour de sécurité (avant tous les autres, pour que tout ce qu'ils installent soit à jour), 40 administration (vérifications seulement, ses paquets sont dans `build.sh`).
 Les nouveaux modules prennent le numéro de leur chantier pour éviter les doublons.
