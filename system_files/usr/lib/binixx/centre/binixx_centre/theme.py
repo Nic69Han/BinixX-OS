@@ -18,6 +18,7 @@ ACCENTS = {
     "vert": ("#059669", "#34D399"),
     "sarcelle": ("#0F766E", "#2DD4BF"),
     "cyan": ("#0891B2", "#22D3EE"),
+    "fuchsia": ("#A21CAF", "#E879F9"),
     "bleu-fonce": ("#1D4ED8", "#60A5FA"),
 }
 

@@ -132,6 +132,28 @@ Toutes les pages partagent le même style moderne (retour du propriétaire : « 
   grille, pastilles) sont dans `widgets.py`, les couleurs et les styles dans `theme.py`. Une page n'a rien à redessiner : elle
   appelle `widgets.entete(...)`, `widgets.section(...)` et `widgets.carte(...)`.
 
+## Taille du texte : un curseur de 100 % à 200 %
+
+**Paramètres → Accessibilité → Taille du texte** : comme dans Windows, un seul curseur (100 % à 200 %, par pas de 10) agrandit
+le texte du bureau et des applications. L'aperçu change en direct ; « Appliquer » écrit le réglage, « Rétablir la taille
+d'origine » remet tout.
+
+- **Comment** : KDE range ses polices dans `kdeglobals` (« Noto Sans,10,… » : famille, taille en points). L'outil multiplie la taille
+  de six polices (interface, chasse fixe, plus petite lisible, barres d'outils, menus, titres de fenêtres) avec
+  `kwriteconfig6 --notify` : les applications Qt et le bureau changent de police **tout de suite**, et le module GTK de KDE
+  recopie la police dans les applications GTK. Rien d'autre ne bouge : ni les familles, ni les icônes, ni la mise à l'échelle de
+  l'écran (qui reste dans Paramètres → Affichage).
+- **Rien n'est perdu** : la première fois, les polices d'origine (ou leur absence : KDE reprend alors les siennes) sont gardées dans
+  `~/.config/binixx/taille-du-texte.json`. Changer de taille repart toujours de ces polices (pas de cumul : 150 % puis 120 %
+  donne 120 %, pas 180 %) ; « rétablir » les remet, **sauf celles que l'utilisateur a changées entre-temps** dans les réglages de
+  KDE, qui deviennent la nouvelle référence.
+- **Les pages web** gardent leur mise en page : Ctrl + molette dans le navigateur, comme d'habitude (la page le dit).
+- **En ligne de commande** : `binixx-taille-texte etat | appliquer 100..200 | retablir`.
+- **Page sans bouton dans la barre latérale** : elle s'ouvre depuis Paramètres, comme la barre des tâches.
+- **Tests** : `tests/image/centre/test_taille_texte.py` (calcul, écriture, retour à l'origine, page) ; la CI vérifie les outils de
+  KDE (`82-taille-texte.sh`) ; le test VM applique 150 % dans la vraie session, relit les polices dans `kdeglobals`, regarde si une
+  application Qt les adopte, puis rétablit et vérifie que tout est **exactement comme avant**.
+
 ## Sous le capot
 
 - Python et **PySide6** (Qt 6), déjà présents dans l'image : rien de nouveau à installer.
