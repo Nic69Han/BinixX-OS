@@ -3,7 +3,7 @@
  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
   <vendor>BinixX OS</vendor>
-  <vendor_url>https://github.com/Nic69Han/BinixX</vendor_url>
+  <vendor_url>https://github.com/Nic69Han/BinixX-OS</vendor_url>
   <action id="org.binixx.cle-recuperation">
     <description>Create a recovery key for an encrypted disk</description>
     <description xml:lang="fr">Créer une clé de récupération pour un disque chiffré</description>

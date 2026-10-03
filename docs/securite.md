@@ -28,7 +28,7 @@ sous `ghcr.io/nic69han/binixx`, sur une connexion chiffrée) ; elle est prévue 
 | --- | --- | --- |
 | **Inventaire (SBOM)** | La liste de tous les paquets de l'image (nom, version, licence, éditeur, identifiant `purl`), au format **CycloneDX 1.6**, produite par `securite/sbom.py` à partir de la base RPM de l'image. Un inventaire presque vide (moins de 500 paquets) fait échouer le build. | Artefact `sbom-binixx-<étiquette>` du build (90 jours) ; joint à l'image publiée comme attestation. |
 | **Avis de sécurité Fedora en attente** | Liste les avis (`FEDORA-AAAA-…`) dont le correctif est **déjà publié** pour un paquet de l'image (`dnf updateinfo --security`) : une faille connue **et corrigeable**. **Le build échoue** si un avis atteint le seuil (**Critical** par défaut). | Résumé du build ; artefact `avis-securite.txt`. |
-| **Provenance** | Attestation signée par GitHub : quel dépôt, quel workflow et quel commit ont produit **cette empreinte** d'image. Publiée dans le registre avec l'image (`gh attestation verify oci://ghcr.io/nic69han/binixx:stable --repo Nic69Han/BinixX`). | Onglet « Attestations » du dépôt. |
+| **Provenance** | Attestation signée par GitHub : quel dépôt, quel workflow et quel commit ont produit **cette empreinte** d'image. Publiée dans le registre avec l'image (`gh attestation verify oci://ghcr.io/nic69han/binixx:stable --repo Nic69Han/BinixX-OS`). | Onglet « Attestations » du dépôt. |
 
 Le **seuil** se change sans modifier le code : variable de dépôt `CVE_THRESHOLD` (`Critical`, `Important`, `Moderate` ou `Low`).
 Un avis qu'on ne peut pas corriger tout de suite (correctif attendu dans l'image de base) s'inscrit dans

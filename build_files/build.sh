@@ -205,10 +205,10 @@ sed -i \
     -e 's/^NAME=.*/NAME="BinixX OS"/' \
     -e "s/^PRETTY_NAME=.*/PRETTY_NAME=\"BinixX OS $(rpm -E %fedora)\"/" \
     -e 's/^LOGO=.*/LOGO=binixx/' \
-    -e 's|^HOME_URL=.*|HOME_URL="https://github.com/Nic69Han/BinixX"|' \
-    -e 's|^DOCUMENTATION_URL=.*|DOCUMENTATION_URL="https://github.com/Nic69Han/BinixX/tree/main/docs"|' \
-    -e 's|^SUPPORT_URL=.*|SUPPORT_URL="https://github.com/Nic69Han/BinixX/issues"|' \
-    -e 's|^BUG_REPORT_URL=.*|BUG_REPORT_URL="https://github.com/Nic69Han/BinixX/issues"|' \
+    -e 's|^HOME_URL=.*|HOME_URL="https://github.com/Nic69Han/BinixX-OS"|' \
+    -e 's|^DOCUMENTATION_URL=.*|DOCUMENTATION_URL="https://github.com/Nic69Han/BinixX-OS/tree/main/docs"|' \
+    -e 's|^SUPPORT_URL=.*|SUPPORT_URL="https://github.com/Nic69Han/BinixX-OS/issues"|' \
+    -e 's|^BUG_REPORT_URL=.*|BUG_REPORT_URL="https://github.com/Nic69Han/BinixX-OS/issues"|' \
     -e 's/^DEFAULT_HOSTNAME=.*/DEFAULT_HOSTNAME="binixx"/' \
     /usr/lib/os-release
 

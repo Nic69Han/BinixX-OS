@@ -3,7 +3,7 @@
  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
   <vendor>BinixX OS</vendor>
-  <vendor_url>https://github.com/Nic69Han/BinixX</vendor_url>
+  <vendor_url>https://github.com/Nic69Han/BinixX-OS</vendor_url>
   <action id="org.binixx.reparer-systeme">
     <description>Restore system settings to the BinixX OS defaults</description>
     <description xml:lang="fr">Remettre des réglages du système comme dans BinixX OS à l'origine</description>

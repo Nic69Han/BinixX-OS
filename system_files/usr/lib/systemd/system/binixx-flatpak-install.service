@@ -1,6 +1,6 @@
 [Unit]
 Description=BinixX OS : installation des applications Flatpak par défaut
-Documentation=https://github.com/Nic69Han/BinixX
+Documentation=https://github.com/Nic69Han/BinixX-OS
 Wants=network-online.target
 After=network-online.target flatpak-add-flathub-repos.service
 ConditionPathExists=/usr/share/binixx/flatpaks/system-flatpaks.list
