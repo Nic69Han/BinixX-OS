@@ -4,6 +4,11 @@
 
 set -ouex pipefail
 
+### 0. Correctifs de sécurité
+# En premier : une mise à jour de paquet rétablit les fichiers d'origine (Firefox, thèmes « Fedora »), elle ne doit donc
+# pas passer après les sections de personnalisation ci-dessous (securite.sh).
+bash /ctx/securite.sh
+
 ### 1. Fichiers système
 # Configs KDE, services systemd, lanceurs de web apps (voir system_files/)
 cp -avf /ctx/system_files/. /

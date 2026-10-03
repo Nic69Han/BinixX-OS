@@ -12,4 +12,5 @@ chacun dans son propre `bash`, après les sections 1 à 7 et avant la régénér
   (voir `tests/README.md`).
 
 Numéros utilisés : 40 administration (vérifications seulement, ses paquets sont dans `build.sh`).
+Les mises à jour de sécurité ne sont pas un module : `build_files/securite.sh`, lancé par `build.sh` avant toute personnalisation (une mise à jour de paquet remettrait par-dessus les fichiers d'origine de Firefox, par exemple).
 Les nouveaux modules prennent le numéro de leur chantier pour éviter les doublons.

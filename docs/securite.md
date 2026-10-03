@@ -27,7 +27,7 @@ sous `ghcr.io/nic69han/binixx`, sur une connexion chiffrée) ; elle est prévue 
 | Contrôle | Ce qu'il fait | Où le trouver |
 | --- | --- | --- |
 | **Inventaire (SBOM)** | La liste de tous les paquets de l'image (nom, version, licence, éditeur, identifiant `purl`), au format **CycloneDX 1.6**, produite par `securite/sbom.py` à partir de la base RPM de l'image. Un inventaire presque vide (moins de 500 paquets) fait échouer le build. | Artefact `sbom-binixx-<étiquette>` du build (90 jours) ; joint à l'image publiée comme attestation. |
-| **Avis de sécurité Fedora en attente** | Liste les avis (`FEDORA-AAAA-…`) dont le correctif est **déjà publié** pour un paquet de l'image (`dnf updateinfo --security`) : une faille connue **et corrigeable**. **Le build échoue** si un avis atteint le seuil (**Critical** par défaut). | Résumé du build ; artefact `avis-securite.txt`. |
+| **Avis de sécurité Fedora en attente** | Liste les avis (`FEDORA-AAAA-…`) dont le correctif est **déjà publié** pour un paquet de l'image (`dnf updateinfo --security`) : une faille connue **et corrigeable**. Le build applique d'abord lui-même les correctifs de sécurité disponibles (`dnf upgrade --security`, hors noyau), puis contrôle ce qui reste : **le build échoue** si un avis atteint le seuil (**Critical** par défaut). | Résumé du build ; artefact `avis-securite.txt`. |
 | **Provenance** | Attestation signée par GitHub : quel dépôt, quel workflow et quel commit ont produit **cette empreinte** d'image. Publiée dans le registre avec l'image (`gh attestation verify oci://ghcr.io/nic69han/binixx:stable --repo Nic69Han/BinixX-OS`). | Onglet « Attestations » du dépôt. |
 
 Le **seuil** se change sans modifier le code : variable de dépôt `CVE_THRESHOLD` (`Critical`, `Important`, `Moderate` ou `Low`).
@@ -40,8 +40,12 @@ Limites assumées :
 
 - **Pourquoi pas Trivy ou Grype ?** Ils ne disposent pas d'une base d'avis pour Fedora : ils annonceraient « aucune
   faille » à tort. Les avis de Fedora eux-mêmes sont la source fiable.
-- **Un avis publié depuis moins de vingt-quatre heures** peut ne pas encore être dans l'image de base : avec le seuil
-  `Critical`, le build du jour échoue et celui du lendemain, reconstruit sur la base à jour, passe.
+- **Un avis publié depuis moins de vingt-quatre heures** peut ne pas encore être dans l'image de base. Le build n'attend
+  donc pas sa reconstruction : `build_files/securite.sh` applique les correctifs de sécurité que Fedora a déjà
+  publiés (en tout premier dans `build.sh`, pour ne pas écraser les réglages de BinixX OS), **sauf le noyau et ses modules** (`kernel*`, `kmod-*`, `akmod-*`) : Universal Blue compile ceux de la variante
+  NVIDIA pour un noyau précis, et en changer sans les recompiler casserait le pilote. Il ne reste alors de bloquant que ce
+  que cette exclusion garde ou que le dépôt Fedora n'a pas encore : dans ce cas, avec le seuil `Critical`, le build du jour
+  échoue et celui du lendemain, reconstruit sur la base à jour, passe.
 - **Les applications Flatpak** (OnlyOffice, Thunderbird…) ne sont pas dans l'image : elles s'installent depuis Flathub
   au premier démarrage et se mettent à jour séparément. Elles ne figurent donc pas dans l'inventaire.
 - La provenance **n'est pas la signature** : la signature Cosign des postes (S2) attend les clés du propriétaire ;
