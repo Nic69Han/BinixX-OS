@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
-"""Génère l'identité visuelle de NicOS : logos, icône, fond d'écran, écran de démarrage.
+"""Génère l'identité visuelle de NicOS : logos, icône, fond d'écran, écran de démarrage, installeur.
 
 Tous les fichiers sont produits à partir de ce script, pour pouvoir retoucher le logo
 (couleurs, proportions) et tout régénérer d'un coup :
 
-    pip install fonttools uharfbuzz
+    pip install fonttools uharfbuzz pillow numpy scipy
     python3 branding/generer.py [--chromium /chemin/vers/chrome] [--installeur-seulement]
 
-Chromium (ou Chrome) sert à rendre les images matricielles (PNG, JPG) : il gère les
-flous du fond d'écran. Pillow, s'il est installé, ajoute un grain imperceptible au fond
-d'écran pour éviter les bandes dans les dégradés.
+Chromium (ou Chrome) sert à rendre les images matricielles de l'écran de démarrage et de l'installeur.
+Le fond d'écran, lui, est calculé par branding/lever_de_gemme.py (numpy, scipy, Pillow).
 
 Police : Outfit (SIL Open Font License, voir branding/police/OFL.txt). Le texte est
 converti en tracés : les fichiers produits ne dépendent d'aucune police installée.
 """
 import argparse
 import math
-import re
 import shutil
 import subprocess
 import tempfile
@@ -188,26 +186,6 @@ class Renderer:
         subprocess.run(args + [page.as_uri()], check=True, capture_output=True)
 
 
-def wallpaper_html(w, h, dark):
-    """Fond d'écran : une gemme lumineuse en grand, sur un halo bleu (esprit « Bloom »)."""
-    size = h * 0.95
-    stops = GEM_DARK if dark else GEM_LIGHT
-    background = ("radial-gradient(55% 75% at 66% 45%, rgba(47,91,255,.55), transparent 70%),"
-                  "radial-gradient(45% 60% at 20% 85%, rgba(26,38,201,.45), transparent 70%),"
-                  "linear-gradient(135deg,#0B0F1A,#10163A)") if dark else \
-                 ("radial-gradient(60% 80% at 70% 40%, rgba(95,178,255,.55), transparent 70%),"
-                  "radial-gradient(50% 70% at 25% 90%, rgba(47,91,255,.30), transparent 70%),"
-                  "radial-gradient(40% 50% at 12% 12%, rgba(205,225,255,.95), transparent 70%),"
-                  "linear-gradient(135deg,#EEF3FF,#D9E4FF)")
-    glow = svg_doc(size, size, gem(size / 2, size / 2, size * 0.8, stops, highlight=False))
-    shape = svg_doc(size, size, gem(size / 2, size / 2, size * 0.8, stops))
-    left, top = w * 0.66 - size / 2, h * 0.47 - size / 2
-    return (f'<div style="position:relative;width:{w}px;height:{h}px;overflow:hidden;background:{background}">'
-            f'<div style="position:absolute;left:{left}px;top:{top}px;filter:blur({h * 0.09:.0f}px);opacity:.75">{glow}</div>'
-            f'<div style="position:absolute;left:{left}px;top:{top}px;opacity:{0.9 if dark else 0.92}">{shape}</div>'
-            '</div>')
-
-
 def installer_sidebar_html(w, h):
     """Panneau latéral de l'installeur : nuit NicOS, halo bleu derrière le logo, gemme discrète.
     Anaconda l'affiche sans le redimensionner, calé en haut à gauche, sur 15 % de la largeur de
@@ -343,17 +321,9 @@ def main():
     mark_h = math.ceil(h) + 8
     renderer.png(svg_doc(240, mark_h, body), 240, mark_h, plymouth / "watermark.png", transparent=True)
 
-    # 4. Fond d'écran NicOS (clair et sombre)
-    wall = SYSTEM / "usr/share/wallpapers/NicOS/contents"
-    for folder, dark in (("images", False), ("images_dark", True)):
-        (wall / folder).mkdir(parents=True, exist_ok=True)
-        for w, h in ((1920, 1080), (3840, 2160)):
-            png = renderer.tmp / f"wall-{folder}-{w}.png"
-            renderer.png(wallpaper_html(w, h, dark), w, h, png)
-            to_jpeg(png, wall / folder / f"{w}x{h}.jpg")
-    shot = renderer.tmp / "screenshot.png"
-    renderer.png(wallpaper_html(400, 250, False), 400, 250, shot)
-    to_jpeg(shot, wall / "screenshot.jpg", quality=85)
+    # 4. Fond d'écran NicOS « Lever de gemme » (clair et sombre) : calculé par lever_de_gemme.py, sans Chromium
+    import lever_de_gemme
+    lever_de_gemme.ecrire_fonds(SYSTEM / "usr/share/wallpapers/NicOS/contents")
 
     # 5. Installeur de l'ISO (Anaconda)
     installer_assets(wm, renderer)

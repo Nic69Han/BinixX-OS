@@ -19,7 +19,7 @@ Dans l'image :
 | Emplacement | Contenu |
 | --- | --- |
 | `/usr/share/icons/hicolor/scalable/apps/nicos.svg` | Icône `nicos` : bouton Démarrer, « À propos », `LOGO` de `os-release` |
-| `/usr/share/wallpapers/NicOS/` | Fond d'écran (bureau, verrouillage, connexion), version claire et sombre |
+| `/usr/share/wallpapers/NicOS/` | Fond d'écran « Lever de gemme » (bureau, verrouillage, connexion), version claire et sombre, en 1080p et 4K |
 | `/usr/share/plymouth/themes/nicos/` | Écran de démarrage |
 
 Sur l'ISO, `disk_config/personnaliser-iso.sh` :
@@ -28,6 +28,27 @@ Sur l'ISO, `disk_config/personnaliser-iso.sh` :
   les menus de démarrage aussi ;
 - donne à l'installeur (Anaconda) le logo et les couleurs de `branding/installeur/`, par
   `images/product.img`, qu'il applique au démarrage par-dessus les logos Fedora.
+
+## Le fond d'écran : « Lever de gemme »
+
+Le fond de Windows XP (« Bliss ») se reconnaît au premier regard parce qu'il n'appartient qu'à Windows. NicOS a le sien :
+un horizon de planète vu de l'espace, un ciel étoilé en bleu NicOS avec la Voie lactée, et **la gemme du logo qui se
+lève comme un soleil**, une aube d'ambre qui court sur l'horizon. L'ambre est la seule touche chaude de l'identité
+(voir [Couleurs](#couleurs)).
+
+- **Original** : tout est calculé par `branding/lever_de_gemme.py` (bruit fractal, étoiles, lumière, gemme dessinée
+  d'après `generer.py`), sans image tierce : **aucune licence à citer**, mêmes droits que le logo. Le résultat est
+  identique à chaque exécution (graine fixe) ; chaque fond est calculé en 4K puis réduit, donc toutes les tailles
+  montrent le même ciel.
+- **Deux versions** : `images/` pour le thème NicOS (clair), `images_dark/` pour NicOS sombre (ciel plus sombre,
+  nébuleuse plus discrète). Le bureau, l'écran de verrouillage et l'écran de connexion utilisent le même dossier.
+- **Écartés** : des photos de la NASA, libres de droits avec crédit (« Falaises cosmiques » du télescope James Webb, lever
+  de Terre d'Artemis II). Spectaculaires, mais on les attribuerait à la NASA, pas à NicOS. Elles restent possibles
+  comme fonds d'écran optionnels, avec leur crédit (NASA, ESA, CSA, STScI) et sans laisser croire que la NASA cautionne
+  NicOS.
+- **Régénérer** : `python3 branding/lever_de_gemme.py 3840 fond.png clair` pour un essai (`nuit` pour le thème
+  sombre) ; `branding/generer.py` écrit les fichiers de l'image. Dépendances : `pip install numpy scipy pillow`.
+  Les tests (`tests/branding`) vérifient le déterminisme, la gemme et les fichiers produits.
 
 ## Couleurs
 
@@ -45,6 +66,9 @@ selon l'heure possible) : **NicOS** (clair, par défaut) et **NicOS sombre**. M�
 barre des tâches flottante en haut de l'écran, aux coins arrondis, comme Zorin OS 18. Les couleurs
 sont celles de Brise, avec le bleu NicOS comme couleur d'accent ; `build_files/build.sh` les
 régénère depuis les fichiers de Brise à chaque construction de l'image.
+
+L'**ambre** (`#FFD08A` → `#FF7A45`) n'apparaît qu'en touche, pour l'instant dans l'aube du fond d'écran. Il ne remplace
+jamais le bleu.
 
 Le nom s'écrit **NicOS** (N et OS en majuscules), en Outfit SemiBold. Le point du « i » est
 une petite gemme.
