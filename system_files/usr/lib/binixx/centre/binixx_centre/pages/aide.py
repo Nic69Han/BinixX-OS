@@ -53,8 +53,8 @@ PROBLEMES = [
      "Ouvrir le moniteur système", "moniteur"),
     ("Depuis la dernière mise à jour, quelque chose ne marche plus",
      "BinixX OS garde la version précédente : on y revient en un redémarrage, sans rien perdre. "
-     "Administration du PC → Mises à jour logicielles → « Revenir en arrière ».",
-     "Ouvrir l'administration", "retour"),
+     "Paramètres → Mises à jour du système → « Revenir en arrière ».",
+     "Ouvrir les mises à jour", "retour"),
     ("Mon bureau est cassé (barre, icônes, couleurs)",
      "Remet la barre, le thème et les raccourcis comme au premier jour. Vos fichiers, vos applications, "
      "la langue et le clavier ne changent pas ; les anciens réglages sont gardés dans un dossier.",
@@ -134,7 +134,7 @@ class Page(QWidget):
             "son": lambda: launch.open_settings("kcm_pulseaudio"),
             "ecrans": lambda: launch.open_settings("kcm_kscreen"),
             "moniteur": lambda: launch.open_app("org.kde.plasma-systemmonitor"),
-            "retour": lambda: launch.open_webapp("http://localhost:9090/updates"),
+            "retour": lambda: centre.show_page("mises_a_jour"),
             "bureau": self.reinitialiser_bureau,
             "reparer": self.reparer_systeme,
         }
