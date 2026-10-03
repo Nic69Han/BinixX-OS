@@ -52,8 +52,8 @@ Les postes suivent l'étiquette `stable`. Pour valider avant de déployer, publi
 `testing` : les postes pilotes suivent `testing`
 (`sudo bootc switch ghcr.io/<organisation>/binixx-entreprise:testing`), les autres attendent
 que l'image soit promue en `stable` (`podman tag … :stable` puis `podman push`).
-La version précédente reste toujours disponible : **Administration du PC → Mises à jour logicielles →
-Revenir en arrière**.
+La version précédente reste toujours disponible : **Paramètres → Mises à jour du système → Revenir en arrière**
+(ou Administration du PC → Mises à jour logicielles).
 
 ## ISO d'installation
 

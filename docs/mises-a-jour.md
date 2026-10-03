@@ -81,7 +81,7 @@ Choix de prudence :
 - un PC volontairement sans bureau (cible par défaut autre que `graphical.target`) n'est pas contrôlé ;
 - on attend jusqu'à 4 minutes que l'écran de connexion démarre, pour ne pas pénaliser un vieux PC ;
 - une panne qui n'empêche pas l'écran de connexion de démarrer ne déclenche pas le retour arrière :
-  le retour manuel reste possible (`sudo bootc rollback`, ou Administration du PC).
+  le retour manuel reste possible (Paramètres → Mises à jour du système → « Revenir en arrière », `sudo bootc rollback`, ou Administration du PC).
 
 Le test en VM le vérifie de bout en bout : une « mise à jour défectueuse » (sans écran de connexion) est
 publiée dans un registre local, la VM doit redémarrer trois fois puis revenir seule à la version
