@@ -2,3 +2,7 @@
 # la touche Windows + I ouvre « Paramètres », comme sous Windows.
 [services][binixx-parametres.desktop]
 _launch=Meta+I
+
+# Windows + S : la recherche unique (applications, réglages, logiciels Windows, aide, fichiers)
+[services][binixx-recherche.desktop]
+_launch=Meta+S

@@ -116,6 +116,8 @@ def parse(argv):
     parser.add_argument("--page", default="accueil", help="page à ouvrir (accueil, catalogue, aide…)")
     parser.add_argument("--programme", metavar="FICHIER",
                         help="fichier Windows (.exe, .msi) ouvert par l'utilisateur : cherche son équivalent")
+    parser.add_argument("--recherche", metavar="TEXTE", default="",
+                        help="texte à mettre dans la barre de recherche de la page ouverte (catalogue, paramètres)")
     parser.add_argument("--premier-demarrage", action="store_true",
                         help="n'ouvre la fenêtre qu'à la première ouverture de session")
     parser.add_argument("--test", metavar="DOSSIER",
@@ -136,6 +138,9 @@ def main(argv=None):
         args.page = "catalogue"
         centre.widgets["catalogue"].ouvrir_fichier(args.programme)
     centre.show_page(args.page)
+    champ = getattr(centre.widgets.get(args.page), "recherche", None)
+    if args.recherche and champ is not None:
+        champ.setText(args.recherche)
 
     if args.test:
         os.makedirs(args.test, exist_ok=True)
