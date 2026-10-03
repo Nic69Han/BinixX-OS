@@ -21,6 +21,7 @@ ACCENTS = {
     "fuchsia": ("#A21CAF", "#E879F9"),
     "bleu-fonce": ("#1D4ED8", "#60A5FA"),
     "lime": ("#4D7C0F", "#A3E635"),
+    "ardoise": ("#475569", "#94A3B8"),
 }
 
 STYLE = f"""

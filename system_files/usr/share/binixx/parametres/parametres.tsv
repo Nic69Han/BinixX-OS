@@ -31,7 +31,7 @@ Bluetooth et appareils	Lecture automatique	lecture automatique;clé usb;disque e
 Réseau et Internet	Wi-Fi, Ethernet et VPN	wifi;wi-fi;réseau;internet;ethernet;câble;vpn;connexion;mot de passe wifi;hotspot;partage de connexion	Se connecter à un réseau, ajouter un VPN d'entreprise.	wifi	kcm	kcm_networkmanagement
 Réseau et Internet	Pare-feu	pare-feu;firewall;ports;connexions entrantes;défender	Quelles connexions peuvent entrer dans ce PC.	shield	kcm	kcm_firewall
 Personnalisation	Arrière-plan	arrière-plan;fond d'écran;image de bureau;papier peint;diaporama	Choisir le fond d'écran.	image	kcm	kcm_wallpaper
-Personnalisation	Thèmes : clair ou sombre	thème;thèmes;clair;sombre;mode sombre;mode clair;apparence;binixx sombre	Passer du thème clair au thème sombre de BinixX OS.	sun	kcm	kcm_lookandfeel
+Personnalisation	Thèmes : clair ou sombre	thème;thèmes;clair;sombre;mode sombre;mode clair;apparence;ambiance;ambiances;aube;nuit;binixx sombre	Aube, Nuit ou Contraste élevé en un clic, et un interrupteur « Grand texte ».	sun	page	ambiances
 Personnalisation	Couleurs	couleurs;couleur d'accentuation;contraste;couleur des fenêtres	Couleur d'accentuation et schéma de couleurs.	droplet	kcm	kcm_colors
 Personnalisation	Polices	polices;police;taille du texte;texte plus grand;caractères	Polices et taille du texte.	type	kcm	kcm_fonts
 Personnalisation	Icônes et pointeur	icônes;curseur;pointeur de souris;taille du pointeur;icônes du bureau	Thème des icônes et forme du pointeur.	pointer	kcm	kcm_icons
@@ -52,8 +52,9 @@ Heure et langue	Date et heure	date;heure;fuseau horaire;horloge;heure d'été;fo
 Heure et langue	Langue et région	langue;région;pays;format de la date;format des nombres;monnaie;euro;langue d'affichage	Langue des menus, formats de date, de nombre et de monnaie.	globe	kcm	kcm_regionandlang
 Heure et langue	Saisie et correction	correction automatique;orthographe;correcteur;vérification orthographique;dictionnaire	Correction orthographique dans les applications.	edit	kcm	kcmspellchecking
 Jeux	Jeux	jeux;steam;xbox;manette;proton;epic;gog;minecraft;barre de jeu	Boutiques de jeux, carte graphique, manettes.	gamepad	page	jeux
-Accessibilité	Accessibilité	accessibilité;loupe;lecteur d'écran;narrateur;contraste élevé;clavier visuel;filtres de couleur;sons;touches rémanentes;malvoyant;malentendant	Loupe, lecteur d'écran, touches rémanentes, alertes visuelles.	accessibility	kcm	kcm_access
+Accessibilité	Accessibilité	accessibilité;loupe;lecteur d'écran;narrateur;clavier visuel;filtres de couleur;sons;touches rémanentes;malvoyant;malentendant	Loupe, lecteur d'écran, touches rémanentes, alertes visuelles.	accessibility	kcm	kcm_access
 Accessibilité	Taille du texte	taille du texte;texte plus grand;agrandir le texte;texte trop petit;caractères trop petits;lisibilité;police;zoom	Agrandir le texte du bureau et des applications, de 100 % à 200 %, d'un seul geste.	type	page	taille_texte
+Accessibilité	Contraste élevé	contraste élevé;contraste;fort contraste;noir et blanc;vue fatiguée;malvoyant;lisibilité;jaune sur noir	Texte blanc sur fond noir, sélection en jaune : tout se détache nettement.	eye	page	ambiances
 Confidentialité et sécurité	Protéger mes données	bitlocker;chiffrement;clé de récupération;protection des données;chiffrer le disque;sécurité	Clé de récupération du disque chiffré, pare-feu.	lock	page	securite
 Confidentialité et sécurité	Recherche de fichiers	indexation;recherche;recherche de fichiers;baloo;indexer;rechercher dans les fichiers	Quels dossiers sont indexés pour la recherche.	search	kcm	kcm_baloofile
 Mises à jour et récupération	Mises à jour du système	windows update;mises à jour;mise à jour;mettre à jour;updates;nouvelle version;redémarrer pour mettre à jour;version installée;canal;revenir en arrière;version précédente;discover	Version installée, mise à jour prête à appliquer, recherche, retour à la version précédente ; les applications dans Discover.	refresh	page	mises_a_jour
