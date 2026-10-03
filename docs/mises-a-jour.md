@@ -28,7 +28,13 @@ D'ici là, le workflow de l'ISO (qui embarque `stable`) ne peut pas aboutir.
 
 ## Sur un poste
 
+Sans terminal : **Paramètres → Mises à jour du système** montre la version installée, cherche une nouvelle version,
+l'installe et permet de revenir à la précédente ([détails](centre-binixx.md#mises-à-jour--une-page-comme-windows-update)).
+En ligne de commande :
+
 ```bash
+binixx-mises-a-jour etat        # version installée, mise à jour prête, version précédente
+binixx-mises-a-jour verifier    # y a-t-il une nouvelle version, et de quelle taille ?
 rpm-ostree status                          # version en cours et version précédente
 sudo bootc rollback                        # revenir à la version précédente (puis redémarrer)
 sudo bootc switch ghcr.io/nic69han/binixx:testing   # devenir testeur
