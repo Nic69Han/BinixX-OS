@@ -1,0 +1,15 @@
+#!/usr/bin/python3
+"""Recherche unique de BinixX OS (touche Windows + S) : applications, réglages, logiciels Windows, aide, fichiers.
+
+Sans option : ouvre la fenêtre de recherche. `--texte MOT [--json]` affiche les résultats sans fenêtre (support, tests)."""
+
+import sys
+
+sys.path.insert(0, "/usr/lib/binixx/centre")
+
+if any(a in ("-h", "--help", "--json") or a.startswith("--texte") for a in sys.argv[1:]):
+    from binixx_centre.recherche import main  # noqa: E402
+else:
+    from binixx_centre.recherche_fenetre import main  # noqa: E402
+
+sys.exit(main())

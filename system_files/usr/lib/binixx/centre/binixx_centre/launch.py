@@ -1,6 +1,7 @@
 """Lancement d'actions : jamais de shell, jamais de texte venant de l'utilisateur dans une commande."""
 
 import os
+import re
 import subprocess
 
 APPLICATIONS = "/usr/share/applications"
@@ -20,6 +21,30 @@ def open_app(desktop_id):
     """Ouvre une application d'après son lanceur (« binixx-onedrive » ou « org.kde.dolphin »)."""
     path = os.path.join(APPLICATIONS, desktop_id + ".desktop")
     return _start(["kioclient", "exec", path])
+
+
+def open_desktop_file(chemin):
+    """Ouvre une application d'après son fichier .desktop (système, utilisateur ou Flatpak) ; False s'il n'existe pas."""
+    if not chemin.endswith(".desktop") or not os.path.isabs(chemin) or not os.path.isfile(chemin):
+        return False
+    return _start(["kioclient", "exec", chemin])
+
+
+def open_centre(page, recherche=""):
+    """Ouvre le Centre BinixX OS sur une page, avec éventuellement une recherche déjà tapée (catalogue, paramètres)."""
+    if not re.fullmatch(r"[a-z][a-z0-9_]*", page):
+        return False
+    argv = ["/usr/libexec/binixx/binixx-centre", "--page", page]
+    if recherche:
+        argv.append(f"--recherche={recherche}")   # « = » : un texte qui commence par « - » ne devient pas une option
+    return _start(argv)
+
+
+def open_file(chemin):
+    """Ouvre un fichier avec l'application que l'utilisateur a choisie pour son type ; False s'il n'existe pas."""
+    if not os.path.isabs(chemin) or not os.path.exists(chemin):
+        return False
+    return _start(["xdg-open", chemin])
 
 
 def open_settings(module=""):

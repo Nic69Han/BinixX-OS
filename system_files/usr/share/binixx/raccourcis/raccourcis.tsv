@@ -16,6 +16,7 @@ Fenêtres et bureau	Meta+P	Projecteur et deuxième écran	Choisir l'écran du PC
 Applications et fichiers	Meta+E	Explorateur de fichiers	Ouvre Dolphin, l'équivalent de l'Explorateur de fichiers de Windows.	binixx
 Applications et fichiers	Meta+R	Exécuter une commande ou une application	La barre de recherche de KRunner : tapez le nom d'une application, puis Entrée.	binixx
 Applications et fichiers	Meta+I	Paramètres	Tous les réglages du PC au même endroit.	binixx
+Applications et fichiers	Meta+S	Rechercher	Applications, réglages, logiciels Windows, aide et fichiers en une seule recherche.	binixx
 Applications et fichiers	Ctrl+Shift+Esc	Gestionnaire des tâches	Ouvre le Moniteur système, pour voir ce qui ralentit le PC ou fermer une application bloquée.	binixx
 Session	Meta+L	Verrouiller la session	Pour s'absenter sans fermer ses fenêtres.	kde
 Session	Ctrl+Alt+Del	Quitter la session, redémarrer ou éteindre		kde

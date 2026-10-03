@@ -7,6 +7,10 @@
 [services][binixx-parametres.desktop]
 _launch=Meta+I
 
+# Windows + S : la recherche unique (applications, réglages, logiciels Windows, aide, fichiers)
+[services][binixx-recherche.desktop]
+_launch=Meta+S
+
 # Windows + E : l'explorateur de fichiers (Dolphin). KDE le fournit normalement ; cette ligne le garantit.
 [services][org.kde.dolphin.desktop]
 _launch=Meta+E

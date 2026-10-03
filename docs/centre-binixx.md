@@ -176,6 +176,37 @@ Le catalogue est un simple fichier : `system_files/usr/share/binixx/catalogue-wi
   licence (réseau nécessaire) ;
 - la CI vérifie aussi que chaque logiciel « inclus » a son lanceur dans l'image.
 
+## Recherche unique : Windows + S
+
+Sous Windows, **Windows + S** cherche tout d'un coup. BinixX OS fait pareil : une petite fenêtre avec une barre de recherche,
+qui montre **dans une seule liste**, groupée par catégorie :
+
+| Catégorie | Ce qu'on y trouve | Un Entrée... |
+| --- | --- | --- |
+| **Applications** | Les applications installées, **Flatpak compris** (nom, nom générique, mots-clés). | ...ouvre l'application. |
+| **Réglages** | L'index de Paramètres, avec les mots de Windows : « wifi », « imprimante », « bitlocker », « panneau de configuration ». | ...ouvre le réglage (module KDE, page du Centre, application). |
+| **Logiciels Windows** | Le catalogue « Mon logiciel Windows » : « word » montre OnlyOffice Documents, « gestionnaire des tâches » le Moniteur système. | ...ouvre le logiciel s'il est déjà là, sinon le catalogue sur la bonne recherche. |
+| **Aide** | Les cas d'« Obtenir de l'aide » (« mon imprimante n'imprime pas », « le PC est lent »). | ...ouvre la page d'aide. |
+| **Fichiers** | Les fichiers indexés par Baloo (`baloosearch6`), qui arrivent **après** les autres, sans bloquer la frappe. | ...ouvre le fichier avec son application. |
+
+- **Ordre** : chaque catégorie est rangée par son meilleur résultat, et le premier résultat de la liste est déjà sélectionné :
+  on tape « imprimante » puis Entrée. La note d'un résultat est d'autant plus haute que la requête ressemble à son nom
+  (nom exact, début du nom, synonyme…), sans accents ni majuscules, et « wifi » trouve « Wi-Fi ». Les mots-clés d'un lanceur
+  pèsent peu : « Mon logiciel Windows » cite Word et Excel, mais « word » met d'abord l'équivalent de Word.
+- **Clavier** : flèches pour passer d'un résultat à l'autre (les titres de catégorie sont sautés), Entrée pour ouvrir, **Échap**
+  ou un clic ailleurs pour fermer.
+- **Pourquoi pas le Centre ?** Le Centre construit toutes ses pages à l'ouverture : trop lent pour une recherche. La
+  recherche est une petite fenêtre à part (`binixx-recherche`) qui ne charge que l'index.
+- **La touche** : `usr/share/applications/binixx-recherche.desktop` (`X-KDE-Shortcuts=Meta+S`) et `etc/xdg/kglobalshortcutsrc`.
+- **Code** : `binixx_centre/recherche.py` (notation, lecture des `.desktop`, regroupement, ouverture ; aucune dépendance à Qt) et
+  `binixx_centre/recherche_fenetre.py` (la fenêtre). Rien n'est lancé par un shell : chaque genre de résultat a sa fonction dans
+  `launch.py`, et le texte tapé n'arrive jamais dans une commande, sauf après normalisation (lettres et chiffres) pour `baloosearch6`.
+- **En ligne de commande** (support, tests) : `binixx-recherche --texte imprimante [--json]` affiche ce que la fenêtre montrerait.
+- **Centre ouvert sur une recherche** : `binixx-centre --page catalogue --recherche=word`.
+- **Tests** : `tests/image/centre/test_recherche.py` (notation, lanceurs, regroupement, ouverture, fenêtre) ; la CI vérifie
+  les résultats sur les vrais fichiers de l'image et peint la fenêtre (`81-recherche.sh`) ; le test VM cherche « imprimante »,
+  « word », « firefox » et « onlyoffice » (un Flatpak) dans la vraie session (`81-recherche.sh`).
+
 ## Pourquoi pas le Centre de bienvenue de KDE ?
 
 Il s'adresse à des habitués de Linux (« Découvrir Plasma », « Participer »). L'accueil de BinixX OS parle

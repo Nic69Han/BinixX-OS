@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Rechercher
+GenericName=Recherche sur le PC
+Comment=Une seule recherche : applications, réglages, logiciels Windows, aide et fichiers (touche Windows + S)
+Exec=/usr/libexec/binixx/binixx-recherche
+Icon=system-search
+Terminal=false
+Categories=Utility;
+Keywords=rechercher;chercher;recherche;search;windows s;trouver;
+X-KDE-Shortcuts=Meta+S
+StartupNotify=false
+StartupWMClass=binixx-recherche
