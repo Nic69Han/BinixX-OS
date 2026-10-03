@@ -191,15 +191,15 @@ d'origine » remet tout.
 
 | Ambiance | Ce qui change |
 |---|---|
-| **Aube** | Le thème clair de BinixX OS (couleurs `BinixXClair`, icônes `breeze`). |
-| **Nuit** | Le thème sombre de BinixX OS (couleurs `BinixXSombre`, icônes `breeze-dark`). |
+| **Aube** | Le thème clair de BinixX OS (couleurs `BinixXClair`). |
+| **Nuit** | Le thème sombre de BinixX OS (couleurs `BinixXSombre`). Les icônes de Breeze s'assombrissent ou s'éclaircissent tout seules avec les couleurs. |
 | **Contraste élevé** | Noir, blanc et jaune (couleurs `BinixXContraste`, `usr/share/color-schemes/`) : texte blanc sur fond noir, sélection et focus en jaune, barre de titre jaune pour la fenêtre active. |
 
 « **Grand texte** » est un interrupteur à part, qui se combine avec n'importe quelle allure : texte à 130 % (la logique de « Taille du
 texte », ci-dessus) et pointeur de souris plus gros (36 au lieu de 24).
 
 - **Comment** : l'allure se pose avec les outils de Plasma (`plasma-apply-lookandfeel` pour le thème global, puis
-  `plasma-apply-colorscheme` pour le schéma de couleurs ; `lookandfeeltool` ou une écriture directe dans `kdeglobals` si l'un manque) :
+  `plasma-apply-colorscheme` pour le schéma de couleurs ; `lookandfeeltool` si le premier manque) :
   les couleurs, les icônes et les fenêtres changent tout de suite, y compris dans les applications ouvertes. Le fond d'écran a une
   version claire et une version sombre que Plasma choisit tout seul selon les couleurs.
 - **Sans écran** (ssh, test VM) : les outils `plasma-apply-*` démarrent une application Qt et s'arrêtent sans écran ; l'outil
@@ -208,7 +208,10 @@ texte », ci-dessus) et pointeur de souris plus gros (36 au lieu de 24).
 - **Aube au départ** : tant qu'on n'a rien choisi, le schéma de couleurs n'est pas dans `kdeglobals` mais dans
   `~/.config/kdedefaults/kdeglobals` (le thème global de BinixX OS) : la page le lit aussi, et annonce donc « Aube » sur une
   installation neuve.
-- **On vérifie** : après chaque pose, `kdeglobals` est relu. L'outil ne dit « c'est en place » que si le schéma voulu y est vraiment.
+- **On vérifie** : après chaque pose, `kdeglobals` est relu. L'outil ne dit « c'est en place » que si le schéma voulu y est vraiment ;
+  un outil qui répond « réussi » sans rien écrire (constaté pour `plasma-apply-cursortheme --size`) ne suffit pas : pour le pointeur,
+  l'écriture directe de `cursorSize` dans `kcminputrc` prend alors le relais (effet à la prochaine ouverture de session). Pour les
+  couleurs il n'y a pas de repli par écriture du nom : sans les couleurs que l'outil copie, il ne changerait rien à l'écran.
   L'ambiance en cours se reconnaît à son schéma de couleurs ; des couleurs choisies à la main ailleurs sont signalées comme
   « personnalisées » et remplacées au prochain clic.
 - **Contraste vérifié par les tests** : `BinixXContraste.colors` est analysé par `test_ambiances.py` ; texte normal d'au moins **7:1**

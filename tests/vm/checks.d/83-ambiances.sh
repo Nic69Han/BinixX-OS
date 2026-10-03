@@ -43,6 +43,7 @@ check_ambiances() {
     ambiances_diag plasma-apply-colorscheme BinixXSombre
     ambiances_diag env QT_QPA_PLATFORM=offscreen plasma-apply-colorscheme BinixXSombre
     ambiances_diag plasma-apply-lookandfeel --list
+    ambiances_diag env QT_QPA_PLATFORM=offscreen plasma-apply-cursortheme --help
     ambiances_diag env QT_QPA_PLATFORM=offscreen plasma-apply-lookandfeel --apply org.binixx.dark.desktop
 
     local cle schema
@@ -56,11 +57,8 @@ check_ambiances() {
             fail "ColorScheme relu : '$(ambiances_reglage kdeglobals General ColorScheme)' (${schema} attendu)"
         fi
     done
-    if [[ "$(ambiances_reglage kdeglobals Icons Theme)" == breeze-dark ]]; then
-        pass "Nuit : icônes sombres (breeze-dark)"
-    else
-        warn "Nuit : thème d'icônes '$(ambiances_reglage kdeglobals Icons Theme)' (breeze-dark attendu)"
-    fi
+    # Breeze suit les couleurs (icônes sombres sur fond sombre) : le thème d'icônes écrit n'est qu'une information
+    echo "            info : thème d'icônes dans kdeglobals après Nuit : '$(ambiances_reglage kdeglobals Icons Theme)'"
 
     if out="$(ambiances_session "${outil}" appliquer contraste 2>&1)"; then pass "binixx-ambiance appliquer contraste : ${out}"; else fail "appliquer contraste : ${out:0:300}"; fi
     if [[ "$(ambiances_reglage kdeglobals General ColorScheme)" == BinixXContraste ]]; then

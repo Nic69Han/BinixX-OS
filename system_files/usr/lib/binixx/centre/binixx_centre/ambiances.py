@@ -78,15 +78,16 @@ def _sans_ecran():
     return None if os.environ.get("WAYLAND_DISPLAY") or os.environ.get("DISPLAY") else {"QT_QPA_PLATFORM": "offscreen"}
 
 
-def _essayer(commandes, run):
-    """Lance les commandes l'une après l'autre jusqu'à la première qui réussit ; True si l'une a réussi."""
+def _essayer(commandes, run, verifie=None):
+    """Lance les commandes l'une après l'autre ; s'arrête à la première qui réussit ET dont le résultat se vérifie
+    (`verifie()` renvoie True) : un outil qui répond « réussi » sans rien changer ne suffit pas. True si c'est le cas."""
     env = _sans_ecran()
     for argv in commandes:
         if env and argv[0].startswith(("plasma-apply-", "lookandfeeltool")):
             code, _ = run(argv, timeout=60, env=env)
         else:
             code, _ = run(argv, timeout=60)
-        if code == 0:
+        if code == 0 and (verifie is None or verifie()):
             return True
     return False
 
@@ -102,12 +103,9 @@ def appliquer(cle, run=None):
         run(["kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", "AccentColor", "--delete"], timeout=15)
     _essayer([["plasma-apply-lookandfeel", "--apply", ambiance.theme], ["lookandfeeltool", "--apply", ambiance.theme]], run)
     # Le thème global pose déjà ses couleurs ; pour le contraste élevé, on les remplace par les nôtres. Dans tous les cas on
-    # force le schéma voulu : c'est lui qui dit quelle ambiance est en cours.
-    _essayer([["plasma-apply-colorscheme", ambiance.couleurs],
-              ["kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", "ColorScheme", "--notify",
-               ambiance.couleurs],
-              ["kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", "ColorScheme", ambiance.couleurs]],
-             run)
+    # force le schéma voulu : c'est lui qui dit quelle ambiance est en cours. Pas de secours par écriture directe du nom :
+    # sans les couleurs que l'outil copie dans kdeglobals, le nom seul ne changerait rien à l'écran.
+    _essayer([["plasma-apply-colorscheme", ambiance.couleurs]], run, lambda: couleurs_actuelles(run) == ambiance.couleurs)
     if couleurs_actuelles(run) != ambiance.couleurs:
         return False, ("L'ambiance « %s » n'a pas pu être appliquée : le bureau ne répond pas. Essayez depuis une session "
                        "ouverte." % ambiance.titre)
@@ -120,12 +118,14 @@ def pointeur_actuel(run=None):
 
 
 def poser_pointeur(taille, run=None):
-    """Règle la taille du pointeur, tout de suite si Plasma sait le faire, sinon à la prochaine ouverture de session."""
+    """Règle la taille du pointeur, tout de suite si Plasma sait le faire, sinon à la prochaine ouverture de session.
+    On relit la valeur : l'outil de Plasma peut répondre « réussi » sans l'avoir écrite, l'écriture directe prend alors le relais."""
     run = run or launch.run
     theme = lire("kcminputrc", "Mouse", "cursorTheme", run) or THEME_CURSEUR
-    _essayer([["plasma-apply-cursortheme", "--size", str(taille), theme],
-              ["kwriteconfig6", "--file", "kcminputrc", "--group", "Mouse", "--key", "cursorSize", str(taille)]], run)
-    return (pointeur_actuel(run) or str(POINTEUR_NORMAL)) == str(taille)
+    juste = lambda: (pointeur_actuel(run) or str(POINTEUR_NORMAL)) == str(taille)  # noqa: E731
+    return _essayer([["plasma-apply-cursortheme", "--size", str(taille), theme],
+                     ["kwriteconfig6", "--file", "kcminputrc", "--group", "Mouse", "--key", "cursorSize", str(taille)]],
+                    run, juste)
 
 
 def lire_marqueur(chemin=None):

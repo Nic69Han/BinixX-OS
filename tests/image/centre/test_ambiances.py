@@ -36,11 +36,13 @@ class FauxKde:
     """Un faux bureau : kreadconfig6 / kwriteconfig6 sur une table {(fichier, groupe, clé) : valeur}, et les outils de Plasma
     (plasma-apply-lookandfeel, plasma-apply-colorscheme, plasma-apply-cursortheme) qui écrivent comme les vrais."""
 
-    def __init__(self, valeurs=None, absents=(), panne=False, curseur_bloque=False, exige_offscreen=False):
+    def __init__(self, valeurs=None, absents=(), panne=False, curseur_bloque=False, exige_offscreen=False,
+                 sans_effet=()):
         self.valeurs = dict(valeurs or {})
         self.commandes = []
         self.environnements = []
         self.exige_offscreen = exige_offscreen         # comme les vrais outils sans écran : ils plantent sans « offscreen »
+        self.sans_effet = set(sans_effet)              # outils qui répondent « réussi » sans rien écrire
         self.absents = set(absents)
         self.panne = panne
         self.curseur_bloque = curseur_bloque
@@ -66,6 +68,8 @@ class FauxKde:
                 self.valeurs.pop(cle, None)
             else:
                 self.valeurs[cle] = argv[-1]
+            return 0, ""
+        if nom in self.sans_effet:
             return 0, ""
         if nom in ("plasma-apply-lookandfeel", "lookandfeeltool"):
             if argv[-1] not in THEMES:
@@ -257,13 +261,14 @@ class Allure(unittest.TestCase):
         self.assertTrue(A.appliquer("nuit", faux)[0])
         self.assertIn(["lookandfeeltool", "--apply", "org.binixx.dark.desktop"], faux.commandes)
 
-    def test_sans_aucun_outil_de_plasma_on_ecrit_le_schema(self):
+    def test_sans_plasma_apply_colorscheme_on_ne_pretend_pas(self):
+        """Écrire seulement le nom du schéma ne changerait rien à l'écran (les couleurs sont copiées par l'outil) : échec honnête."""
         faux = FauxKde(absents={"plasma-apply-lookandfeel", "lookandfeeltool", "plasma-apply-colorscheme"})
-        reussi, _ = A.appliquer("contraste", faux)
-        self.assertTrue(reussi)
-        self.assertEqual(faux.couleurs(), "BinixXContraste")
-        ecriture = next(c for c in faux.commandes if c[0] == "kwriteconfig6" and "ColorScheme" in c)
-        self.assertIn("--notify", ecriture)
+        reussi, message = A.appliquer("contraste", faux)
+        self.assertFalse(reussi)
+        self.assertIn("n'a pas pu être appliquée", message)
+        self.assertEqual(faux.couleurs(), "")
+        self.assertFalse([c for c in faux.commandes if c[0] == "kwriteconfig6" and "ColorScheme" in c])
 
     def test_le_bureau_ne_repond_pas(self):
         reussi, message = A.appliquer("nuit", FauxKde(panne=True))
@@ -456,6 +461,14 @@ class GrandTexte(unittest.TestCase):
         self.assertTrue(reussi)
         self.assertEqual(T.pourcentage_actuel(self.texte), 150)    # la personne l'avait voulu ainsi
         self.assertEqual(faux.pointeur() or "24", "24")
+
+    def test_l_outil_du_pointeur_repond_reussi_sans_rien_ecrire(self):
+        """Constaté dans la VM : plasma-apply-cursortheme sort avec le code 0 mais cursorSize reste vide."""
+        faux = FauxKde(sans_effet={"plasma-apply-cursortheme"})
+        reussi, message = self.activer(faux)
+        self.assertTrue(reussi, message)
+        self.assertEqual(faux.pointeur(), "36")
+        self.assertIn(["kwriteconfig6", "--file", "kcminputrc", "--group", "Mouse", "--key", "cursorSize", "36"], faux.commandes)
 
     def test_pointeur_sans_plasma_apply_cursortheme(self):
         faux = FauxKde(absents={"plasma-apply-cursortheme"})
