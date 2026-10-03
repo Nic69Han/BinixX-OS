@@ -20,6 +20,7 @@ ACCENTS = {
     "cyan": ("#0891B2", "#22D3EE"),
     "fuchsia": ("#A21CAF", "#E879F9"),
     "bleu-fonce": ("#1D4ED8", "#60A5FA"),
+    "ardoise": ("#475569", "#94A3B8"),
 }
 
 STYLE = f"""

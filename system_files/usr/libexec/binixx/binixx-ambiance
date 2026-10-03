@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+"""Ambiances du bureau : binixx-ambiance liste | etat | appliquer aube|nuit|contraste | grand-texte oui|non."""
+
+import sys
+
+sys.path.insert(0, "/usr/lib/binixx/centre")
+
+from binixx_centre.ambiances import main  # noqa: E402
+
+sys.exit(main())
