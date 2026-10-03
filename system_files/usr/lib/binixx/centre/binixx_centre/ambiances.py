@@ -56,7 +56,13 @@ def lire(fichier, groupe, cle, run=None):
 
 
 def couleurs_actuelles(run=None):
-    return lire("kdeglobals", "General", "ColorScheme", run)
+    """Le schéma de couleurs en place. Tant qu'on n'a rien choisi, il n'est pas dans kdeglobals : Plasma le range dans
+    ~/.config/kdedefaults/kdeglobals, d'après le thème global (c'est lui qui dit « Aube » sur une installation neuve)."""
+    schema = lire("kdeglobals", "General", "ColorScheme", run)
+    if schema:
+        return schema
+    base = os.environ.get("XDG_CONFIG_HOME") or "~/.config"
+    return lire(os.path.expanduser(os.path.join(base, "kdedefaults", "kdeglobals")), "General", "ColorScheme", run)
 
 
 def ambiance_actuelle(run=None):
@@ -65,10 +71,21 @@ def ambiance_actuelle(run=None):
     return next((a for a in AMBIANCES if a.couleurs == couleurs), None)
 
 
+def _sans_ecran():
+    """Les outils plasma-apply-* démarrent une application Qt : sans écran (ssh, test, tâche programmée) elle s'arrête avant
+    d'avoir rien fait. On leur donne alors la plateforme « offscreen » : ils écrivent les réglages et préviennent les
+    applications par D-Bus, sans rien afficher."""
+    return None if os.environ.get("WAYLAND_DISPLAY") or os.environ.get("DISPLAY") else {"QT_QPA_PLATFORM": "offscreen"}
+
+
 def _essayer(commandes, run):
     """Lance les commandes l'une après l'autre jusqu'à la première qui réussit ; True si l'une a réussi."""
+    env = _sans_ecran()
     for argv in commandes:
-        code, _ = run(argv, timeout=60)
+        if env and argv[0].startswith(("plasma-apply-", "lookandfeeltool")):
+            code, _ = run(argv, timeout=60, env=env)
+        else:
+            code, _ = run(argv, timeout=60)
         if code == 0:
             return True
     return False

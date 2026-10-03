@@ -171,6 +171,12 @@ texte », ci-dessus) et pointeur de souris plus gros (36 au lieu de 24).
   `plasma-apply-colorscheme` pour le schéma de couleurs ; `lookandfeeltool` ou une écriture directe dans `kdeglobals` si l'un manque) :
   les couleurs, les icônes et les fenêtres changent tout de suite, y compris dans les applications ouvertes. Le fond d'écran a une
   version claire et une version sombre que Plasma choisit tout seul selon les couleurs.
+- **Sans écran** (ssh, test VM) : les outils `plasma-apply-*` démarrent une application Qt et s'arrêtent sans écran ; l'outil
+  leur donne alors la plateforme `offscreen` (ils écrivent les réglages et préviennent les applications par D-Bus). Avec un
+  écran, rien ne change.
+- **Aube au départ** : tant qu'on n'a rien choisi, le schéma de couleurs n'est pas dans `kdeglobals` mais dans
+  `~/.config/kdedefaults/kdeglobals` (le thème global de BinixX OS) : la page le lit aussi, et annonce donc « Aube » sur une
+  installation neuve.
 - **On vérifie** : après chaque pose, `kdeglobals` est relu. L'outil ne dit « c'est en place » que si le schéma voulu y est vraiment.
   L'ambiance en cours se reconnaît à son schéma de couleurs ; des couleurs choisies à la main ailleurs sont signalées comme
   « personnalisées » et remplacées au prochain clic.

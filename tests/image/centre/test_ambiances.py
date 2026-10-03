@@ -36,16 +36,21 @@ class FauxKde:
     """Un faux bureau : kreadconfig6 / kwriteconfig6 sur une table {(fichier, groupe, clé) : valeur}, et les outils de Plasma
     (plasma-apply-lookandfeel, plasma-apply-colorscheme, plasma-apply-cursortheme) qui écrivent comme les vrais."""
 
-    def __init__(self, valeurs=None, absents=(), panne=False, curseur_bloque=False):
+    def __init__(self, valeurs=None, absents=(), panne=False, curseur_bloque=False, exige_offscreen=False):
         self.valeurs = dict(valeurs or {})
         self.commandes = []
+        self.environnements = []
+        self.exige_offscreen = exige_offscreen         # comme les vrais outils sans écran : ils plantent sans « offscreen »
         self.absents = set(absents)
         self.panne = panne
         self.curseur_bloque = curseur_bloque
 
-    def __call__(self, argv, timeout=120):
+    def __call__(self, argv, timeout=120, env=None):
         self.commandes.append(list(argv))
+        self.environnements.append(env)
         nom = argv[0]
+        if env is None and nom.startswith("plasma-apply-") and self.exige_offscreen:
+            return 1, "qt.qpa.xcb: could not connect to display"
         if nom in self.absents:
             return 127, "commande introuvable"
         if self.panne:
@@ -271,7 +276,7 @@ class Allure(unittest.TestCase):
         faux = FauxKde()
         faux.valeurs[("kdeglobals", "General", "ColorScheme")] = "BinixXClair"
 
-        def menteur(argv, timeout=120):
+        def menteur(argv, timeout=120, env=None):
             if argv[0].startswith("plasma-apply") or argv[0] == "lookandfeeltool":
                 return 0, ""
             return faux(argv, timeout)
@@ -306,6 +311,77 @@ class Allure(unittest.TestCase):
             faux = FauxKde({("kdeglobals", "General", "ColorScheme"): schema})
             self.assertIsNone(A.ambiance_actuelle(faux), schema)
         self.assertIsNone(A.ambiance_actuelle(FauxKde(panne=True)))
+
+
+class SansEcran(unittest.TestCase):
+    """Les outils de Plasma plantent sans écran (ssh, test VM) : on leur donne la plateforme « offscreen »."""
+
+    def setUp(self):
+        self.anciens = {cle: os.environ.pop(cle, None) for cle in ("WAYLAND_DISPLAY", "DISPLAY")}
+        self.addCleanup(self.rendre)
+
+    def rendre(self):
+        for cle in ("WAYLAND_DISPLAY", "DISPLAY"):
+            os.environ.pop(cle, None)
+            if self.anciens[cle] is not None:
+                os.environ[cle] = self.anciens[cle]
+
+    def test_sans_ecran_les_outils_de_plasma_tournent_en_offscreen(self):
+        faux = FauxKde(exige_offscreen=True)
+        reussi, _ = A.appliquer("contraste", faux)
+        self.assertTrue(reussi)
+        self.assertEqual(faux.couleurs(), "BinixXContraste")
+        outils = [(c, e) for c, e in zip(faux.commandes, faux.environnements) if c[0].startswith("plasma-apply-")]
+        self.assertTrue(outils)
+        for commande, env in outils:
+            self.assertEqual(env, {"QT_QPA_PLATFORM": "offscreen"}, commande)
+
+    def test_kreadconfig6_et_kwriteconfig6_n_ont_pas_besoin_d_ecran(self):
+        faux = FauxKde()
+        A.appliquer("nuit", faux)
+        for commande, env in zip(faux.commandes, faux.environnements):
+            if commande[0] in ("kreadconfig6", "kwriteconfig6"):
+                self.assertIsNone(env, commande)
+
+    def test_avec_un_ecran_on_ne_change_rien(self):
+        os.environ["WAYLAND_DISPLAY"] = "wayland-0"
+        faux = FauxKde()
+        A.appliquer("nuit", faux)
+        self.assertEqual([e for e in faux.environnements if e is not None], [])
+
+    def test_le_pointeur_aussi(self):
+        faux = FauxKde(exige_offscreen=True)
+        self.assertTrue(A.poser_pointeur(36, faux))
+        self.assertEqual(faux.pointeur(), "36")
+        self.assertIn({"QT_QPA_PLATFORM": "offscreen"}, faux.environnements)
+
+
+class SchemaParDefaut(unittest.TestCase):
+    """Sur une installation neuve, le schéma est dans kdedefaults, pas dans kdeglobals : c'est bien Aube."""
+
+    def test_le_schema_de_kdedefaults_fait_foi_tant_que_rien_n_est_choisi(self):
+        defaut = os.path.join(os.path.expanduser("~/.config"), "kdedefaults", "kdeglobals")
+        faux = FauxKde({(defaut, "General", "ColorScheme"): "BinixXClair"})
+        self.assertEqual(A.couleurs_actuelles(faux), "BinixXClair")
+        self.assertEqual(A.ambiance_actuelle(faux).cle, "aube")
+
+    def test_un_choix_de_l_utilisateur_passe_avant_les_defauts(self):
+        defaut = os.path.join(os.path.expanduser("~/.config"), "kdedefaults", "kdeglobals")
+        faux = FauxKde({(defaut, "General", "ColorScheme"): "BinixXClair",
+                        ("kdeglobals", "General", "ColorScheme"): "BinixXSombre"})
+        self.assertEqual(A.ambiance_actuelle(faux).cle, "nuit")
+
+    def test_rien_nulle_part(self):
+        self.assertEqual(A.couleurs_actuelles(FauxKde()), "")
+        self.assertIsNone(A.ambiance_actuelle(FauxKde()))
+
+    def test_xdg_config_home_est_respecte(self):
+        ancien = os.environ.get("XDG_CONFIG_HOME")
+        os.environ["XDG_CONFIG_HOME"] = "/tmp/autre-config"
+        self.addCleanup(lambda: os.environ.pop("XDG_CONFIG_HOME") if ancien is None
+                        else os.environ.__setitem__("XDG_CONFIG_HOME", ancien))
+        faux = FauxKde({("/tmp/autre-config/kdedefaults/kdeglobals", "General", "ColorScheme"): "BinixXSombre"})
+        self.assertEqual(A.ambiance_actuelle(faux).cle, "nuit")
 
 
 class GrandTexte(unittest.TestCase):

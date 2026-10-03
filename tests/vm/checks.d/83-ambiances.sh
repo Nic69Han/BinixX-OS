@@ -9,6 +9,13 @@ ambiances_session() {
 }
 ambiances_reglage() { ambiances_session kreadconfig6 --file "$1" --group "$2" --key "$3"; }
 
+# Une commande lancée dans la session, avec son code de sortie et ce qu'elle dit (une ligne dans le journal)
+ambiances_diag() {
+    local sortie code
+    sortie="$(ambiances_session "$@" 2>&1)" && code=0 || code=$?
+    printf '            diag : %s -> code %s : %s\n' "$*" "${code}" "$(tr '\n' ' ' <<<"${sortie:0:300}")"
+}
+
 # Les couleurs du schéma sont-elles vraiment copiées dans kdeglobals (et pas seulement son nom) ?
 ambiances_couleurs_du_contraste() {
     [[ "$(ambiances_reglage kdeglobals "Colors:View" BackgroundNormal)" == "0,0,0" &&
@@ -19,15 +26,24 @@ ambiances_couleurs_du_contraste() {
 check_ambiances() {
     section "Ambiances (couleurs et Grand texte dans la session)"
     local out outil=/usr/libexec/binixx/binixx-ambiance texte=/usr/libexec/binixx/binixx-taille-texte
-    local depart
     if ! wait_for 120 ambiances_session busctl --user status org.kde.plasmashell; then
         fail "Plasma ne répond pas sur le bus de la session : les ambiances ne peuvent pas être posées"
         return
     fi
-    depart="$(ambiances_reglage kdeglobals General ColorScheme)"
-    if [[ "${depart}" == BinixXClair ]]; then pass "au départ : Aube (BinixXClair)"; else warn "schéma de couleurs de départ : '${depart}'"; fi
     out="$(ambiances_session "${outil}" etat 2>&1)"
+    if [[ "${out}" == *"ambiance=aube"* ]]; then
+        pass "au départ : Aube (le schéma BinixXClair vient de kdedefaults, rien n'est écrit dans kdeglobals)"
+    else
+        warn "ambiance de départ : ${out//$'\n'/ ; }"
+    fi
     if [[ "${out}" == *"grand-texte=non"* ]]; then pass "au départ « Grand texte » est désactivé"; else fail "binixx-ambiance etat : ${out:0:200}"; fi
+    # Ce que disent les outils de Plasma quand on les lance à la main dans cette session (sans écran : l'outil les lance en
+    # « offscreen ») ; informatif, pour comprendre un échec sans deviner
+    ambiances_diag plasma-apply-colorscheme --list-schemes
+    ambiances_diag plasma-apply-colorscheme BinixXSombre
+    ambiances_diag env QT_QPA_PLATFORM=offscreen plasma-apply-colorscheme BinixXSombre
+    ambiances_diag plasma-apply-lookandfeel --list
+    ambiances_diag env QT_QPA_PLATFORM=offscreen plasma-apply-lookandfeel --apply org.binixx.dark.desktop
 
     local cle schema
     for cle in nuit aube nuit; do

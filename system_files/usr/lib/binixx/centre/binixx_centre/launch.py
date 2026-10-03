@@ -57,10 +57,13 @@ def executer(action):
     return {"app": open_app, "url": open_url, "flatpak": run_flatpak, "discover": open_discover}[genre](cible)
 
 
-def run(argv, timeout=120):
-    """Exécute un programme de BinixX OS et renvoie (code de sortie, sortie standard) ; jamais de shell."""
+def run(argv, timeout=120, env=None):
+    """Exécute un programme de BinixX OS et renvoie (code de sortie, sortie standard) ; jamais de shell.
+
+    `env` : variables d'environnement à ajouter à celles du processus (par exemple QT_QPA_PLATFORM)."""
     try:
-        fini = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False)
+        fini = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False,
+                              env={**os.environ, **env} if env else None)
     except (OSError, subprocess.TimeoutExpired) as erreur:
         return 1, str(erreur)
     return fini.returncode, fini.stdout
