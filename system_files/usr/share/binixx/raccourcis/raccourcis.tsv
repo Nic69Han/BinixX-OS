@@ -1,0 +1,26 @@
+# Aide-mémoire des raccourcis : les combinaisons de Windows que l'on a dans les doigts et qui marchent sur BinixX OS.
+# Colonnes séparées par une tabulation :
+#   catégorie  touches  action  précision  source
+# touches : écriture de KDE (Meta = la touche Windows), modificateurs d'abord : Meta+Shift+S, Ctrl+Alt+Del, Alt+F4
+# source  : kde     = raccourci que Plasma fournit lui-même
+#           binixx  = raccourci que l'image ajoute (etc/xdg/kglobalshortcutsrc, lanceur .desktop correspondant)
+# Chaque touche de ce fichier doit être enregistrée par KDE dans la session : le test VM le vérifie
+# (tests/vm/checks.d/79-raccourcis.sh), et les touches « binixx » sont vérifiées dans l'image (78-raccourcis.sh).
+Fenêtres et bureau	Alt+Tab	Passer d'une fenêtre à l'autre	Gardez Alt enfoncée et appuyez sur Tab.	kde
+Fenêtres et bureau	Alt+F4	Fermer la fenêtre		kde
+Fenêtres et bureau	Meta+D	Afficher le bureau	Un second appui ramène les fenêtres.	kde
+Fenêtres et bureau	Meta+Left	Fenêtre sur la moitié gauche de l'écran		kde
+Fenêtres et bureau	Meta+Right	Fenêtre sur la moitié droite de l'écran		kde
+Fenêtres et bureau	Meta+1	Ouvrir la première application de la barre des tâches	Windows + 2, 3… pour les suivantes ; un second appui la ramène au premier plan.	kde
+Fenêtres et bureau	Meta+P	Projecteur et deuxième écran	Choisir l'écran du PC, le deuxième écran, les deux ou l'extension.	kde
+Applications et fichiers	Meta+E	Explorateur de fichiers	Ouvre Dolphin, l'équivalent de l'Explorateur de fichiers de Windows.	binixx
+Applications et fichiers	Meta+R	Exécuter une commande ou une application	La barre de recherche de KRunner : tapez le nom d'une application, puis Entrée.	binixx
+Applications et fichiers	Meta+I	Paramètres	Tous les réglages du PC au même endroit.	binixx
+Applications et fichiers	Meta+S	Rechercher	Applications, réglages, logiciels Windows, aide et fichiers en une seule recherche.	binixx
+Applications et fichiers	Ctrl+Shift+Esc	Gestionnaire des tâches	Ouvre le Moniteur système, pour voir ce qui ralentit le PC ou fermer une application bloquée.	binixx
+Session	Meta+L	Verrouiller la session	Pour s'absenter sans fermer ses fenêtres.	kde
+Session	Ctrl+Alt+Del	Quitter la session, redémarrer ou éteindre		kde
+Saisie et captures d'écran	Meta+V	Historique du presse-papiers	Les derniers textes copiés, pour en recoller un ancien.	kde
+Saisie et captures d'écran	Meta+.	Émojis et symboles		kde
+Saisie et captures d'écran	Print	Capture d'écran	Ouvre Spectacle : écran entier, fenêtre ou zone.	kde
+Saisie et captures d'écran	Meta+Shift+S	Capture d'une zone de l'écran	Dessinez un rectangle ; Spectacle s'ouvre pour copier ou enregistrer l'image.	kde

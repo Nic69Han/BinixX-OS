@@ -23,6 +23,7 @@ Bluetooth et appareils	Souris	souris;pointeur;vitesse du pointeur;clic;molette	V
 Bluetooth et appareils	Pavé tactile	pavé tactile;touchpad;trackpad;défilement;gestes	Gestes et défilement du pavé tactile de l'ordinateur portable.	touchpad	kcm	kcm_touchpad
 Bluetooth et appareils	Clavier	clavier;touches;répétition des touches;disposition;azerty;qwerty;verrouillage majuscules	Répétition des touches, pavé numérique, disposition.	keyboard	kcm	kcm_keyboard
 Bluetooth et appareils	Raccourcis clavier	raccourcis;raccourci clavier;touche windows;touches	Choisir les raccourcis clavier du bureau.	command	kcm	kcm_keys
+Bluetooth et appareils	Aide-mémoire des raccourcis	aide-mémoire;raccourcis windows;touche windows;windows e;windows d;windows l;windows r;windows v;win maj s;capture;presse-papiers;émojis;gestionnaire des tâches;ctrl maj échap	Les raccourcis de Windows qui marchent ici : Windows + E, D, L, V, Maj + S…	command	page	raccourcis
 Bluetooth et appareils	Manettes de jeu	manette;manettes;joystick;gamepad;volant	Tester et régler une manette.	gamepad	kcm	kcm_gamecontroller
 Bluetooth et appareils	Tablette graphique	tablette;stylet;wacom;tablette graphique	Régler une tablette graphique et son stylet.	tablet	kcm	kcm_tablet
 Bluetooth et appareils	Écran tactile	écran tactile;tactile;tactile gestes	Régler un écran tactile.	pointer	kcm	kcm_touchscreen
