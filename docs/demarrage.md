@@ -95,13 +95,17 @@ logo disparaît quand même, et l'écran noir dure autant (7 captures au lieu de
 - **Test VM** (`tests/vm/run-vm-test.sh`, étape 3b) : la VM redémarre comme un vrai PC (messages sur l'écran, sans connexion
   automatique). `tests/vm/ecran_demarrage.py` prend une capture par seconde, la réduit à quelques mesures (part de noir, de bleu nuit du
   fond BinixX OS, de pixels clairs) et juge : l'écran de démarrage apparaît ; aucun texte de console une fois qu'il est là ; avant lui,
-  jamais un écran de texte (trois captures au plus) mais deux ou trois lignes en haut à gauche sont tolérées (douze captures au
-  plus : elles s'affichent pendant que le noyau se charge) ; l'écran de connexion finit par s'afficher. Les paramètres reçus par le noyau
+  jamais un écran de texte (trois captures au plus) mais deux lignes en haut à gauche sont tolérées (douze captures au plus : voir
+  « Limites ») ; l'écran de connexion finit par s'afficher. Les paramètres reçus par le noyau
   et la trace `binixx_menu=cache` de GRUB sont aussi relevés.
 
 ## Limites
 
 - Mesuré en machine virtuelle seulement ; pas encore sur du matériel réel (cartes graphiques, portables, très vieux PC).
+- Deux lignes de texte restent en haut à gauche de l'écran, quelques secondes, avant l'écran de démarrage. Le test les lit (reconnaissance
+  de caractères sur la capture) : c'est le **micrologiciel de la machine virtuelle** (OVMF), `BdsDxe: loading Boot0007 "BinixX OS 44" …
+  \EFI\fedora\shimx64.efi`, écrit avant GRUB et le noyau. Ni BinixX OS ni Linux n'y touchent. Un vrai PC affiche le logo de son
+  constructeur à la place (ce que fait aussi Windows) ; pas encore vérifié sur matériel réel.
 - Si le pilote graphique n'est pas chargé tôt, l'écran de démarrage apparaît plus tard : un instant de noir, jamais de texte.
 - Entre la fin de l'écran de démarrage et l'écran de connexion, l'écran reste noir environ 8 secondes **dans la machine virtuelle**, où
   Plasma dessine sans carte graphique (rendu logiciel). Sur un vrai PC ce temps sera plus court, mais il n'est pas mesuré : le test

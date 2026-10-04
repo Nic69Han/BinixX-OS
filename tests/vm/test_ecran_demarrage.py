@@ -206,7 +206,7 @@ class VerifierTest(unittest.TestCase):
         self.assertTrue(any("avant l'écran de démarrage" in e for e in erreurs))
 
     def test_quelques_lignes_avant_l_ecran_de_demarrage_sont_toleres(self):
-        # ce que le test VM mesure : deux ou trois lignes en haut à gauche pendant que le noyau se charge
+        # ce que le test VM mesure : deux lignes du micrologiciel (OVMF) en haut à gauche, avant l'écran de démarrage
         erreurs, infos = ecran.verifier(captures(("NOIR", 2), ("LOGO", 1), ("LIGNES", 6), ("DEMARRAGE", 8), ("NOIR", 8), ("SOMBRE", 5)))
         self.assertEqual(erreurs, [])
         self.assertTrue(any("quelques lignes de texte avant l'écran de démarrage : 6" in info for info in infos))

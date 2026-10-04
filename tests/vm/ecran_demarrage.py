@@ -43,9 +43,10 @@ CODES = {NOIR: "NOIR", TEXTE: "TEXTE", QUELQUES_LIGNES: "LIGNES", LOGO: "LOGO", 
 MARGE_GAUCHE = 0.12
 PART_TEXTE = 0.05
 # Un écran de texte (console du noyau, de systemd) couvre beaucoup d'écran : au moins cette part de pixels clairs. En dessous, ce sont
-# quelques lignes seulement (le micrologiciel ou GRUB écrivent deux ou trois lignes en haut à gauche pendant le chargement du noyau).
+# quelques lignes seulement (le micrologiciel de la machine virtuelle, OVMF, écrit deux lignes « BdsDxe: loading … shimx64.efi » en haut à
+# gauche avant même GRUB ; un vrai PC affiche à la place le logo de son constructeur).
 PART_ECRAN_DE_TEXTE = 0.03
-# Captures de « quelques lignes » tolérées avant l'écran de démarrage : le chargement du noyau dure quelques secondes, plus en machine virtuelle
+# Captures de « quelques lignes » tolérées avant l'écran de démarrage : le micrologiciel les laisse à l'écran jusqu'à ce que le noyau prenne la main, plus longtemps en machine virtuelle
 LIGNES_TOLEREES_AVANT = 12
 # Captures de texte de console tolérées avant l'écran de démarrage (arrêt, micrologiciel, menu GRUB : au plus quelques secondes)
 TEXTE_TOLERE_AVANT = 3
