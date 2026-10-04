@@ -42,6 +42,11 @@ def console_de_texte(x, y):
     return (0, 0, 0)
 
 
+def logo_sur_noir(x, y):
+    """Fond noir et un logo clair au centre : l'écran du micrologiciel, ou la première image de la connexion."""
+    return (230, 240, 255) if 120 <= x < 200 and 70 <= y < 110 else (0, 0, 0)
+
+
 def bureau(x, y):
     return (200, 215, 235)
 
@@ -80,6 +85,16 @@ class NatureTest(unittest.TestCase):
 
     def test_console_de_texte(self):
         self.assertEqual(self.nature(console_de_texte), ecran.TEXTE)
+
+    def test_logo_centre_sur_fond_noir_n_est_pas_du_texte(self):
+        # le micrologiciel (UEFI) et la première image de la connexion ressemblent à du texte pour des mesures grossières
+        self.assertEqual(self.nature(logo_sur_noir), ecran.LOGO)
+
+    def test_le_texte_est_au_bord_gauche_le_logo_au_centre(self):
+        _, _, _, texte, _ = ecran.examiner(ppm(console_de_texte))
+        _, _, _, logo, _ = ecran.examiner(ppm(logo_sur_noir))
+        self.assertGreaterEqual(texte["gauche"], ecran.PART_TEXTE)
+        self.assertEqual(logo["gauche"], 0)
 
     def test_bureau_clair(self):
         self.assertEqual(self.nature(bureau), ecran.CLAIR)
@@ -154,7 +169,35 @@ def captures(*suites):
 
 class VerifierTest(unittest.TestCase):
     def bon_demarrage(self):
-        return captures(("NOIR", 1), ("TEXTE", 1), ("NOIR", 6), ("DEMARRAGE", 12), ("NOIR", 8), ("SOMBRE", 3), ("CLAIR", 5))
+        return captures(("NOIR", 1), ("LOGO", 1), ("NOIR", 6), ("DEMARRAGE", 12), ("NOIR", 8), ("LOGO", 2), ("SOMBRE", 3), ("CLAIR", 5))
+
+    def redemarrage_complet(self):
+        """Ce que le test VM a mesuré : le bureau qui s'arrête, l'écran de démarrage de l'arrêt, le micrologiciel, puis le démarrage."""
+        return captures(("SOMBRE", 1), ("DEMARRAGE", 1), ("NOIR", 1), ("LOGO", 7), ("DEMARRAGE", 8), ("NOIR", 8), ("LOGO", 2),
+                        ("SOMBRE", 50))
+
+    def test_un_redemarrage_complet_est_accepte(self):
+        erreurs, infos = ecran.verifier(self.redemarrage_complet())
+        self.assertEqual(erreurs, [])
+        self.assertTrue(any("8 capture(s)" in info and "écran de démarrage BinixX OS visible" in info for info in infos))
+
+    def test_l_ecran_de_demarrage_de_l_arret_ne_compte_pas_comme_celui_du_demarrage(self):
+        # seul l'arrêt montre l'écran de démarrage, le démarrage montre du texte : à refuser
+        erreurs, _ = ecran.verifier(captures(("SOMBRE", 1), ("DEMARRAGE", 3), ("NOIR", 1), ("TEXTE", 12), ("CLAIR", 5)))
+        self.assertTrue(any("réapparu" in e or "avant l'écran de démarrage" in e for e in erreurs))
+
+    def test_le_texte_de_l_arret_compte_avant_l_ecran_de_demarrage(self):
+        erreurs, _ = ecran.verifier(captures(("SOMBRE", 1), ("TEXTE", 6), ("NOIR", 2), ("DEMARRAGE", 8), ("CLAIR", 5)))
+        self.assertTrue(any("avant l'écran de démarrage" in e for e in erreurs))
+
+    def test_les_logos_ne_comptent_jamais_comme_du_texte(self):
+        erreurs, _ = ecran.verifier(captures(("LOGO", 20), ("DEMARRAGE", 8), ("LOGO", 20), ("CLAIR", 3)))
+        self.assertEqual(erreurs, [])
+
+    def test_derniere_serie(self):
+        self.assertEqual(ecran.derniere_serie(["A", "B", "A", "A", "C"], "A"), (2, 4))
+        self.assertEqual(ecran.derniere_serie(["A", "A"], "A"), (0, 2))
+        self.assertIsNone(ecran.derniere_serie(["B"], "A"))
 
     def test_un_demarrage_a_la_windows_est_accepte(self):
         erreurs, infos = ecran.verifier(self.bon_demarrage())
@@ -214,7 +257,7 @@ class TableauTest(unittest.TestCase):
             os.remove(fichier.name)
 
     def test_chaque_nature_a_un_code(self):
-        for nature in (ecran.NOIR, ecran.TEXTE, ecran.DEMARRAGE, ecran.CLAIR, ecran.SOMBRE, ecran.AUTRE):
+        for nature in (ecran.NOIR, ecran.TEXTE, ecran.LOGO, ecran.DEMARRAGE, ecran.CLAIR, ecran.SOMBRE, ecran.AUTRE):
             self.assertIn(nature, ecran.CODES)
 
     def test_verifier_en_ligne_de_commande(self):

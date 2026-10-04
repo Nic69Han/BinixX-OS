@@ -30,11 +30,16 @@ TEXTE = "texte sur fond noir (console ou menu GRUB)"
 DEMARRAGE = "écran de démarrage BinixX OS"
 CLAIR = "écran clair (connexion ou bureau)"
 SOMBRE = "écran sombre (connexion ou bureau)"
+LOGO = "logo sur fond noir (micrologiciel, ou connexion qui démarre)"
 AUTRE = "autre"
 
 
-CODES = {NOIR: "NOIR", TEXTE: "TEXTE", DEMARRAGE: "DEMARRAGE", CLAIR: "CLAIR", SOMBRE: "SOMBRE", AUTRE: "AUTRE"}
-# Captures de texte tolérées avant l'écran de démarrage : le micrologiciel (UEFI) et le menu GRUB, une seconde chacun
+CODES = {NOIR: "NOIR", TEXTE: "TEXTE", LOGO: "LOGO", DEMARRAGE: "DEMARRAGE", CLAIR: "CLAIR", SOMBRE: "SOMBRE", AUTRE: "AUTRE"}
+# Le texte d'une console est collé au bord gauche de l'écran (chaque ligne commence à la première colonne) ; un logo est au centre.
+# MARGE_GAUCHE : part de la largeur de l'écran qui compte comme « le bord gauche » ; PART_TEXTE : part des pixels clairs qui doit s'y trouver
+MARGE_GAUCHE = 0.12
+PART_TEXTE = 0.05
+# Captures de texte de console tolérées avant l'écran de démarrage (arrêt, micrologiciel, menu GRUB : au plus quelques secondes)
 TEXTE_TOLERE_AVANT = 3
 
 
@@ -74,7 +79,8 @@ def luminance(rouge, vert, bleu):
 
 def analyser(largeur, hauteur, pixels, pas=3):
     """Les mesures d'une image : parts (de 0 à 1) de noir, de fond de démarrage, de pixels clairs ; luminance moyenne."""
-    total = noirs = fonds = clairs = somme = 0
+    total = noirs = fonds = clairs = clairs_a_gauche = somme = 0
+    limite = int(largeur * MARGE_GAUCHE)
     for y in range(0, hauteur, pas):
         ligne = y * largeur * 3
         for x in range(0, largeur, pas):
@@ -89,8 +95,11 @@ def analyser(largeur, hauteur, pixels, pas=3):
                 fonds += 1
             if lum >= 150:
                 clairs += 1
+                if x < limite:
+                    clairs_a_gauche += 1
     total = max(total, 1)
-    return {"noir": noirs / total, "fond": fonds / total, "clair": clairs / total, "luminance": somme / total}
+    return {"noir": noirs / total, "fond": fonds / total, "clair": clairs / total, "luminance": somme / total,
+            "gauche": clairs_a_gauche / clairs if clairs else 0.0}
 
 
 def classer(mesures):
@@ -100,7 +109,7 @@ def classer(mesures):
     if mesures["fond"] >= 0.5:
         return DEMARRAGE
     if mesures["noir"] >= 0.7 and mesures["clair"] > 0:
-        return TEXTE
+        return TEXTE if mesures["gauche"] >= PART_TEXTE else LOGO
     if mesures["noir"] >= 0.97:
         return NOIR
     if mesures["luminance"] >= 90:
@@ -139,7 +148,7 @@ def decrire(largeur, hauteur, pixels, mesures, nature, seconde=None, avec_vignet
     """Les lignes de journal d'une capture : un résumé, et la vignette si demandée."""
     quand = "" if seconde is None else f"t={seconde:>3} s  "
     lignes = [f"{quand}{largeur}x{hauteur}  {nature}  (noir {mesures['noir']:.0%}, fond bleu nuit {mesures['fond']:.0%}, "
-              f"pixels clairs {mesures['clair']:.1%}, luminance {mesures['luminance']:.0f})"]
+              f"pixels clairs {mesures['clair']:.1%} dont {mesures['gauche']:.0%} au bord gauche, luminance {mesures['luminance']:.0f})"]
     if avec_vignette:
         lignes += ["    |" + ligne for ligne in vignette(largeur, hauteur, pixels)]
     return lignes
@@ -210,32 +219,47 @@ def lire_tableau(chemin):
     return [(int(ligne.split(";")[0]), ligne.split(";")[1]) for ligne in lignes if ligne.count(";") >= 5]
 
 
+def derniere_serie(codes, code):
+    """(début, fin exclue) de la dernière suite ininterrompue de `code`, ou None."""
+    fin = None
+    for i in range(len(codes) - 1, -1, -1):
+        if codes[i] == code and fin is None:
+            fin = i + 1
+        if fin is not None and (codes[i] != code):
+            return i + 1, fin
+    return (0, fin) if fin is not None else None
+
+
 def verifier(captures, exiger_connexion=True):
-    """(erreurs, informations) : le démarrage ressemble-t-il à celui de Windows ?"""
+    """(erreurs, informations) : le démarrage ressemble-t-il à celui de Windows ?
+
+    La surveillance commence avant l'arrêt : l'écran de démarrage de l'arrêt vient donc d'abord. Celui du démarrage est la dernière série
+    de captures « écran de démarrage » ; avant elle (arrêt, micrologiciel, noyau) on tolère très peu de texte, après elle aucun."""
     erreurs, infos = [], []
     codes = [code for _, code in captures]
     if not codes:
         return ["aucune capture d'écran pendant le démarrage"], infos
-    if "DEMARRAGE" not in codes:
+    serie = derniere_serie(codes, "DEMARRAGE")
+    if serie is None:
         erreurs.append("l'écran de démarrage BinixX OS n'est jamais apparu")
         avant, apres = codes, []
     else:
-        premiere = codes.index("DEMARRAGE")
-        avant, apres = codes[:premiere], codes[premiere:]
-        duree = apres.count("DEMARRAGE")
-        infos.append(f"écran de démarrage BinixX OS visible sur {duree} capture(s), à partir de la capture {premiere + 1}")
+        debut, fin = serie
+        avant, apres = codes[:debut], codes[debut:]
+        duree = fin - debut
+        infos.append(f"écran de démarrage BinixX OS visible sur {duree} capture(s), à partir de la capture {debut + 1}")
         if duree < 3:
             erreurs.append(f"l'écran de démarrage n'est resté que {duree} capture(s)")
         texte_apres = apres.count("TEXTE")
         if texte_apres:
-            erreurs.append(f"du texte de console est réapparu après le début de l'écran de démarrage ({texte_apres} capture(s))")
+            erreurs.append(f"du texte de console est réapparu après l'écran de démarrage ({texte_apres} capture(s))")
         noir, plus_long = 0, 0
-        for code in apres[apres.index("DEMARRAGE"):]:
+        for code in apres[duree:]:
             noir = noir + 1 if code == "NOIR" else 0
             plus_long = max(plus_long, noir)
         infos.append(f"écran noir le plus long après l'écran de démarrage : {plus_long} capture(s)")
     texte_avant = avant.count("TEXTE")
-    infos.append(f"captures de texte avant l'écran de démarrage : {texte_avant} (toléré : {TEXTE_TOLERE_AVANT}, micrologiciel et menu GRUB)")
+    infos.append(f"captures de texte de console avant l'écran de démarrage : {texte_avant} (toléré : {TEXTE_TOLERE_AVANT})")
     if texte_avant > TEXTE_TOLERE_AVANT:
         erreurs.append(f"du texte de console s'est affiché sur {texte_avant} captures avant l'écran de démarrage "
                        f"(toléré : {TEXTE_TOLERE_AVANT})")
