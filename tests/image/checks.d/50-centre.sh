@@ -23,3 +23,10 @@ else
     # shellcheck disable=SC2001  # indentation de chaque ligne du rapport
     sed 's/^/            /' <<<"${out}"
 fi
+if out="$(BINIXX_CENTRE=/usr/lib/binixx/centre BINIXX_AUTOSTART=/etc/xdg/autostart/binixx-accueil.desktop QT_QPA_PLATFORM=offscreen python3 -m unittest discover -s /tests/centre -p 'test_premiere_session.py' 2>&1)"; then
+    pass "accueil de premier démarrage : jamais dans la session de Plasma Setup, une seule fois pour l'utilisateur (${out##*$'\n'})"
+else
+    fail "accueil de premier démarrage : tests de la session de Plasma Setup"
+    # shellcheck disable=SC2001  # indentation de chaque ligne du rapport
+    sed 's/^/            /' <<<"${out}"
+fi
