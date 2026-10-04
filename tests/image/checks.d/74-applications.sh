@@ -10,3 +10,11 @@ else
     # shellcheck disable=SC2001  # indentation de chaque ligne du rapport
     sed 's/^/            /' <<<"${out}"
 fi
+check "fenêtre d'installation sans Discover (Jeux, Catalogue, Paramètres) exécutable" test -x /usr/libexec/binixx/binixx-installer-application
+if out="$(BINIXX_CENTRE=/usr/lib/binixx/centre BINIXX_CATALOGUE=/usr/share/binixx/catalogue-windows/catalogue.tsv BINIXX_LIBEXEC=/usr/libexec/binixx QT_QPA_PLATFORM=offscreen python3 -m unittest discover -s /tests/centre -p 'test_installateur.py' 2>&1)"; then
+    pass "fenêtre d'installation : tests de la source Flathub, de l'installation, des échecs et de « Réessayer » (${out##*$'\n'})"
+else
+    fail "fenêtre d'installation : tests"
+    # shellcheck disable=SC2001  # indentation de chaque ligne du rapport
+    sed 's/^/            /' <<<"${out}"
+fi

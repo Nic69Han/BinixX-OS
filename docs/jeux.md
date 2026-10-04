@@ -13,7 +13,7 @@ recherche « Mon logiciel Windows ») propose chaque boutique au nom qu'on lui c
 | (jeu qui refuse de démarrer) | ProtonUp-Qt | GPL-3.0 | Installe d'autres versions de Proton (GE-Proton). |
 | Xbox Game Pass, GeForce NOW | Dans le navigateur | — | Jeu en streaming, sans installation ; abonnement nécessaire. |
 
-Tout s'installe à la demande depuis Flathub, par Discover. Les identifiants sont vérifiés par
+Tout s'installe à la demande depuis Flathub : le bouton « Installer » ouvre une petite fenêtre qui installe directement avec Flatpak (progression, puis « Ouvrir » ; sans réseau ou sans droits d'administrateur, une phrase dit pourquoi, et « Réessayer » ou « Essayer avec Discover » restent proposés). Les identifiants sont vérifiés par
 `tests/centre/verifier_flathub.py` (licences affichées).
 
 ## Matériel

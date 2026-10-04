@@ -56,7 +56,7 @@ class Page(QWidget):
         else:
             boxes = widgets.carte("Boxes   <span style='font-weight:400; font-size:9pt;'>· À installer depuis Flathub</span>",
                                   "Windows dans une fenêtre, avec un assistant qui l'installe pour vous. Le plus "
-                                  "simple pour commencer.", "Installer", lambda: launch.open_discover(BOXES),
+                                  "simple pour commencer.", "Installer", lambda: launch.install_application(BOXES),
                                   icone="monitor", couleurs=ACCENT)
         self.cartes.append(boxes)
         page.addWidget(boxes)

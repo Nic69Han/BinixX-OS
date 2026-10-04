@@ -156,7 +156,7 @@ class Page(unittest.TestCase):
         boxes, winboat, nuage = page.cartes
         self.assertEqual(boxes.bouton.text(), "Installer")
         boxes.bouton.click()
-        self.assertEqual(self.lances[-1], ["plasma-discover", "--application", "org.gnome.Boxes"])
+        self.assertEqual(self.lances[-1], [launch.INSTALLATEUR, "org.gnome.Boxes"])
         winboat.bouton.click()
         self.assertEqual(self.lances[-1], ["xdg-open", "https://www.winboat.app/"])
         nuage.bouton.click()

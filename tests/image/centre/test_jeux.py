@@ -84,7 +84,7 @@ class Catalogue(unittest.TestCase):
                          ("À installer depuis Flathub", "Installer", ("discover", "com.valvesoftware.Steam")))
         self.assertEqual(catalogue.etat(steam, {"com.valvesoftware.Steam"}, set()),
                          ("Installé", "Ouvrir", ("flatpak", "com.valvesoftware.Steam")))
-        self.assertEqual(catalogue.etat(steam, set(), {"com.valvesoftware.Steam"})[1], "Voir dans Discover")
+        self.assertEqual(catalogue.etat(steam, set(), {"com.valvesoftware.Steam"})[1], "Installer maintenant")
         site = next(e for e in self.entrees if e.type == "web" and e.categorie == "Jeux")
         self.assertEqual(catalogue.etat(site, set(), set())[2], ("url", site.cible))
 
@@ -101,7 +101,7 @@ class Lancement(unittest.TestCase):
             self.assertFalse(launch.executer(("url", "file:///etc/passwd")))
         finally:
             launch._start = ancien
-        self.assertEqual(appels, [["plasma-discover", "--application", "net.lutris.Lutris"],
+        self.assertEqual(appels, [[launch.INSTALLATEUR, "net.lutris.Lutris"],
                                   ["flatpak", "run", "net.lutris.Lutris"],
                                   ["xdg-open", "https://www.protondb.com/"]])
 
@@ -166,7 +166,7 @@ class Page(unittest.TestCase):
         self.assertEqual(boutons, {"Installer", "Ouvrir", "Ouvrir le site"})
         steam = page.cartes[0]  # première entrée « Jeux » du catalogue
         steam.bouton.click()
-        self.assertEqual(self.lances[-1], ["plasma-discover", "--application", "com.valvesoftware.Steam"])
+        self.assertEqual(self.lances[-1], [launch.INSTALLATEUR, "com.valvesoftware.Steam"])
         installe = next(c for c in page.cartes if c.bouton.text() == "Ouvrir")
         installe.bouton.click()
         self.assertEqual(self.lances[-1], ["flatpak", "run", "net.lutris.Lutris"])
