@@ -71,6 +71,22 @@ Le script ne touche jamais à un `user.cfg` qui n'est pas le sien (sans la ligne
   la ligne `linux`, puis Ctrl + X.
 - **Après coup** : `journalctl -b` (ce démarrage), `journalctl -b -1` (le précédent).
 
+## Ce que le test VM a mesuré
+
+Redémarrage d'une machine virtuelle de 2 cœurs et 4 Go, comme sur un vrai PC (messages sur l'écran, sans connexion automatique),
+une capture d'écran par seconde :
+
+| | Sans le correctif | Avec le correctif |
+| --- | --- | --- |
+| Texte de console à l'écran | **12 secondes** de lignes de texte sur toute la hauteur de l'écran | aucune |
+| Écran de démarrage BinixX OS | n'apparaît jamais | environ 8 secondes |
+| Écran noir avant la connexion | quelques secondes | environ 8 secondes (voir « Limites ») |
+| Écran de connexion | oui | oui : la session `greeter` de `plasmalogin` tourne, Plymouth ne la bloque pas |
+| À l'arrêt | texte | écran de démarrage |
+
+**Essayé et abandonné** : `plymouth quit --retain-splash` (garder le logo à l'écran jusqu'à ce que la connexion affiche la sienne). Le
+logo disparaît quand même, et l'écran noir dure autant (7 captures au lieu de 8) : aucun gain, une unité systemd de plus à entretenir.
+
 ## Comment c'est vérifié
 
 - Test de l'image : fichier de paramètres valide, module `two-step` de Plymouth dans l'image de démarrage, service et script du menu GRUB.
@@ -86,5 +102,7 @@ Le script ne touche jamais à un `user.cfg` qui n'est pas le sien (sans la ligne
 
 - Mesuré en machine virtuelle seulement ; pas encore sur du matériel réel (cartes graphiques, portables, très vieux PC).
 - Si le pilote graphique n'est pas chargé tôt, l'écran de démarrage apparaît plus tard : un instant de noir, jamais de texte.
-- La durée de l'écran noir entre l'écran de démarrage et la connexion dépend de la machine ; le test VM la relève (« écran noir le plus
-  long »).
+- Entre la fin de l'écran de démarrage et l'écran de connexion, l'écran reste noir environ 8 secondes **dans la machine virtuelle**, où
+  Plasma dessine sans carte graphique (rendu logiciel). Sur un vrai PC ce temps sera plus court, mais il n'est pas mesuré : le test
+  VM le relève à chaque version (« écran noir le plus long »).
+- Le menu GRUB reste visible une seconde au premier démarrage, et après un démarrage en échec.
