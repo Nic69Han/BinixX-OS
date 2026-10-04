@@ -144,6 +144,94 @@ class DecrireTest(unittest.TestCase):
         self.assertEqual(len(ecran.decrire(largeur, hauteur, pixels, mesures, nature)), 1)
 
 
+def captures(*suites):
+    """[(seconde, code)] à partir de suites « (code, nombre) » : captures(("NOIR", 2), ("DEMARRAGE", 5))."""
+    resultat = []
+    for code, nombre in suites:
+        resultat += [(len(resultat) + i, code) for i in range(nombre)]
+    return resultat
+
+
+class VerifierTest(unittest.TestCase):
+    def bon_demarrage(self):
+        return captures(("NOIR", 1), ("TEXTE", 1), ("NOIR", 6), ("DEMARRAGE", 12), ("NOIR", 8), ("SOMBRE", 3), ("CLAIR", 5))
+
+    def test_un_demarrage_a_la_windows_est_accepte(self):
+        erreurs, infos = ecran.verifier(self.bon_demarrage())
+        self.assertEqual(erreurs, [])
+        self.assertTrue(any("12 capture(s)" in info for info in infos))
+
+    def test_pas_d_ecran_de_demarrage_est_refuse(self):
+        erreurs, _ = ecran.verifier(captures(("NOIR", 10), ("CLAIR", 5)))
+        self.assertTrue(any("jamais apparu" in e for e in erreurs))
+
+    def test_du_texte_apres_l_ecran_de_demarrage_est_refuse(self):
+        erreurs, _ = ecran.verifier(captures(("NOIR", 3), ("DEMARRAGE", 5), ("TEXTE", 2), ("CLAIR", 4)))
+        self.assertTrue(any("réapparu" in e for e in erreurs))
+
+    def test_beaucoup_de_texte_avant_l_ecran_de_demarrage_est_refuse(self):
+        # le cas sans « quiet » : le noyau et systemd écrivent pendant une dizaine de secondes
+        erreurs, _ = ecran.verifier(captures(("NOIR", 1), ("TEXTE", 12), ("DEMARRAGE", 4), ("CLAIR", 3)))
+        self.assertTrue(any("avant l'écran de démarrage" in e for e in erreurs))
+
+    def test_le_texte_du_micrologiciel_et_de_grub_est_toleré(self):
+        erreurs, _ = ecran.verifier(captures(("TEXTE", ecran.TEXTE_TOLERE_AVANT), ("DEMARRAGE", 6), ("CLAIR", 3)))
+        self.assertEqual(erreurs, [])
+
+    def test_un_ecran_de_demarrage_qui_ne_part_pas_est_refuse(self):
+        # le gestionnaire de connexion ne prend jamais la main : l'écran reste bloqué sur le logo
+        erreurs, _ = ecran.verifier(captures(("NOIR", 2), ("DEMARRAGE", 60)))
+        self.assertTrue(any("connexion" in e for e in erreurs))
+
+    def test_un_ecran_noir_a_la_fin_est_refuse(self):
+        erreurs, _ = ecran.verifier(captures(("DEMARRAGE", 6), ("NOIR", 30)))
+        self.assertTrue(any("connexion" in e for e in erreurs))
+
+    def test_la_connexion_peut_ne_pas_etre_exigee(self):
+        erreurs, _ = ecran.verifier(captures(("DEMARRAGE", 6), ("NOIR", 3)), exiger_connexion=False)
+        self.assertEqual(erreurs, [])
+
+    def test_un_ecran_de_demarrage_trop_bref_est_refuse(self):
+        erreurs, _ = ecran.verifier(captures(("NOIR", 5), ("DEMARRAGE", 1), ("CLAIR", 5)))
+        self.assertTrue(any("n'est resté que" in e for e in erreurs))
+
+    def test_aucune_capture_est_refusee(self):
+        erreurs, _ = ecran.verifier([])
+        self.assertTrue(erreurs)
+
+    def test_le_plus_long_ecran_noir_apres_l_ecran_de_demarrage_est_signalé(self):
+        _, infos = ecran.verifier(self.bon_demarrage())
+        self.assertTrue(any("le plus long après l'écran de démarrage : 8" in info for info in infos))
+
+
+class TableauTest(unittest.TestCase):
+    def test_lecture_du_tableau_ecrit_par_surveiller(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as fichier:
+            fichier.write("seconde;nature;noir;fond;clair;luminance\n0;NOIR;1.000;0.000;0.000;0\n3;DEMARRAGE;0.000;0.990;0.005;21\n")
+        try:
+            self.assertEqual(ecran.lire_tableau(fichier.name), [(0, "NOIR"), (3, "DEMARRAGE")])
+        finally:
+            os.remove(fichier.name)
+
+    def test_chaque_nature_a_un_code(self):
+        for nature in (ecran.NOIR, ecran.TEXTE, ecran.DEMARRAGE, ecran.CLAIR, ecran.SOMBRE, ecran.AUTRE):
+            self.assertIn(nature, ecran.CODES)
+
+    def test_verifier_en_ligne_de_commande(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as fichier:
+            fichier.write("seconde;nature;noir;fond;clair;luminance\n")
+            for seconde, code in captures(("NOIR", 2), ("DEMARRAGE", 5), ("CLAIR", 3)):
+                fichier.write(f"{seconde};{code};0;0;0;0\n")
+        try:
+            with contextlib.redirect_stdout(io.StringIO()) as sortie:
+                self.assertEqual(ecran.main(["x", "verifier", fichier.name]), 0)
+            self.assertIn("ressemble à celui de Windows", sortie.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(ecran.main(["x", "verifier", fichier.name, "--sans-connexion"]), 0)
+        finally:
+            os.remove(fichier.name)
+
+
 class LigneDeCommandeTest(unittest.TestCase):
     def test_resume_d_un_fichier(self):
         with tempfile.NamedTemporaryFile(suffix=".ppm") as fichier:

@@ -221,7 +221,7 @@ reboot_vm() {
         sleep 5
         new_boot="$(ssh_vm cat /proc/sys/kernel/random/boot_id 2>/dev/null || true)"
     done
-    watch_boot_stop 45
+    watch_boot_stop "${REBOOT_GRACE:-45}"
 }
 
 guest_checks() { # guest_checks <phase> : lance guest-checks.sh (et checks.d/) dans la VM, garde journal et rapport
@@ -359,6 +359,23 @@ base_status=0
 guest_checks base || base_status=$?
 screenshot bureau
 [[ ${base_status} -eq 0 ]] || die "vérifications du premier démarrage"
+
+### 3b. Démarrage comme sur un vrai PC : écran de démarrage, puis écran de connexion ----------
+
+# L'installation automatique laisse « console=ttyS0 » dans les paramètres du noyau : les messages partent sur le port série et
+# l'écran reste noir, ce qui ne ressemble pas à un vrai PC. On le retire, ainsi que la connexion automatique, pour que l'écran
+# montre ce que verrait un utilisateur : du texte de console s'il n'est pas masqué, l'écran de démarrage, puis la connexion.
+log "Redémarrage comme sur un vrai PC (messages sur l'écran, écran de connexion)"
+ssh_vm 'sudo sed -i "s/ console=ttyS[^ ]*//g" /boot/loader/entries/*.conf && sudo rm -f /etc/plasmalogin.conf.d/90-binixx-test.conf'
+REBOOT_GRACE=100 reboot_vm
+screenshot connexion
+screens_status=0
+python3 "${TEST_DIR}/ecran_demarrage.py" verifier "${LOGS}/ecran-redemarrage-${REBOOTS}.log.csv" || screens_status=$?
+ssh_vm 'echo "-- sessions ouvertes :" && loginctl list-sessions --no-legend; echo "-- processus du gestionnaire de connexion :" && ps -eo user,comm | grep -iE "plasmalogin|greeter" | sort | uniq -c' || true
+# Connexion automatique rétablie pour la suite : les vérifications attendent la session de l'utilisateur de test
+ssh_vm 'printf "[Autologin]\nUser=testeur\nSession=plasma\n" | sudo tee /etc/plasmalogin.conf.d/90-binixx-test.conf >/dev/null'
+[[ ${screens_status} -eq 0 ]] || die "le démarrage ne ressemble pas à celui de Windows (voir « Écran pendant le démarrage » plus haut)"
+reboot_vm
 
 ### 4. Mise à jour puis retour arrière ----------------------------------------------
 
