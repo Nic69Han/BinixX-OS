@@ -340,6 +340,139 @@ class LectureDuTexteTest(unittest.TestCase):
             shutil.rmtree(dossier, ignore_errors=True)
 
 
+def logo_en_haut(x, y):
+    """Fond bleu nuit et un logo clair dans la moitié haute : comme à l'écran, il est au-dessus de la roue."""
+    return (230, 240, 255) if 130 <= x < 190 and 10 <= y < 60 else fond_bleu_nuit(x, y)
+
+
+def roue(angle, rayon=12, points=8):
+    """Fond de démarrage, logo, et une roue de `points` points clairs qui tourne sous le logo (centre : 50 % de la largeur, 72 % de la hauteur)."""
+    import math
+    centres = [(L * ecran.INDICATEUR_X + rayon * math.cos(angle + k * 0.25), H * ecran.INDICATEUR_Y + rayon * math.sin(angle + k * 0.25))
+               for k in range(points)]
+
+    def couleur(x, y):
+        if any((x - cx) ** 2 + (y - cy) ** 2 <= 4 for cx, cy in centres):
+            return (255, 255, 255)
+        return logo_en_haut(x, y)
+    return couleur
+
+
+def captures_avec_indicateur(*suites):
+    """[(seconde, code, pixels clairs, pixels changés)] à partir de suites « (code, nombre, clairs, changés) »."""
+    resultat = []
+    for code, nombre, clairs, changes in suites:
+        resultat += [(len(resultat) + i, code, clairs, changes) for i in range(nombre)]
+    return resultat
+
+
+class IndicateurTest(unittest.TestCase):
+    def zone_de(self, angle):
+        largeur, hauteur, pixels = ecran.lire_ppm(ppm(roue(angle)))
+        return ecran.luminances_de_la_zone(largeur, hauteur, pixels)
+
+    def test_la_zone_est_bornee_a_l_image(self):
+        x0, y0, x1, y1 = ecran.zone_indicateur(L, H)
+        self.assertTrue(0 <= x0 < x1 <= L and 0 <= y0 < y1 <= H)
+        self.assertEqual((x0, x1), (int(L * ecran.INDICATEUR_X) - ecran.INDICATEUR_DEMI_COTE, int(L * ecran.INDICATEUR_X) + ecran.INDICATEUR_DEMI_COTE))
+
+    def test_la_roue_est_vue_dans_la_zone(self):
+        _, zone = self.zone_de(0.0)
+        self.assertGreaterEqual(ecran.pixels_clairs(zone), ecran.INDICATEUR_MIN)
+
+    def test_un_fond_seul_n_a_pas_d_indicateur(self):
+        largeur, hauteur, pixels = ecran.lire_ppm(ppm(logo_en_haut))
+        _, zone = ecran.luminances_de_la_zone(largeur, hauteur, pixels)
+        self.assertLess(ecran.pixels_clairs(zone), ecran.INDICATEUR_MIN)
+
+    def test_le_logo_de_l_ecran_n_est_pas_dans_la_zone(self):
+        # logo BinixX OS : 213 px de haut, centré à 40 % de la hauteur (binixx.plymouth) ; la zone commence plus bas, à toute résolution usuelle
+        for largeur, hauteur in ((1024, 768), (1280, 800), (1920, 1080), (2560, 1440), (3840, 2160)):
+            bas_du_logo = 0.4 * (hauteur - 213) + 213
+            self.assertGreater(ecran.zone_indicateur(largeur, hauteur)[1], bas_du_logo, (largeur, hauteur))
+
+    def test_la_roue_qui_tourne_change_des_pixels(self):
+        _, avant = self.zone_de(0.0)
+        _, apres = self.zone_de(1.5)
+        self.assertGreaterEqual(ecran.pixels_changes(apres, avant), ecran.MOUVEMENT_MIN)
+
+    def test_la_meme_image_ne_change_rien(self):
+        _, zone = self.zone_de(0.7)
+        self.assertEqual(ecran.pixels_changes(zone, zone), 0)
+
+    def test_sans_capture_precedente_on_ne_compare_pas(self):
+        _, zone = self.zone_de(0.0)
+        self.assertEqual(ecran.pixels_changes(zone, None), -1)
+        self.assertEqual(ecran.pixels_changes(zone, zone[:-1]), -1)
+
+    def test_l_ecran_avec_roue_reste_un_ecran_de_demarrage(self):
+        largeur, hauteur, pixels = ecran.lire_ppm(ppm(roue(0.3)))
+        self.assertEqual(ecran.classer(ecran.analyser(largeur, hauteur, pixels)), ecran.DEMARRAGE)
+
+    def test_la_vignette_de_la_zone_montre_la_roue(self):
+        largeur_zone, zone = self.zone_de(0.0)
+        lignes = ecran.vignette_de_la_zone(largeur_zone, zone)
+        self.assertTrue(any(ligne.strip() for ligne in lignes))
+        self.assertEqual(len(lignes), -(-(len(zone) // largeur_zone) // 4))
+
+    def bon(self):
+        return captures_avec_indicateur(("NOIR", 6, 0, -1), ("DEMARRAGE", 1, 90, -1), ("DEMARRAGE", 7, 90, 27), ("NOIR", 4, 0, -1),
+                                        ("SOMBRE", 3, 0, -1))
+
+    def test_un_indicateur_visible_qui_bouge_est_accepte(self):
+        erreurs, infos = ecran.verifier(self.bon())
+        self.assertEqual(erreurs, [])
+        self.assertTrue(any("indicateur de chargement : visible sur 8 capture(s) sur 8, en mouvement entre 7 paire(s) de captures sur 7" in i
+                            for i in infos))
+
+    def test_un_indicateur_absent_est_refuse(self):
+        erreurs, _ = ecran.verifier(captures_avec_indicateur(("NOIR", 2, 0, -1), ("DEMARRAGE", 8, 0, 0), ("SOMBRE", 3, 0, -1)))
+        self.assertTrue(any("pas d'indicateur de chargement visible" in e for e in erreurs))
+
+    def test_un_indicateur_qui_ne_bouge_pas_est_refuse(self):
+        erreurs, _ = ecran.verifier(captures_avec_indicateur(("NOIR", 2, 0, -1), ("DEMARRAGE", 1, 90, -1), ("DEMARRAGE", 7, 90, 0),
+                                                              ("SOMBRE", 3, 0, -1)))
+        self.assertTrue(any("ne bouge pas" in e for e in erreurs))
+
+    def test_un_indicateur_qui_bouge_une_seule_fois_suffit(self):
+        # une capture par seconde pour une animation à 30 images par seconde : deux captures peuvent tomber sur la même image
+        erreurs, _ = ecran.verifier(captures_avec_indicateur(("NOIR", 2, 0, -1), ("DEMARRAGE", 1, 90, -1), ("DEMARRAGE", 5, 90, 0),
+                                                              ("DEMARRAGE", 1, 90, 25), ("SOMBRE", 3, 0, -1)))
+        self.assertEqual(erreurs, [])
+
+    def test_trop_peu_de_comparaisons_ne_suffisent_pas_pour_refuser(self):
+        erreurs, _ = ecran.verifier(captures_avec_indicateur(("NOIR", 2, 0, -1), ("DEMARRAGE", 1, 90, -1), ("DEMARRAGE", 2, 90, 0),
+                                                              ("SOMBRE", 3, 0, -1)))
+        self.assertEqual(erreurs, [])
+
+    def test_sans_mesure_de_l_indicateur_rien_n_est_exige(self):
+        erreurs, infos = ecran.verifier(captures(("NOIR", 2), ("DEMARRAGE", 8), ("SOMBRE", 3)))
+        self.assertEqual(erreurs, [])
+        self.assertFalse(any("indicateur" in info for info in infos))
+
+    def test_lecture_du_tableau_avec_l_indicateur(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as fichier:
+            fichier.write("seconde;nature;noir;fond;clair;luminance;indicateur;mouvement\n"
+                          "0;NOIR;1.000;0.000;0.000;0;0;-1\n3;DEMARRAGE;0.000;0.990;0.005;21;90;27\n")
+        try:
+            self.assertEqual(ecran.lire_tableau(fichier.name), [(0, "NOIR", 0, -1), (3, "DEMARRAGE", 90, 27)])
+        finally:
+            os.remove(fichier.name)
+
+    def test_verifier_en_ligne_de_commande_refuse_un_indicateur_figé(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as fichier:
+            fichier.write("seconde;nature;noir;fond;clair;luminance;indicateur;mouvement\n")
+            for seconde, code, clairs, changes in captures_avec_indicateur(("NOIR", 2, 0, -1), ("DEMARRAGE", 1, 90, -1),
+                                                                          ("DEMARRAGE", 6, 90, 0), ("CLAIR", 3, 0, -1)):
+                fichier.write(f"{seconde};{code};0;0;0;0;{clairs};{changes}\n")
+        try:
+            with contextlib.redirect_stdout(io.StringIO()) as sortie:
+                self.assertEqual(ecran.main(["x", "verifier", fichier.name]), 1)
+            self.assertIn("ne bouge pas", sortie.getvalue())
+        finally:
+            os.remove(fichier.name)
+
+
 class LigneDeCommandeTest(unittest.TestCase):
     def test_resume_d_un_fichier(self):
         with tempfile.NamedTemporaryFile(suffix=".ppm") as fichier:
