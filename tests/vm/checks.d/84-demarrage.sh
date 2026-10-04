@@ -20,6 +20,8 @@ decrire_demarrage() {
     echo "  dossiers GRUB :"
     # shellcheck disable=SC2012
     ls -la /boot/grub2 /boot/efi/EFI/fedora /boot/efi/EFI/BOOT 2>&1 | indente
+    echo "  /boot/grub2/user.cfg (menu discret) :"
+    cat /boot/grub2/user.cfg 2>&1 | indente
     echo "  réglages de menu dans la configuration de GRUB :"
     grep -nE 'timeout|menu_auto_hide|menu_show_once|boot_success|boot_indeterminate|custom\.cfg|user\.cfg|load_env|set default|terminal' \
         /boot/grub2/grub.cfg /boot/efi/EFI/fedora/grub.cfg 2>&1 | head -n 40 | indente
@@ -48,11 +50,37 @@ verifier_demarrage() {
             fail "le noyau n'a pas reçu « ${karg} » (ligne de commande :${cmdline})"
         fi
     done
-    if journalctl -b -o cat --no-pager 2>/dev/null | grep -qi 'plymouth'; then
-        pass "Plymouth s'est lancé pendant ce démarrage"
-    else
-        warn "aucune trace de Plymouth dans le journal de ce démarrage"
-    fi
+    # (pas de « journalctl | grep -q » : grep -q ferme le tube avant la fin et pipefail y voit un échec)
+    check "Plymouth s'est lancé pendant ce démarrage (plymouth-start.service)" systemctl is-active plymouth-start.service
+    check "Plymouth a rendu la main à la connexion (plymouth-quit.service)" systemctl is-active plymouth-quit.service
+    # shellcheck disable=SC2016  # le $(…) s'évalue dans le bash -c
+    check "le thème de démarrage est celui de BinixX OS" bash -c '[[ "$(plymouth-set-default-theme)" == binixx ]]'
 }
 register_check base verifier_demarrage
 register_check after-update verifier_demarrage
+
+verifier_menu_grub() {
+    section "Menu de démarrage discret (GRUB)"
+    check "user.cfg écrit par BinixX OS (menu caché après un démarrage réussi)" \
+        bash -c 'head -n 1 /boot/grub2/user.cfg | grep -q "^# BinixX OS : menu de démarrage discret"'
+    # shellcheck disable=SC2016  # le $(…) s'évalue dans le bash -c
+    check "service binixx-menu-grub terminé sans erreur" bash -c '[[ "$(systemctl show -p Result --value binixx-menu-grub.service)" == success ]]'
+    if command -v grub2-script-check >/dev/null; then
+        check "user.cfg : syntaxe GRUB valide" grub2-script-check /boot/grub2/user.cfg
+    else
+        warn "grub2-script-check absent : syntaxe de user.cfg non vérifiée ici"
+    fi
+}
+register_check base verifier_menu_grub
+
+verifier_menu_cache() {
+    # Après un démarrage réussi, GRUB a lu user.cfg au démarrage suivant et a caché son menu : il l'écrit dans son environnement
+    local etat
+    etat="$(grub2-editenv list 2>&1 | grep '^binixx_menu=' || true)"
+    if [[ "${etat}" == binixx_menu=cache ]]; then
+        pass "GRUB a caché son menu à ce démarrage (le précédent avait réussi)"
+    else
+        fail "GRUB n'a pas caché son menu à ce démarrage : « ${etat:-binixx_menu absent} »"
+    fi
+}
+register_check after-update verifier_menu_cache

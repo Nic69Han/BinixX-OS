@@ -18,3 +18,16 @@ check "le thème BinixX OS utilise le module two-step" grep -qx 'ModuleName=two-
 check "module two-step présent dans l'initramfs (sinon pas d'animation)" \
     bash -c 'lsinitrd /usr/lib/modules/*/initramfs.img | grep -q "plymouth/two-step.so"'
 check "Plymouth n'est pas masqué" bash -c '! systemctl is-enabled plymouth-start.service 2>&1 | grep -q masked'
+
+section "Menu de démarrage discret (GRUB)"
+check "script du menu GRUB discret exécutable" test -x /usr/libexec/binixx/binixx-menu-grub
+check "service du menu GRUB discret activé" systemctl is-enabled binixx-menu-grub.service
+menu_dir="$(mktemp -d)"
+BINIXX_GRUB_DIR="${menu_dir}" /usr/libexec/binixx/binixx-menu-grub >/dev/null
+# shellcheck disable=SC2016  # le $1 est celui du bash -c
+check "le script écrit un user.cfg qui cache le menu après un démarrage réussi" bash -c \
+    'grep -q "timeout_style=hidden" "$1/user.cfg" && grep -q "boot_success" "$1/user.cfg"' _ "${menu_dir}"
+if command -v grub2-script-check >/dev/null; then
+    check "user.cfg : syntaxe GRUB valide" grub2-script-check "${menu_dir}/user.cfg"
+fi
+rm -rf "${menu_dir}"
