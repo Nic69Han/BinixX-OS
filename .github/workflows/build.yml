@@ -156,6 +156,14 @@ jobs:
           python3 -m pip install --quiet numpy scipy pillow fonttools uharfbuzz
           python3 -m unittest discover -s tests/branding
 
+      # BinixX OS silent boot (docs/demarrage.md): the tool that reads the VM screen during boot (the VM test relies on it to
+      # tell the splash screen from console text), the script that hides the GRUB menu after a good boot, and the kernel
+      # arguments are tested on their own.
+      - name: Test the boot screen reader and the discreet GRUB menu
+        run: |
+          python3 -m unittest discover -s tests/vm -p 'test_*.py'
+          python3 -m unittest discover -s tests/demarrage -p 'test_*.py'
+
       # BinixX OS installer (disk_config/iso.toml): Anaconda crashes when validating the language if its Timezone module is
       # disabled, so the module list is guarded. tests/iso/boot-installer.sh checks it for real, by clicking through the installer.
       - name: Test the installer configuration

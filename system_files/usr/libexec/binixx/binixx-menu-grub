@@ -1,0 +1,49 @@
+#!/usr/bin/bash
+# Menu de démarrage discret (docs/demarrage.md) : écrit le fichier user.cfg que lit la configuration de GRUB.
+#
+# La configuration de GRUB (bootupd) affiche le menu une seconde à chaque démarrage, en texte : pour un utilisateur venu de
+# Windows, c'est un écran qui ressemble à une panne. Quand le démarrage précédent a réussi (greenboot a écrit boot_success=1),
+# le menu reste caché et le PC démarre tout droit ; la touche Échap, pendant la seconde d'attente, l'affiche. Au premier démarrage
+# et après un échec (mise à jour défectueuse), le menu reste visible, pour pouvoir choisir la version précédente.
+#
+# /boot est une partition à part, qui ne fait pas partie de l'image : ce service (binixx-menu-grub.service) écrit le fichier à
+# chaque démarrage, et ne touche jamais à un user.cfg qui n'est pas le sien (sans la ligne de marque ci-dessous).
+#
+# Variable d'environnement BINIXX_GRUB_DIR : dossier de GRUB, /boot/grub2 par défaut (les tests s'en servent).
+
+set -euo pipefail
+
+dossier="${BINIXX_GRUB_DIR:-/boot/grub2}"
+fichier="${dossier}/user.cfg"
+marque='# BinixX OS : menu de démarrage discret (géré par binixx-menu-grub ; retirez cette ligne pour garder votre propre version)'
+
+if [[ ! -d "${dossier}" || ! -w "${dossier}" ]]; then
+    echo "binixx-menu-grub : ${dossier} absent ou non inscriptible, rien à faire"
+    exit 0
+fi
+if [[ -e "${fichier}" ]] && [[ "$(head -n 1 "${fichier}")" != "${marque}" ]]; then
+    echo "binixx-menu-grub : ${fichier} n'est pas géré par BinixX OS, laissé tel quel"
+    exit 0
+fi
+
+contenu="${marque}
+# Lu par grub.cfg avant que greenboot ne remette boot_success à 0 : ici, boot_success dit comment s'est passé le démarrage d'avant.
+if [ \"\${boot_success}\" = \"1\" ]; then
+  set timeout_style=hidden
+  set timeout=1
+  set binixx_menu=cache
+else
+  set binixx_menu=visible
+fi
+# Trace lisible depuis le système (grub2-editenv list) : le menu a-t-il été caché à ce démarrage ?
+save_env binixx_menu"
+
+if [[ -f "${fichier}" ]] && [[ "$(cat "${fichier}")" == "${contenu}" ]]; then
+    exit 0
+fi
+temporaire="$(mktemp "${fichier}.XXXXXX")"
+printf '%s\n' "${contenu}" >"${temporaire}"
+chmod 0600 "${temporaire}"
+mv -f "${temporaire}" "${fichier}"
+sync -f "${dossier}" 2>/dev/null || sync
+echo "binixx-menu-grub : ${fichier} écrit"

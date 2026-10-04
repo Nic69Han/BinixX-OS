@@ -1,0 +1,25 @@
+# Démarrage « à la Windows » : l'écran de démarrage BinixX OS (Plymouth) remplace le texte de la console.
+# bootc applique ces paramètres à l'installation et à chaque mise à jour (docs/demarrage.md).
+#
+#   quiet, rhgb, splash       pas de texte du noyau ; Plymouth affiche son thème (il faut quiet ET splash, sinon il
+#                             retombe sur le thème « details », qui n'est que du texte)
+#   loglevel=3                seules les erreurs du noyau sont écrites sur la console
+#   rd.udev.log_level=3,      idem pour udev, dans l'image de démarrage puis dans le système
+#   udev.log_level=3
+#   systemd.show_status=auto  systemd n'affiche son avancement que si le démarrage traîne ou échoue (avec « quiet »,
+#   rd.systemd.show_status=auto  il se tairait même en cas d'échec) ; Plymouth l'écrit alors sous l'animation
+#   plymouth.ignore-serial-consoles  un port série (support, serveurs) ne force pas le mode texte
+#
+# Un problème grave (disque introuvable, mode de secours) ferme l'écran de démarrage et laisse voir le texte ; la touche
+# Échap l'affiche à la demande.
+kargs = [
+    "quiet",
+    "rhgb",
+    "splash",
+    "loglevel=3",
+    "rd.udev.log_level=3",
+    "udev.log_level=3",
+    "systemd.show_status=auto",
+    "rd.systemd.show_status=auto",
+    "plymouth.ignore-serial-consoles",
+]

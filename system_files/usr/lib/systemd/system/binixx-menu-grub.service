@@ -1,0 +1,13 @@
+[Unit]
+Description=BinixX OS : menu de démarrage discret (GRUB)
+Documentation=https://github.com/Nic69Han/BinixX-OS/blob/main/docs/demarrage.md
+# /boot est une partition à part, montée en lecture-écriture : le fichier user.cfg de GRUB y est (ré)écrit à chaque démarrage
+RequiresMountsFor=/boot
+ConditionPathIsReadWrite=/boot/grub2
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/binixx/binixx-menu-grub
+
+[Install]
+WantedBy=multi-user.target

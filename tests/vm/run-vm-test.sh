@@ -151,6 +151,27 @@ screenshot() { # screenshot <nom> : capture de l'écran de la VM, sans jamais fa
     fi
 }
 
+# Surveillance de l'écran pendant un démarrage ou un redémarrage : ecran_demarrage.py prend une capture par seconde et décrit ce
+# qu'elle montre (texte de console, menu GRUB, écran de démarrage, bureau) dans ${LOGS}/ecran-<nom>.log, repris dans le journal.
+WATCH_PID=""
+WATCH_NAME=""
+watch_boot_start() { # watch_boot_start <nom>
+    WATCH_NAME="$1"
+    rm -f "${WORK}/watch-stop"
+    python3 "${TEST_DIR}/ecran_demarrage.py" surveiller "${QMP_SOCK}" "${LOGS}/ecran-$1.log" "${WORK}/watch-stop" 1500 \
+        >"${LOGS}/ecran-$1.err" 2>&1 &
+    WATCH_PID=$!
+}
+watch_boot_stop() { # watch_boot_stop <secondes de plus> : laisse voir la fin du démarrage (connexion, bureau), puis arrête
+    [[ -n "${WATCH_PID}" ]] || return 0
+    sleep "${1:-0}"
+    touch "${WORK}/watch-stop"
+    wait "${WATCH_PID}" 2>/dev/null || true
+    WATCH_PID=""
+    printf '\n\033[1m== Écran pendant le démarrage (%s)\033[0m\n' "${WATCH_NAME}"
+    cat "${LOGS}/ecran-${WATCH_NAME}.log" 2>/dev/null || true
+}
+
 start_vm() { # démarre le système installé, en arrière-plan
     local vars="${WORK}/vars-boot.fd"
     if [[ ${SECURE_BOOT} -eq 1 ]]; then
@@ -186,9 +207,12 @@ stop_vm() {
     rm -f "${PIDFILE}"
 }
 
+REBOOTS=0
 reboot_vm() {
     local old_boot new_boot=""
     old_boot="$(ssh_vm cat /proc/sys/kernel/random/boot_id)"
+    REBOOTS=$((REBOOTS + 1))
+    watch_boot_start "redemarrage-${REBOOTS}"
     ssh_vm sudo systemctl reboot || true
     local deadline=$((SECONDS + 900))
     while [[ -z "${new_boot}" || "${new_boot}" == "${old_boot}" ]]; do
@@ -197,6 +221,7 @@ reboot_vm() {
         sleep 5
         new_boot="$(ssh_vm cat /proc/sys/kernel/random/boot_id 2>/dev/null || true)"
     done
+    watch_boot_stop "${REBOOT_GRACE:-45}"
 }
 
 guest_checks() { # guest_checks <phase> : lance guest-checks.sh (et checks.d/) dans la VM, garde journal et rapport
@@ -211,6 +236,10 @@ guest_checks() { # guest_checks <phase> : lance guest-checks.sh (et checks.d/) d
 
 cleanup() {
     local status=$?
+    if [[ -n "${WATCH_PID}" ]]; then
+        touch "${WORK}/watch-stop"
+        wait "${WATCH_PID}" 2>/dev/null || true
+    fi
     if vm_running; then
         [[ ${status} -ne 0 ]] && screenshot echec
         stop_vm
@@ -322,12 +351,31 @@ log "Installation terminée sans intervention"
 
 log "Démarrage du système installé (Secure Boot : ${SECURE_BOOT})"
 start_vm
+watch_boot_start premier-demarrage
 wait_ssh 900
+watch_boot_stop 60
 log "Vérifications du système installé"
 base_status=0
 guest_checks base || base_status=$?
 screenshot bureau
 [[ ${base_status} -eq 0 ]] || die "vérifications du premier démarrage"
+
+### 3b. Démarrage comme sur un vrai PC : écran de démarrage, puis écran de connexion ----------
+
+# L'installation automatique laisse « console=ttyS0 » dans les paramètres du noyau : les messages partent sur le port série et
+# l'écran reste noir, ce qui ne ressemble pas à un vrai PC. On le retire, ainsi que la connexion automatique, pour que l'écran
+# montre ce que verrait un utilisateur : du texte de console s'il n'est pas masqué, l'écran de démarrage, puis la connexion.
+log "Redémarrage comme sur un vrai PC (messages sur l'écran, écran de connexion)"
+ssh_vm 'sudo sed -i "s/ console=ttyS[^ ]*//g" /boot/loader/entries/*.conf && sudo rm -f /etc/plasmalogin.conf.d/90-binixx-test.conf'
+REBOOT_GRACE=100 reboot_vm
+screenshot connexion
+screens_status=0
+python3 "${TEST_DIR}/ecran_demarrage.py" verifier "${LOGS}/ecran-redemarrage-${REBOOTS}.log.csv" || screens_status=$?
+ssh_vm 'echo "-- sessions ouvertes :" && loginctl list-sessions --no-legend; echo "-- processus du gestionnaire de connexion :" && ps -eo user,comm | grep -iE "plasmalogin|greeter" | sort | uniq -c' || true
+# Connexion automatique rétablie pour la suite : les vérifications attendent la session de l'utilisateur de test
+ssh_vm 'printf "[Autologin]\nUser=testeur\nSession=plasma\n" | sudo tee /etc/plasmalogin.conf.d/90-binixx-test.conf >/dev/null'
+[[ ${screens_status} -eq 0 ]] || die "le démarrage ne ressemble pas à celui de Windows (voir « Écran pendant le démarrage » plus haut)"
+reboot_vm
 
 ### 4. Mise à jour puis retour arrière ----------------------------------------------
 

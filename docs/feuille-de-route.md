@@ -156,13 +156,14 @@ bureau.
 | **O8. Poste préconfiguré** | L'image d'entreprise prépare le PC (compte, domaine Active Directory, Wi-Fi, applications) avant la livraison ; l'utilisateur n'a plus qu'à ouvrir sa session. À étudier avec E1 (gabarit d'entreprise). | Mise en service différée d'Omarchy 4 ; Windows Autopilot | VM : un fichier de réglages pose le compte et le domaine | À étudier |
 | **O9. Fonctionnalités facultatives** | Une page comme « Activer ou désactiver des fonctionnalités Windows » : Windows en machine virtuelle (W1), jeux (J1), conteneurs de développement, accès à distance, imprimantes… réunis, avec leur état. | AnduinOS : composants à la carte (boutique d'applications, outils pro, conteneurs, WSL) | VM : chaque interrupteur testé | Proposé |
 | **O10. Capture et texte d'une image** | Windows + Maj + S pour capturer, enregistrer l'écran, copier le texte d'une image (OCR), pipette à couleur. **À vérifier d'abord : ce que Spectacle (déjà présent) sait faire.** | Raccourcis capture, enregistrement, OCR et pipette d'Omarchy | Image : outil et raccourcis présents | À étudier |
+| **O11. Démarrage « à la Windows »** | Plus de texte qui défile : écran de démarrage BinixX OS (logo, indicateur), menu GRUB caché après un démarrage réussi, messages visibles seulement si le démarrage traîne ou échoue ([détails](demarrage.md)). La cause : le noyau ne recevait ni `quiet` ni `splash`, donc Plymouth n'affichait que du texte. | Fedora, Ubuntu, SteamOS (`quiet splash`) ; Fedora (`menu_auto_hide`) ; KDE Linux | VM : paramètres reçus par le noyau, captures du démarrage jugées (écran de démarrage, pas de texte, connexion), `binixx_menu=cache` | En test |
 
 **À garder pour la refonte de l'ISO** (voir la décision 7) :
 
 - **Installer à côté de Windows** : double démarrage guidé, sans effacer Windows (Omarchy 4 vient de l'ajouter ; c'est l'étape intermédiaire de beaucoup de nouveaux venus).
 - **ISO plus légère et installation plus rapide** : Omarchy 4 a retiré plus d'un gigaoctet et gagné 30 %. Notre ISO pèse environ 5 Go.
 - **Instantanés des fichiers (Btrfs)** : CachyOS (Snapper) et Omarchy en proposent. BinixX OS protège le *système* (`bootc`, greenboot) mais l'historique des *fichiers* repose sur Déjà Dup. À trancher avec le choix du système de fichiers à l'installation.
-- **Démarrage discret, menu de secours après un échec** (KDE Linux) : à comparer avec ce que greenboot et GRUB font déjà.
+- **Démarrage discret, menu de secours après un échec** (KDE Linux) : fait, voir O11.
 - **Clé USB persistante** (MX Linux), à rapprocher de M3 (essayer sans installer).
 
 **Déjà couvert, aucune nouvelle PR** : retour arrière des mises à jour (R1), « réinitialiser l'ordinateur » d'Omarchy (remplacé volontairement par R2, plus sûr : il n'efface pas les comptes), applications web préconfigurées (A2 et P3), mosaïque et dispositions de fenêtres (PR #15, inspirée de Zorin).
