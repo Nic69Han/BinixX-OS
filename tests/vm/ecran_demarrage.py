@@ -381,6 +381,13 @@ def verifier(captures, exiger_connexion=True):
             bougent = sum(1 for mouvement in comparees if mouvement >= MOUVEMENT_MIN)
             infos.append(f"indicateur de chargement : visible sur {visibles} capture(s) sur {duree}, en mouvement entre "
                          f"{bougent} paire(s) de captures sur {len(comparees)}")
+            infos.append("indicateur de chargement, pixels changés d'une capture à l'autre (-1 : rien à comparer) : "
+                         + " ".join(str(mouvement) for _, mouvement in mesures_indicateur))
+            immobile, serie_immobile = 0, 0
+            for mouvement in comparees:
+                serie_immobile = serie_immobile + 1 if mouvement < MOUVEMENT_MIN else 0
+                immobile = max(immobile, serie_immobile)
+            infos.append(f"indicateur de chargement : immobile pendant {immobile} comparaison(s) de suite au plus")
             if duree >= 3 and visibles * 2 < duree:
                 erreurs.append(f"l'écran de démarrage n'a pas d'indicateur de chargement visible (visible sur {visibles} capture(s) "
                                f"sur {duree}) : on peut croire que l'ordinateur est figé")

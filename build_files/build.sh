@@ -228,10 +228,11 @@ for key in Image PreviewImage; do
         --group Greeter --group Wallpaper --group org.kde.image --group General --key "${key}" "${BINIXX_WALLPAPER}"
 done
 
-# Écran de démarrage : thème Plymouth BinixX OS. Les images d'animation viennent du thème
-# « spinner » de Fedora ; watermark.png (le logo) n'est pas écrasé.
-cp -a --update=none /usr/share/plymouth/themes/spinner/. /usr/share/plymouth/themes/binixx/
-rm -f /usr/share/plymouth/themes/binixx/spinner.plymouth
+# Écran de démarrage : thème Plymouth BinixX OS. Le logo (watermark.png) et la roue de chargement (throbber-*.png, branding/roue_demarrage.py)
+# sont à nous ; les autres images (champ de mot de passe, cadenas, clavier…) viennent du thème « spinner » de Fedora. Les images de la roue
+# de Fedora ne sont pas copiées : une image de plus ou de moins dans l'animation la ferait sauter.
+find /usr/share/plymouth/themes/spinner -maxdepth 1 -type f ! -name 'throbber-*' ! -name spinner.plymouth \
+    -exec cp -a --update=none -t /usr/share/plymouth/themes/binixx/ {} +
 plymouth-set-default-theme binixx
 
 # Nom de l'entrée de démarrage dans le firmware du PC (menu F12 / Échap) : « BinixX OS ».

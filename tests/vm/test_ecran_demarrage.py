@@ -425,6 +425,13 @@ class IndicateurTest(unittest.TestCase):
         self.assertTrue(any("indicateur de chargement : visible sur 8 capture(s) sur 8, en mouvement entre 7 paire(s) de captures sur 7" in i
                             for i in infos))
 
+    def test_la_chronologie_du_mouvement_est_donnee_pour_lire_les_arrets(self):
+        _, infos = ecran.verifier(captures_avec_indicateur(("NOIR", 2, 0, -1), ("DEMARRAGE", 1, 90, -1), ("DEMARRAGE", 2, 90, 0),
+                                                            ("DEMARRAGE", 2, 90, 196), ("DEMARRAGE", 1, 90, 3), ("DEMARRAGE", 2, 90, 190),
+                                                            ("SOMBRE", 3, 0, -1)))
+        self.assertTrue(any(i.endswith("-1 0 0 196 196 3 190 190") for i in infos), infos)
+        self.assertTrue(any("immobile pendant 2 comparaison(s) de suite au plus" in i for i in infos), infos)
+
     def test_un_indicateur_absent_est_refuse(self):
         erreurs, _ = ecran.verifier(captures_avec_indicateur(("NOIR", 2, 0, -1), ("DEMARRAGE", 8, 0, 0), ("SOMBRE", 3, 0, -1)))
         self.assertTrue(any("pas d'indicateur de chargement visible" in e for e in erreurs))

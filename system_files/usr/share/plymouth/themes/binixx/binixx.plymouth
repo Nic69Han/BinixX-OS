@@ -3,9 +3,9 @@ Name=BinixX OS
 Description=Écran de démarrage BinixX OS : logo au centre, indicateur de chargement en dessous.
 ModuleName=two-step
 
-# Adapté du thème « spinner » de Plymouth. Les images d'animation (throbber-*.png,
-# entry.png, lock.png…) sont copiées depuis /usr/share/plymouth/themes/spinner
-# pendant le build de l'image ; watermark.png est le logo BinixX OS (branding/generer.py).
+# Adapté du thème « spinner » de Plymouth. watermark.png (le logo) et throbber-*.png (la roue de
+# chargement : 30 images, un tour par seconde) sont à nous (branding/generer.py) ; les autres images
+# (entry.png, lock.png…) sont copiées depuis /usr/share/plymouth/themes/spinner pendant le build.
 [two-step]
 Font=Cantarell 12
 TitleFont=Cantarell Light 30
