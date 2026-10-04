@@ -164,6 +164,12 @@ jobs:
           python3 -m unittest discover -s tests/vm -p 'test_*.py'
           python3 -m unittest discover -s tests/demarrage -p 'test_*.py'
 
+      # BinixX OS installer (disk_config/iso.toml): Anaconda crashes when validating the language if its Timezone module is
+      # disabled, so the module list is guarded. tests/iso/boot-installer.sh checks it for real, by clicking through the installer.
+      - name: Test the installer configuration
+        run: |
+          python3 -m unittest discover -s tests/iso -p 'test_*.py'
+
       - name: Software bill of materials (SBOM)
         run: |
           just sbom \
