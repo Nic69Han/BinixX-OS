@@ -78,6 +78,10 @@ Sous le logo, une roue tourne : elle montre que l'ordinateur travaille, pour que
   30 images, un tour par seconde, comme celle de Fedora. Elle est calculée par `branding/roue_demarrage.py` (aucune image tierce) ;
   `branding/generer.py` l'appelle et les images sont dans `system_files/usr/share/plymouth/themes/binixx/throbber-*.png`. Le build ne
   copie plus celles de Fedora : une image de plus ou de moins dans l'animation la ferait sauter.
+- **Mesuré avec la nouvelle roue** (test VM de la branche) : visible sur chaque capture de l'écran de démarrage (environ 325 pixels
+  clairs, contre 90 avec celle de Fedora) et en mouvement entre toutes les paires de captures (environ 750 pixels changent d'une capture
+  à l'autre, contre 200) ; dans cette série, aucun arrêt, alors que deux démarrages sur quatre en avaient avec l'ancienne roue.
+  Une seule série : on ne sait pas si les arrêts d'avant viennent de la roue, de la machine virtuelle ou du hasard.
 - **Vérifié** : par le test de l'image (au moins 12 images PNG de même taille, numérotées sans trou), par `tests/demarrage/test_roue.py`
   (les images du dépôt sont exactement celles que le script dessine, un tour complet revient à la première image) et par le test VM
   (étape 3b) : la roue doit être visible sur au moins la moitié des captures de l'écran de démarrage et bouger sur au moins une paire de
