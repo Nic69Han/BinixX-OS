@@ -4,8 +4,10 @@
 # N'installe rien. Vérifie que l'installeur graphique démarre depuis le volume « BinixX-OS-… », avec
 # l'écran de choix de la langue et le logo BinixX OS (disk_config/personnaliser-iso.sh), et en fait une
 # capture d'écran.
+# Il clique ensuite sur « Continuer » (Alt + C) comme le ferait un utilisateur : l'installeur ne doit pas planter
+# (journaux et fichiers anaconda-tb), et l'écran doit changer (le résumé de l'installation remplace « Bienvenue »).
 # Second démarrage, la langue demandée au lancement (inst.lang, français par défaut) : vérifie que
-# l'installeur s'affiche dans cette langue et en fait une capture.
+# l'installeur s'affiche dans cette langue, en fait une capture, et clique de même sur « Continuer ».
 #
 # Usage : tests/iso/boot-installer.sh <ISO> [--workdir DIR] [--no-secure-boot]
 #                                           [--langue LOCALE | --sans-langue]
@@ -13,8 +15,8 @@
 # L'installeur ouvre un shell root sur la console virtio hvc0 (anaconda-generator) : le script
 # s'en sert pour lire son état (mode d'affichage, Secure Boot, langue, logo, nom du produit).
 # Prérequis (hôte x86_64) : /dev/kvm, qemu-system-x86_64, qemu-img, OVMF (edk2), python3, xorriso.
-# Résultats dans <workdir>/logs/ : installeur.png et .txt, installeur-<langue>.png et .txt,
-# journaux série.
+# Résultats dans <workdir>/logs/ : installeur.png et .txt, installeur-resume.png (après « Continuer »),
+# installeur-<langue>.png et .txt, installeur-<langue>-resume.png, journaux série.
 # Variables utiles : VM_CPUS, VM_RAM (Mio), INSTALLER_TIMEOUT (s), OVMF_CODE, OVMF_VARS,
 # OVMF_VARS_SECURE_BOOT.
 
@@ -254,6 +256,84 @@ wait_installer() { # attend l'interface graphique de l'installeur, puis son affi
     sleep 20 # fin des animations d'ouverture
 }
 
+press() { # press <touche>... : appuie ensemble sur des touches du clavier de la VM (noms QMP : alt, c, ret…)
+    local keys="" key
+    for key in "$@"; do keys+="{\"type\": \"qcode\", \"data\": \"${key}\"},"; done
+    qmp send-key "{\"keys\": [${keys%,}], \"hold-time\": 150}"
+}
+
+screen_dump() { # screen_dump <fichier.ppm> : capture brute de l'écran (échoue si la capture est impossible)
+    qmp screendump "{\"filename\": \"$1\", \"format\": \"ppm\"}" >/dev/null 2>&1
+}
+
+screen_difference() { # screen_difference <a.ppm> <b.ppm> : part des pixels qui diffèrent, en pour cent (0 à 100)
+    python3 - "$1" "$2" <<'PYEOF'
+import re, sys
+
+def lire(chemin):
+    donnees = open(chemin, "rb").read()
+    entete = re.match(rb"P6\s+(\d+)\s+(\d+)\s+(\d+)\s", donnees)
+    return (int(entete.group(1)), int(entete.group(2)), donnees[entete.end():]) if entete else (0, 0, b"")
+
+l1, h1, p1 = lire(sys.argv[1])
+l2, h2, p2 = lire(sys.argv[2])
+if (l1, h1) != (l2, h2) or not p1:
+    print(100)
+    sys.exit(0)
+pas = 3  # un pixel sur trois dans chaque sens suffit
+total = differents = 0
+for y in range(0, h1, pas):
+    for x in range(0, l1, pas):
+        i = (y * l1 + x) * 3
+        total += 1
+        if abs(p1[i] - p2[i]) + abs(p1[i + 1] - p2[i + 1]) + abs(p1[i + 2] - p2[i + 2]) > 24:
+            differents += 1
+print(round(100 * differents / max(total, 1)))
+PYEOF
+}
+
+installer_crash() { # traces d'un plantage de l'installeur (vide si tout va bien)
+    # anaconda-tb-* : fichiers que l'installeur écrit quand il plante ; les autres lignes viennent de ses journaux
+    # shellcheck disable=SC2016  # tout s'évalue dans l'installeur
+    console 'ls /tmp/anaconda-tb* 2>/dev/null; cat /tmp/anaconda-tb-all.log 2>/dev/null | tail -n 25; grep -hE "AttributeError|Traceback \(most recent" /tmp/anaconda.log /tmp/syslog /tmp/program.log 2>/dev/null | head -n 5; journalctl --no-pager 2>/dev/null | grep -E "AttributeError|Traceback \(most recent" | head -n 5' 2>/dev/null || true
+}
+
+pass_welcome() { # pass_welcome <nom> <exiger le changement d'écran : oui|non> : clic sur « Continuer » de l'écran « Bienvenue »
+    local name="$1" require_change="$2" before="${WORK}/avant.ppm" after="${WORK}/apres.ppm" difference=0 crash waited=0
+    log "Écran « Bienvenue » : clic sur Continuer (Alt + C)"
+    screen_dump "${before}" || { echo "ÉCHEC     capture de l'écran impossible avant le clic" && failures=$((failures + 1)) && return 0; }
+    press alt c
+    # Le résumé de l'installation remplace l'écran « Bienvenue » : l'écran change beaucoup. On attend ce changement
+    # (au plus 90 s), puis encore un peu : c'est à l'ouverture des écrans suivants que l'installeur plante s'il manque un module.
+    while [[ ${waited} -lt 90 ]]; do
+        sleep 5
+        waited=$((waited + 5))
+        if screen_dump "${after}"; then difference="$(screen_difference "${before}" "${after}")"; fi
+        [[ ${difference} -ge 25 ]] && break
+        [[ -n "$(installer_crash)" ]] && break
+    done
+    sleep 20
+    screenshot "${name}-resume"
+    crash="$(installer_crash)"
+    echo "Écran changé de ${difference} % après ${waited} s"
+    if [[ -n "${crash}" ]]; then
+        echo "ÉCHEC     l'installeur a planté après « Continuer » :" && failures=$((failures + 1))
+        printf '%s\n' "${crash}" | sed 's/^/            /'
+    else
+        echo "ok        l'installeur n'a pas planté après « Continuer »"
+    fi
+    if [[ "${require_change}" == oui ]]; then
+        if [[ ${difference} -ge 25 ]]; then
+            echo "ok        l'écran « Bienvenue » a laissé place à la suite de l'installation"
+        else
+            echo "ÉCHEC     l'écran n'a presque pas changé (${difference} %) : Continuer n'a rien fait" && failures=$((failures + 1))
+        fi
+    fi
+    # Journal de l'installeur : modules démarrés et erreurs, pour comprendre en cas d'échec
+    # shellcheck disable=SC2016  # tout s'évalue dans l'installeur
+    console 'echo "-- modules Anaconda :"; grep -hoE "org\.fedoraproject\.Anaconda\.Modules\.[A-Za-z]+" /tmp/anaconda.log | sort -u | tr "\n" " "; echo; echo "-- erreurs :"; grep -hE " (ERROR|CRITICAL) " /tmp/anaconda.log | tail -n 8' 2>/dev/null | sed 's/^/            /' || true
+}
+
 installer_report() { # état de l'installeur, lu par son shell root
     # Une seule ligne : l'écho des lignes suivantes se mêlerait sinon à la sortie.
     # L'installeur n'a pas pgrep : on compte les processus dans /proc ([b] évite de compter grep
@@ -290,6 +370,7 @@ expect "installeur trouvé sur le volume BinixX OS (nom de la clé USB)" 'Volume
 if grep -qi 'wayland startup failed' <<<"${report}"; then
     echo "ÉCHEC     l'installeur est passé en mode texte" && failures=$((failures + 1))
 fi
+pass_welcome installeur oui
 stop_vm
 
 # 2. Langue demandée au lancement : l'installeur doit s'afficher dans cette langue
@@ -316,6 +397,7 @@ if [[ -n "${LANGUE}" ]]; then
     if grep -q 'setlocale failed' <<<"${report}"; then
         echo "ÉCHEC     langue ${LANGUE} indisponible dans l'installeur" && failures=$((failures + 1))
     fi
+    pass_welcome "${name}" non
     stop_vm
 fi
 
