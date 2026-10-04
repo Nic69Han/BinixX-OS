@@ -111,6 +111,12 @@ Restent, visibles seulement en ligne de commande ou dans les détails techniques
 | Dossier `EFI/fedora` sur la partition de démarrage | Les chargeurs signés pour Secure Boot (shim, GRUB) cherchent ce chemin |
 | `ID=fedora`, `/etc/fedora-release`, dépôts et paquets « fedora » | Les outils de mise à jour et les logiciels s'en servent pour reconnaître la base Fedora |
 
+Nom du système vu par l'installeur : quand on réinstalle sur un disque qui contient déjà BinixX OS, Anaconda (écran de
+partitionnement) nomme le système trouvé d'après `/etc/redhat-release`, puis `os-release`. `/etc/redhat-release` était un lien vers
+`fedora-release` : l'installeur affichait « Fedora Linux 44 pour x86_64 ». C'est maintenant un fichier à nous (« BinixX OS release 44 »,
+comme `/etc/system-release`) ; `/etc/fedora-release` reste intact. Anaconda ajoute « Linux » au nom quand il n'en contient pas :
+l'écran affiche « BinixX OS Linux 44 pour x86_64 ». Contrôlé par `tests/image` et `tests/vm` (le calcul d'Anaconda y est reproduit).
+
 La politique de marque Fedora demande de retirer ses logos d'un système dérivé et permet de dire
 qu'il est « basé sur Fedora » : c'est ce que fait BinixX OS.
 

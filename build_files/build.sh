@@ -243,6 +243,11 @@ plymouth-set-default-theme binixx
 system_release="$(sed 's/^Fedora/BinixX OS/' /etc/fedora-release)"
 rm -f /etc/system-release
 printf '%s\n' "${system_release}" >/etc/system-release
+# Nom du système vu par l'installeur : quand on réinstalle sur un disque qui contient déjà BinixX OS, Anaconda nomme le système trouvé
+# d'après /etc/redhat-release (avant os-release), qui renvoyait à fedora-release : « Fedora Linux 44 pour x86_64 ». Un fichier à nous,
+# comme system-release ; fedora-release reste intact. (Anaconda ajoute « Linux » au nom s'il ne le contient pas.)
+rm -f /etc/redhat-release
+printf '%s\n' "${system_release}" >/etc/redhat-release
 shopt -s nullglob
 boot_csvs=(/usr/lib/efi/shim/*/EFI/*/BOOT*.CSV /usr/lib/bootupd/updates/EFI/*/BOOT*.CSV)
 shopt -u nullglob
