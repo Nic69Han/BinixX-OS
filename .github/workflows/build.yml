@@ -156,6 +156,12 @@ jobs:
           python3 -m pip install --quiet numpy scipy pillow fonttools uharfbuzz
           python3 -m unittest discover -s tests/branding
 
+      # BinixX OS boot screen (docs/demarrage.md): the tool that reads the VM screen during boot, which the VM test relies on
+      # to tell the splash screen from console text, is tested on its own.
+      - name: Test the boot screen reader
+        run: |
+          python3 -m unittest discover -s tests/vm -p 'test_*.py'
+
       - name: Software bill of materials (SBOM)
         run: |
           just sbom \

@@ -1,7 +1,9 @@
 # shellcheck shell=bash
 # Démarrage graphique : ce que le noyau reçoit, ce que Plymouth fait, ce que GRUB affiche.
-# Cette étape ne fait que relever l'état (aucun échec) : elle sert à lire dans le journal du test pourquoi du texte
-# s'affiche au démarrage. Les captures d'écran du démarrage sont décrites plus haut dans le journal (« Écran pendant le démarrage »).
+# Le relevé n'échoue jamais : il sert à lire dans le journal du test pourquoi du texte s'affiche au démarrage. Les captures d'écran
+# du démarrage sont décrites plus haut dans le journal (« Écran pendant le démarrage »). Les vérifications, elles, échouent :
+# le noyau doit avoir reçu les paramètres du démarrage silencieux (image/usr/lib/bootc/kargs.d), au premier démarrage comme
+# après une mise à jour.
 decrire_demarrage() {
     section "Démarrage graphique (relevé)"
     indente() { sed 's/^/            /'; }
@@ -31,3 +33,23 @@ decrire_demarrage() {
 }
 register_check base decrire_demarrage
 register_check after-update decrire_demarrage
+
+verifier_demarrage() {
+    section "Démarrage graphique (vérifications)"
+    local cmdline karg
+    cmdline=" $(</proc/cmdline) "
+    for karg in quiet splash rhgb loglevel=3 systemd.show_status=auto rd.systemd.show_status=auto; do
+        if [[ "${cmdline}" == *" ${karg} "* ]]; then
+            pass "le noyau a reçu « ${karg} »"
+        else
+            fail "le noyau n'a pas reçu « ${karg} » (ligne de commande :${cmdline})"
+        fi
+    done
+    if journalctl -b -o cat --no-pager 2>/dev/null | grep -qi 'plymouth'; then
+        pass "Plymouth s'est lancé pendant ce démarrage"
+    else
+        warn "aucune trace de Plymouth dans le journal de ce démarrage"
+    fi
+}
+register_check base verifier_demarrage
+register_check after-update verifier_demarrage
