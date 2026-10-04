@@ -16,7 +16,9 @@ texte de console n'est visible une fois qu'il est là (et presque aucun avant), 
 
 import json
 import os
+import shutil
 import socket
+import subprocess
 import sys
 import tempfile
 import time
@@ -30,15 +32,21 @@ TEXTE = "texte sur fond noir (console ou menu GRUB)"
 DEMARRAGE = "écran de démarrage BinixX OS"
 CLAIR = "écran clair (connexion ou bureau)"
 SOMBRE = "écran sombre (connexion ou bureau)"
+QUELQUES_LIGNES = "quelques lignes de texte (micrologiciel, menu GRUB)"
 LOGO = "logo sur fond noir (micrologiciel, ou connexion qui démarre)"
 AUTRE = "autre"
 
 
-CODES = {NOIR: "NOIR", TEXTE: "TEXTE", LOGO: "LOGO", DEMARRAGE: "DEMARRAGE", CLAIR: "CLAIR", SOMBRE: "SOMBRE", AUTRE: "AUTRE"}
+CODES = {NOIR: "NOIR", TEXTE: "TEXTE", QUELQUES_LIGNES: "LIGNES", LOGO: "LOGO", DEMARRAGE: "DEMARRAGE", CLAIR: "CLAIR", SOMBRE: "SOMBRE", AUTRE: "AUTRE"}
 # Le texte d'une console est collé au bord gauche de l'écran (chaque ligne commence à la première colonne) ; un logo est au centre.
 # MARGE_GAUCHE : part de la largeur de l'écran qui compte comme « le bord gauche » ; PART_TEXTE : part des pixels clairs qui doit s'y trouver
 MARGE_GAUCHE = 0.12
 PART_TEXTE = 0.05
+# Un écran de texte (console du noyau, de systemd) couvre beaucoup d'écran : au moins cette part de pixels clairs. En dessous, ce sont
+# quelques lignes seulement (le micrologiciel ou GRUB écrivent deux ou trois lignes en haut à gauche pendant le chargement du noyau).
+PART_ECRAN_DE_TEXTE = 0.03
+# Captures de « quelques lignes » tolérées avant l'écran de démarrage : le chargement du noyau dure quelques secondes, plus en machine virtuelle
+LIGNES_TOLEREES_AVANT = 12
 # Captures de texte de console tolérées avant l'écran de démarrage (arrêt, micrologiciel, menu GRUB : au plus quelques secondes)
 TEXTE_TOLERE_AVANT = 3
 
@@ -109,7 +117,9 @@ def classer(mesures):
     if mesures["fond"] >= 0.5:
         return DEMARRAGE
     if mesures["noir"] >= 0.7 and mesures["clair"] > 0:
-        return TEXTE if mesures["gauche"] >= PART_TEXTE else LOGO
+        if mesures["gauche"] < PART_TEXTE:
+            return LOGO
+        return TEXTE if mesures["clair"] >= PART_ECRAN_DE_TEXTE else QUELQUES_LIGNES
     if mesures["noir"] >= 0.97:
         return NOIR
     if mesures["luminance"] >= 90:
@@ -154,6 +164,31 @@ def decrire(largeur, hauteur, pixels, mesures, nature, seconde=None, avec_vignet
     return lignes
 
 
+def lire_le_texte(donnees_ppm, hauteur_lue=160, agrandissement=3):
+    """Le texte écrit en haut de l'écran, lu par tesseract s'il est installé (sinon chaîne vide). Sert à savoir ce que sont ces lignes."""
+    outil = shutil.which("tesseract")
+    if outil is None:
+        return ""
+    largeur, hauteur, pixels = lire_ppm(donnees_ppm)
+    hauteur_lue = min(hauteur_lue, hauteur)
+    inverse = bytes(range(255, -1, -1))  # tesseract lit du texte foncé sur fond clair : on inverse
+    lignes = []
+    for y in range(hauteur_lue):
+        ligne = pixels[y * largeur * 3:(y + 1) * largeur * 3].translate(inverse)
+        agrandie = b"".join(ligne[i:i + 3] * agrandissement for i in range(0, len(ligne), 3))
+        lignes += [agrandie] * agrandissement
+    entete = b"P6\n%d %d\n255\n" % (largeur * agrandissement, hauteur_lue * agrandissement)
+    with tempfile.NamedTemporaryFile(suffix=".ppm", delete=False) as fichier:
+        fichier.write(entete + b"".join(lignes))
+    try:
+        resultat = subprocess.run([outil, fichier.name, "stdout", "--psm", "6"], capture_output=True, text=True, timeout=60, check=False)
+        return " | ".join(ligne.strip() for ligne in resultat.stdout.splitlines() if ligne.strip())
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    finally:
+        os.remove(fichier.name)
+
+
 def capture_qmp(socket_qmp, fichier):
     """Demande une capture PPM à QEMU. Renvoie False si l'écran n'est pas (encore) disponible."""
     prise = socket.socket(socket.AF_UNIX)
@@ -185,7 +220,7 @@ def capture_qmp(socket_qmp, fichier):
 def surveiller(socket_qmp, fichier_log, fichier_arret, duree_max=1800):
     """Une capture par seconde jusqu'à l'arrêt demandé ; la vignette à chaque changement de nature, au plus 25 fois."""
     debut = time.monotonic()
-    derniere, vignettes = None, 0
+    derniere, vignettes, lectures, derniere_lecture = None, 0, 0, -1
     temporaire = os.path.join(tempfile.gettempdir(), f"ecran-demarrage-{os.getpid()}.ppm")
     with open(fichier_log, "w", encoding="utf-8") as log, open(fichier_log + ".csv", "w", encoding="utf-8") as tableau:
         tableau.write("seconde;nature;noir;fond;clair;luminance\n")
@@ -196,6 +231,12 @@ def surveiller(socket_qmp, fichier_log, fichier_arret, duree_max=1800):
                         donnees = image.read()
                     seconde = int(time.monotonic() - debut)
                     largeur, hauteur, pixels, mesures, nature = examiner(donnees)
+                    if nature in (QUELQUES_LIGNES, TEXTE) and lectures < 4 and seconde != derniere_lecture:
+                        texte = lire_le_texte(donnees)
+                        lectures, derniere_lecture = lectures + 1, seconde
+                        if texte:
+                            log.write(f"t={seconde:>3} s  texte lu en haut de l'écran : {texte[:300]}\n")
+                            log.flush()
                     tableau.write(f"{seconde};{CODES[nature]};{mesures['noir']:.3f};{mesures['fond']:.3f};"
                                   f"{mesures['clair']:.3f};{mesures['luminance']:.0f}\n")
                     tableau.flush()
@@ -250,7 +291,7 @@ def verifier(captures, exiger_connexion=True):
         infos.append(f"écran de démarrage BinixX OS visible sur {duree} capture(s), à partir de la capture {debut + 1}")
         if duree < 3:
             erreurs.append(f"l'écran de démarrage n'est resté que {duree} capture(s)")
-        texte_apres = apres.count("TEXTE")
+        texte_apres = apres.count("TEXTE") + apres.count("LIGNES")
         if texte_apres:
             erreurs.append(f"du texte de console est réapparu après l'écran de démarrage ({texte_apres} capture(s))")
         noir, plus_long = 0, 0
@@ -259,10 +300,15 @@ def verifier(captures, exiger_connexion=True):
             plus_long = max(plus_long, noir)
         infos.append(f"écran noir le plus long après l'écran de démarrage : {plus_long} capture(s)")
     texte_avant = avant.count("TEXTE")
-    infos.append(f"captures de texte de console avant l'écran de démarrage : {texte_avant} (toléré : {TEXTE_TOLERE_AVANT})")
+    lignes_avant = avant.count("LIGNES")
+    infos.append(f"captures d'un écran de texte avant l'écran de démarrage : {texte_avant} (toléré : {TEXTE_TOLERE_AVANT})")
+    infos.append(f"captures de quelques lignes de texte avant l'écran de démarrage : {lignes_avant} (toléré : {LIGNES_TOLEREES_AVANT})")
     if texte_avant > TEXTE_TOLERE_AVANT:
-        erreurs.append(f"du texte de console s'est affiché sur {texte_avant} captures avant l'écran de démarrage "
+        erreurs.append(f"un écran de texte de console s'est affiché sur {texte_avant} captures avant l'écran de démarrage "
                        f"(toléré : {TEXTE_TOLERE_AVANT})")
+    if lignes_avant > LIGNES_TOLEREES_AVANT:
+        erreurs.append(f"quelques lignes de texte sont restées {lignes_avant} captures avant l'écran de démarrage "
+                       f"(toléré : {LIGNES_TOLEREES_AVANT})")
     if exiger_connexion:
         derniere = codes[-1]
         infos.append(f"dernière capture : {derniere}")

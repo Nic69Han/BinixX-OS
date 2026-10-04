@@ -94,8 +94,9 @@ logo disparaît quand même, et l'écran noir dure autant (7 captures au lieu de
   GRUB) et l'outil qui lit l'écran.
 - **Test VM** (`tests/vm/run-vm-test.sh`, étape 3b) : la VM redémarre comme un vrai PC (messages sur l'écran, sans connexion
   automatique). `tests/vm/ecran_demarrage.py` prend une capture par seconde, la réduit à quelques mesures (part de noir, de bleu nuit du
-  fond BinixX OS, de pixels clairs) et juge : l'écran de démarrage apparaît ; aucun texte de console une fois qu'il est là (et trois
-  captures au plus avant : micrologiciel et menu GRUB) ; l'écran de connexion finit par s'afficher. Les paramètres reçus par le noyau
+  fond BinixX OS, de pixels clairs) et juge : l'écran de démarrage apparaît ; aucun texte de console une fois qu'il est là ; avant lui,
+  jamais un écran de texte (trois captures au plus) mais deux ou trois lignes en haut à gauche sont tolérées (douze captures au
+  plus : elles s'affichent pendant que le noyau se charge) ; l'écran de connexion finit par s'afficher. Les paramètres reçus par le noyau
   et la trace `binixx_menu=cache` de GRUB sont aussi relevés.
 
 ## Limites

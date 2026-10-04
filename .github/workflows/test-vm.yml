@@ -80,7 +80,8 @@ jobs:
       - name: Install QEMU, OVMF and skopeo
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf xorriso openssh-client skopeo
+          # tesseract-ocr : lit les quelques lignes de texte que le test VM voit à l'écran pendant le démarrage (docs/demarrage.md)
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf xorriso openssh-client skopeo tesseract-ocr tesseract-ocr-eng
 
       - name: Let osbuild use bubblewrap
         run: |
