@@ -7,9 +7,12 @@ en caractères que l'on lit dans le journal.
 
     ecran_demarrage.py resume FICHIER.ppm
     ecran_demarrage.py surveiller SOCKET_QMP FICHIER_LOG FICHIER_ARRET [DUREE_MAX_SECONDES]
+    ecran_demarrage.py verifier FICHIER_LOG.csv [--sans-connexion]
 
 « surveiller » prend une capture par seconde (QMP, format PPM) jusqu'à ce que FICHIER_ARRET existe ou que la durée soit écoulée,
-et écrit une ligne par capture, plus la vignette quand l'écran change de nature."""
+et écrit une ligne de journal quand l'écran change de nature (avec la vignette), plus un fichier FICHIER_LOG.csv à une ligne par
+capture. « verifier » lit ce fichier et dit si le démarrage ressemble à celui de Windows : l'écran de démarrage apparaît, aucun
+texte de console n'est visible une fois qu'il est là (et presque aucun avant), l'écran de connexion finit par s'afficher."""
 
 import json
 import os
@@ -28,6 +31,11 @@ DEMARRAGE = "écran de démarrage BinixX OS"
 CLAIR = "écran clair (connexion ou bureau)"
 SOMBRE = "écran sombre (connexion ou bureau)"
 AUTRE = "autre"
+
+
+CODES = {NOIR: "NOIR", TEXTE: "TEXTE", DEMARRAGE: "DEMARRAGE", CLAIR: "CLAIR", SOMBRE: "SOMBRE", AUTRE: "AUTRE"}
+# Captures de texte tolérées avant l'écran de démarrage : le micrologiciel (UEFI) et le menu GRUB, une seconde chacun
+TEXTE_TOLERE_AVANT = 3
 
 
 def lire_ppm(donnees):
@@ -170,7 +178,8 @@ def surveiller(socket_qmp, fichier_log, fichier_arret, duree_max=1800):
     debut = time.monotonic()
     derniere, vignettes = None, 0
     temporaire = os.path.join(tempfile.gettempdir(), f"ecran-demarrage-{os.getpid()}.ppm")
-    with open(fichier_log, "w", encoding="utf-8") as log:
+    with open(fichier_log, "w", encoding="utf-8") as log, open(fichier_log + ".csv", "w", encoding="utf-8") as tableau:
+        tableau.write("seconde;nature;noir;fond;clair;luminance\n")
         while not os.path.exists(fichier_arret) and time.monotonic() - debut < duree_max:
             if capture_qmp(socket_qmp, temporaire):
                 try:
@@ -178,6 +187,9 @@ def surveiller(socket_qmp, fichier_log, fichier_arret, duree_max=1800):
                         donnees = image.read()
                     seconde = int(time.monotonic() - debut)
                     largeur, hauteur, pixels, mesures, nature = examiner(donnees)
+                    tableau.write(f"{seconde};{CODES[nature]};{mesures['noir']:.3f};{mesures['fond']:.3f};"
+                                  f"{mesures['clair']:.3f};{mesures['luminance']:.0f}\n")
+                    tableau.flush()
                     montrer = nature != derniere and vignettes < 25
                     if montrer or seconde % 20 == 0:
                         lignes = decrire(largeur, hauteur, pixels, mesures, nature, seconde, montrer)
@@ -191,6 +203,50 @@ def surveiller(socket_qmp, fichier_log, fichier_arret, duree_max=1800):
         os.remove(temporaire)
 
 
+def lire_tableau(chemin):
+    """[(seconde, code de nature)] d'un fichier .csv écrit par « surveiller »."""
+    with open(chemin, encoding="utf-8") as fichier:
+        lignes = fichier.read().splitlines()[1:]
+    return [(int(ligne.split(";")[0]), ligne.split(";")[1]) for ligne in lignes if ligne.count(";") >= 5]
+
+
+def verifier(captures, exiger_connexion=True):
+    """(erreurs, informations) : le démarrage ressemble-t-il à celui de Windows ?"""
+    erreurs, infos = [], []
+    codes = [code for _, code in captures]
+    if not codes:
+        return ["aucune capture d'écran pendant le démarrage"], infos
+    if "DEMARRAGE" not in codes:
+        erreurs.append("l'écran de démarrage BinixX OS n'est jamais apparu")
+        avant, apres = codes, []
+    else:
+        premiere = codes.index("DEMARRAGE")
+        avant, apres = codes[:premiere], codes[premiere:]
+        duree = apres.count("DEMARRAGE")
+        infos.append(f"écran de démarrage BinixX OS visible sur {duree} capture(s), à partir de la capture {premiere + 1}")
+        if duree < 3:
+            erreurs.append(f"l'écran de démarrage n'est resté que {duree} capture(s)")
+        texte_apres = apres.count("TEXTE")
+        if texte_apres:
+            erreurs.append(f"du texte de console est réapparu après le début de l'écran de démarrage ({texte_apres} capture(s))")
+        noir, plus_long = 0, 0
+        for code in apres[apres.index("DEMARRAGE"):]:
+            noir = noir + 1 if code == "NOIR" else 0
+            plus_long = max(plus_long, noir)
+        infos.append(f"écran noir le plus long après l'écran de démarrage : {plus_long} capture(s)")
+    texte_avant = avant.count("TEXTE")
+    infos.append(f"captures de texte avant l'écran de démarrage : {texte_avant} (toléré : {TEXTE_TOLERE_AVANT}, micrologiciel et menu GRUB)")
+    if texte_avant > TEXTE_TOLERE_AVANT:
+        erreurs.append(f"du texte de console s'est affiché sur {texte_avant} captures avant l'écran de démarrage "
+                       f"(toléré : {TEXTE_TOLERE_AVANT})")
+    if exiger_connexion:
+        derniere = codes[-1]
+        infos.append(f"dernière capture : {derniere}")
+        if derniere not in ("CLAIR", "SOMBRE"):
+            erreurs.append(f"à la fin du démarrage l'écran n'est pas celui de la connexion ou du bureau ({derniere})")
+    return erreurs, infos
+
+
 def main(argv):
     if len(argv) >= 3 and argv[1] == "resume":
         with open(argv[2], "rb") as image:
@@ -200,6 +256,15 @@ def main(argv):
     if len(argv) >= 5 and argv[1] == "surveiller":
         surveiller(argv[2], argv[3], argv[4], int(argv[5]) if len(argv) > 5 else 1800)
         return 0
+    if len(argv) >= 3 and argv[1] == "verifier":
+        erreurs, infos = verifier(lire_tableau(argv[2]), "--sans-connexion" not in argv)
+        for info in infos:
+            print(f"  info      {info}")
+        for erreur in erreurs:
+            print(f"  ÉCHEC     {erreur}")
+        if not erreurs:
+            print("  ok        le démarrage ressemble à celui de Windows : écran de démarrage, pas de texte, écran de connexion")
+        return 1 if erreurs else 0
     print(__doc__)
     return 2
 

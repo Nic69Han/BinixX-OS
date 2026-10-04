@@ -27,6 +27,9 @@ decrire_demarrage() {
     echo "    thème par défaut : $(plymouth-set-default-theme 2>&1)"
     systemctl list-units --all --no-legend --plain 'plymouth*' 2>&1 | indente
     journalctl -b -o short-monotonic --no-pager 2>/dev/null | grep -iE 'plymouth' | head -n 12 | indente
+    echo "  sessions et gestionnaire de connexion :"
+    # shellcheck disable=SC2009
+    { loginctl list-sessions --no-legend; ps -eo user,comm | grep -iE 'plasmalogin|greeter' | sort | uniq -c; } 2>&1 | indente
     echo "  Plymouth dans l'image de démarrage (initramfs) :"
     lsinitrd /usr/lib/modules/*/initramfs.img 2>/dev/null | grep -E 'plymouth/(two-step|binixx/(binixx|watermark))' | indente
     return 0
