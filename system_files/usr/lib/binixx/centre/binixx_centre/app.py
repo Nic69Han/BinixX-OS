@@ -10,7 +10,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QApplication, QButtonGroup, QHBoxLayout, QLabel, QPushButton, QStackedWidget,
                                QVBoxLayout, QWidget)
 
-from . import pages, theme, widgets
+from . import pages, premiere_session, theme, widgets
 
 PREMIER_DEMARRAGE = os.path.join(os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"),
                                  "binixx", "accueil-vu")
@@ -127,7 +127,8 @@ def parse(argv):
 
 def main(argv=None):
     args = parse(sys.argv[1:] if argv is None else argv)
-    if args.premier_demarrage and os.path.exists(PREMIER_DEMARRAGE):
+    if args.premier_demarrage and (os.path.exists(PREMIER_DEMARRAGE) or premiere_session.session_de_l_assistant()):
+        # déjà vu, ou session de l'assistant de premier démarrage (Plasma Setup) : l'accueil attend la première session du vrai utilisateur
         return 0
     app = QApplication(sys.argv[:1])
     app.setApplicationName("binixx-centre")
