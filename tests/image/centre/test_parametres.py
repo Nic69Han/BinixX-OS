@@ -384,7 +384,7 @@ class Page(unittest.TestCase):
         tuile = self.carte(page, "Sauvegarde")
         self.assertEqual(tuile.libelle, "Installer")
         tuile.click()
-        self.assertEqual(self.lances[-1], ["plasma-discover", "--application", "org.gnome.DejaDup"])
+        self.assertEqual(self.lances[-1], [launch.INSTALLATEUR, "org.gnome.DejaDup"])
 
     def test_un_module_absent_de_ce_pc_est_masque(self):
         self.modules.discard("kcm_touchscreen")

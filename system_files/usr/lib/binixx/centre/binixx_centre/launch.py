@@ -5,6 +5,8 @@ import re
 import subprocess
 
 APPLICATIONS = "/usr/share/applications"
+INSTALLATEUR = "/usr/libexec/binixx/binixx-installer-application"
+ID_FLATPAK = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*(\.[A-Za-z0-9_-]+){2,}$")
 
 
 def _start(argv):
@@ -57,6 +59,14 @@ def open_discover(appstream_id=""):
     return _start(["plasma-discover", "--application", appstream_id] if appstream_id else ["plasma-discover"])
 
 
+def install_application(identifiant):
+    """Ouvre la fenêtre qui installe une application Flatpak (Flathub) sans passer par Discover, avec la progression et la raison
+    d'un échec. Si ce n'est pas un identifiant Flatpak, ouvre Discover dessus."""
+    if not ID_FLATPAK.match(identifiant or ""):
+        return open_discover(identifiant)
+    return _start([INSTALLATEUR, identifiant])
+
+
 def open_discover_mode(mode):
     """Ouvre Discover sur ses mises à jour (« update »), ses applications installées (« installed ») ou le catalogue."""
     if mode not in ("update", "installed", "browse"):
@@ -79,7 +89,7 @@ def open_webapp(url):
 def executer(action):
     """Exécute une action du catalogue : (« app » | « url » | « flatpak » | « discover », cible)."""
     genre, cible = action
-    return {"app": open_app, "url": open_url, "flatpak": run_flatpak, "discover": open_discover}[genre](cible)
+    return {"app": open_app, "url": open_url, "flatpak": run_flatpak, "discover": install_application}[genre](cible)
 
 
 def run(argv, timeout=120, env=None):

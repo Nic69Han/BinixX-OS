@@ -49,5 +49,30 @@ PYEOF
         fail "la commande de la page n'a pas installé ${ident} : $(tail -3 /var/tmp/binixx-test-applications.log | tr '\n' ' ')"
     fi
     rm -f /var/tmp/binixx-test-applications.log
+
+    # La fenêtre « Installer » des boutons des pages Jeux, Catalogue et Paramètres (sans Discover) installe pour de vrai, en suivant
+    # le chemin de l'utilisateur : source Flathub présente, installation, message de réussite
+    if out="$(
+        QT_QPA_PLATFORM=offscreen python3 - "${ident}" <<'PYEOF' 2>&1
+import sys, time
+sys.path.insert(0, "/usr/lib/binixx/centre")
+from PySide6.QtWidgets import QApplication
+from binixx_centre import installateur
+app = QApplication([])
+fenetre = installateur.Fenetre(sys.argv[1])
+fenetre.demarrer()
+fin = time.time() + 900
+while fenetre.etape != "fini" and time.time() < fin:
+    app.processEvents()
+    time.sleep(0.05)
+print(fenetre.statut.text())
+sys.exit(0 if fenetre.reussi else 1)
+PYEOF
+    )" && flatpak info --system "${ident}" >/dev/null 2>&1; then
+        pass "la fenêtre d'installation (sans Discover) installe ${ident} : ${out##*$'\n'}"
+        flatpak uninstall --system --noninteractive --assumeyes "${ident}" >/dev/null 2>&1 || warn "${ident} non retiré"
+    else
+        fail "la fenêtre d'installation n'a pas installé ${ident} : ${out##*$'\n'}"
+    fi
 }
 register_check base check_applications

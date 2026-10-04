@@ -69,7 +69,7 @@ class Page(QWidget):
         bottles = QPushButton("Essayer avec Bottles")
         bottles.setObjectName("primary")
         bottles.setCursor(Qt.PointingHandCursor)
-        bottles.clicked.connect(lambda: launch.open_discover(BOTTLES))
+        bottles.clicked.connect(lambda: launch.install_application(BOTTLES))
         windows = QPushButton("Windows complet")
         windows.setObjectName("primary")
         windows.setCursor(Qt.PointingHandCursor)

@@ -162,7 +162,7 @@ def etat(entree, installees, fournies):
         if entree.cible in installees:
             return "Installé", "Ouvrir", ("flatpak", entree.cible)
         if entree.cible in fournies:
-            return "Installé au premier démarrage", "Voir dans Discover", ("discover", entree.cible)
+            return "Installé au premier démarrage", "Installer maintenant", ("discover", entree.cible)
         return "À installer depuis Flathub", "Installer", ("discover", entree.cible)
     return BADGES[entree.type], None, None
 

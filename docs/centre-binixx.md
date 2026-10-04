@@ -306,6 +306,11 @@ texte », ci-dessus) et pointeur de souris plus gros (36 au lieu de 24).
   `MENU = False` et `PARENT = "<clé de la page parente>"`.
 - Les actions (ouvrir Discover, la Configuration du système, un lanceur) passent par `launch.py` :
   jamais de shell, jamais de texte saisi par l'utilisateur dans une commande.
+- Les boutons « Installer » (Jeux, Catalogue, Paramètres, Windows complet) n'ouvrent plus Discover sur la fiche de l'application :
+  Discover répondait « Aucune entrée pour net.lutris.Lutris » dès qu'il n'avait pas (encore) la liste de Flathub. `launch.install_application`
+  lance `usr/libexec/binixx/binixx-installer-application` (`binixx_centre/installateur.py`), qui vérifie que la source Flathub existe
+  (sinon l'ajoute), installe avec la commande de la page « Installer des applications » et affiche la progression puis la raison d'un
+  échec ; Discover reste en dernier recours (« Essayer avec Discover »). Le test VM l'exerce pour de vrai (`74-applications.sh`).
 - `binixx-centre --test <dossier>` construit toutes les pages hors écran et en enregistre une
   capture (une image par page) : c'est ce que fait la CI (`tests/image/checks.d/50-centre.sh`). Le test VM vérifie que
   l'accueil s'ouvre vraiment à la première session et que le Centre de bienvenue de KDE reste fermé.

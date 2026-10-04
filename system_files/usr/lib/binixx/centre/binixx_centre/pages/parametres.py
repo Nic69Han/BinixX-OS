@@ -308,7 +308,7 @@ class Page(QWidget):
         if reglage.type == "info":
             return None, None
         if reglage.type == "flatpak" and reglage.cible not in self.installees:
-            return "Installer", lambda c=reglage.cible: launch.open_discover(c)
+            return "Installer", lambda c=reglage.cible: launch.install_application(c)
         return "Ouvrir", lambda r=reglage: self.ouvrir(r)
 
     def ouvrir(self, reglage):
