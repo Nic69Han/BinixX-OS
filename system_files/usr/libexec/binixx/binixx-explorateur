@@ -1,0 +1,94 @@
+#!/usr/bin/bash
+# Explorateur BinixX : donne à un compte existant la disposition de Dolphin des comptes neufs (barre de commandes comme celle de
+# l'Explorateur de Windows 11, vue « détails »). Les comptes créés après l'installation la reçoivent déjà de /etc/skel ; une mise à
+# jour de BinixX OS ne change pas les comptes existants, d'où cette commande (docs/explorateur.md).
+#
+# Rien n'est supprimé : les fichiers remplacés ou retirés sont rangés dans ~/.local/share/binixx/sauvegardes/.
+# Fermer Dolphin avant : il réécrit ses réglages en se fermant.
+#
+# Usage : binixx-explorateur appliquer [--forcer] | retablir | etat
+
+set -uo pipefail
+
+SKEL="${BINIXX_SKEL:-/etc/skel}"
+MAISON="${HOME}"
+DATA="${XDG_DATA_HOME:-${MAISON}/.local/share}/binixx/sauvegardes"
+
+# Les deux fichiers que Dolphin ne lit que dans le dossier personnel (chemins relatifs à celui-ci)
+FICHIERS=(
+    .local/share/kxmlgui5/dolphin/dolphinui.rc
+    .local/share/dolphin/view_properties/global/.directory
+)
+
+dolphin_ouvert() { pgrep -u "$(id -u)" -x dolphin >/dev/null 2>&1; }
+
+# Range les fichiers donnés (déjà présents dans ${MAISON}) dans un dossier de sauvegarde daté
+ranger() { # ranger fichier...
+    local dossier f
+    [[ $# -gt 0 ]] || return 0
+    mkdir -p "${DATA}"
+    dossier="$(mktemp -d "${DATA}/explorateur-$(date '+%Y%m%d-%H%M%S')-XXXX")"
+    for f in "$@"; do
+        mkdir -p "${dossier}/$(dirname -- "${f}")"
+        mv -- "${MAISON}/${f}" "${dossier}/${f}"
+    done
+    printf '%s\n' "${dossier}"
+}
+
+installe() { grep -q 'name="commandToolBar"' "${MAISON}/${FICHIERS[0]}" 2>/dev/null; }
+
+case "${1:-}" in
+appliquer)
+    forcer=0
+    [[ "${2:-}" == "--forcer" ]] && forcer=1
+    if dolphin_ouvert; then
+        echo "Fermez Dolphin d'abord : il réécrit ses réglages en se fermant, ce qui effacerait ce changement." >&2
+        exit 1
+    fi
+    a_ranger=()
+    for f in "${FICHIERS[@]}"; do
+        [[ -f "${SKEL}/${f}" ]] || {
+            echo "Fichier absent de ${SKEL} : ${f}" >&2
+            exit 1
+        }
+        [[ -e "${MAISON}/${f}" && ${forcer} -eq 1 ]] && a_ranger+=("${f}")
+    done
+    if [[ ${#a_ranger[@]} -gt 0 ]]; then
+        sauvegarde="$(ranger "${a_ranger[@]}")"
+        echo "Anciens fichiers rangés dans ${sauvegarde}"
+    fi
+    for f in "${FICHIERS[@]}"; do
+        if [[ -e "${MAISON}/${f}" ]]; then
+            echo "Conservé (déjà présent ; --forcer pour le remplacer) : ${f}"
+            continue
+        fi
+        mkdir -p "${MAISON}/$(dirname -- "${f}")"
+        cp -- "${SKEL}/${f}" "${MAISON}/${f}"
+        echo "Posé : ${f}"
+    done
+    echo "L'Explorateur BinixX s'affiche à la prochaine ouverture de Dolphin."
+    ;;
+retablir)
+    if dolphin_ouvert; then
+        echo "Fermez Dolphin d'abord." >&2
+        exit 1
+    fi
+    presents=()
+    for f in "${FICHIERS[@]}"; do
+        [[ -e "${MAISON}/${f}" ]] && presents+=("${f}")
+    done
+    if [[ ${#presents[@]} -eq 0 ]]; then
+        echo "Rien à rétablir : Dolphin a déjà sa disposition d'origine."
+        exit 0
+    fi
+    sauvegarde="$(ranger "${presents[@]}")"
+    echo "Dolphin retrouve sa disposition d'origine à la prochaine ouverture (anciens fichiers rangés dans ${sauvegarde})."
+    ;;
+etat)
+    if installe; then echo "explorateur=oui"; else echo "explorateur=non"; fi
+    ;;
+*)
+    echo "Usage : $0 appliquer [--forcer] | retablir | etat" >&2
+    exit 2
+    ;;
+esac
