@@ -360,6 +360,17 @@ guest_checks base || base_status=$?
 screenshot bureau
 [[ ${base_status} -eq 0 ]] || die "vérifications du premier démarrage"
 
+### 3a. Explorateur de fichiers : Dolphin ouvert dans la session, puis capture d'écran -------
+
+# La phase « explorateur » (tests/vm/checks.d/86-explorateur.sh) ouvre Dolphin et vérifie que KDE a repris les barres d'outils BinixX OS ;
+# la fenêtre reste ouverte le temps de la capture (explorateur.png), puis on la ferme.
+log "Explorateur de fichiers (Dolphin) dans la session"
+explorateur_status=0
+guest_checks explorateur || explorateur_status=$?
+screenshot explorateur
+ssh_vm 'pkill -x dolphin || true' || true
+[[ ${explorateur_status} -eq 0 ]] || die "explorateur de fichiers (voir « Explorateur BinixX » plus haut)"
+
 ### 3b. Démarrage comme sur un vrai PC : écran de démarrage, puis écran de connexion ----------
 
 # L'installation automatique laisse « console=ttyS0 » dans les paramètres du noyau : les messages partent sur le port série et
