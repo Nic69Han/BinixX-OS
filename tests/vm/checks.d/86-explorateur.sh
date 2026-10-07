@@ -55,6 +55,12 @@ check_explorateur_session() {
         fail "Dolphin ne s'ouvre pas : $(tail -n 5 /tmp/dolphin-session.log | tr '\n' ' ' | cut -c1-300) ; $(explorateur_session systemctl --user status binixx-test-dolphin --no-pager 2>&1 | tail -n 6 | tr '\n' ' ' | cut -c1-400)"
         return
     fi
+    # La capture doit montrer le bureau normal : ambiance Aube, texte à 100 % (le contrôle des ambiances les remet après la mise à jour)
+    out="$(explorateur_session /usr/libexec/binixx/binixx-ambiance etat 2>&1)"
+    echo "            info : bureau au moment de la capture : ${out//$'\n'/ ; }"
+    if [[ "${out}" != *"ambiance=aube"* || "${out}" != *"grand-texte=non"* ]]; then
+        warn "la capture n'est pas en ambiance Aube avec le texte à 100 % : ${out//$'\n'/ ; }"
+    fi
     sleep 8 # le temps d'afficher la fenêtre avant la capture d'écran
     # KDE reprend les barres du compte dans le fichier de Dolphin et réécrit le fichier du compte : version de Dolphin, menus et barres
     python3 - "${rc}" <<'PYEOF'

@@ -12,7 +12,7 @@ parler aux dossiers partagés Windows, aux téléphones, aux archives et à la c
 | Barre d'adresse (chemin cliquable), Rechercher | Barre d'adresse de Dolphin (cliquer dans la zone vide pour saisir un chemin), bouton de recherche (Ctrl + F) |
 | **Nouveau ▾** | **Créer nouveau** : dossier, document texte, classeur, présentation (vierges, au format Microsoft Office : voir [migration-windows.md](migration-windows.md)) |
 | Couper, Copier, Coller, Renommer, Supprimer | Cinq boutons à icône seule (le nom s'affiche au survol) ; « Supprimer » envoie à la corbeille |
-| **Trier ▾**, **Afficher ▾** | **Trier par**, **Affichage** (taille des icônes, liste, détails, aperçus, fichiers cachés) |
+| **Trier ▾**, **Afficher ▾** | **Trier par**, **Configuration des affichages** (taille des icônes, liste, détails, aperçus, fichiers cachés) |
 | Colonnes Nom, Modifié le, Type, Taille | Mêmes colonnes, dans le même ordre |
 | Volet de navigation | Panneau « Emplacements » à gauche (F9 pour l'afficher ou le masquer) |
 | Barre d'état « 12 éléments » | Barre d'état sur toute la largeur, avec le curseur de taille |

@@ -360,16 +360,19 @@ guest_checks base || base_status=$?
 screenshot bureau
 [[ ${base_status} -eq 0 ]] || die "vérifications du premier démarrage"
 
-### 3a. Explorateur de fichiers : Dolphin ouvert dans la session, puis capture d'écran -------
+### Explorateur de fichiers : Dolphin ouvert dans la session, puis capture d'écran --------
 
 # La phase « explorateur » (tests/vm/checks.d/86-explorateur.sh) ouvre Dolphin et vérifie que KDE a repris les barres d'outils BinixX OS ;
-# la fenêtre reste ouverte le temps de la capture (explorateur.png), puis on la ferme.
-log "Explorateur de fichiers (Dolphin) dans la session"
-explorateur_status=0
-guest_checks explorateur || explorateur_status=$?
-screenshot explorateur
-ssh_vm 'pkill -x dolphin || true' || true
-[[ ${explorateur_status} -eq 0 ]] || die "explorateur de fichiers (voir « Explorateur BinixX » plus haut)"
+# la fenêtre reste ouverte le temps de la capture (explorateur.png), puis on la ferme. Elle vient après la mise à jour : le contrôle des
+# ambiances laisse le bureau en « Contraste élevé » et en « Grand texte » jusqu'à là, et la capture doit montrer le bureau normal.
+explorateur_etape() {
+    log "Explorateur de fichiers (Dolphin) dans la session"
+    local explorateur_status=0
+    guest_checks explorateur || explorateur_status=$?
+    screenshot explorateur
+    ssh_vm 'pkill -x dolphin || true' || true
+    [[ ${explorateur_status} -eq 0 ]] || die "explorateur de fichiers (voir « Explorateur BinixX » plus haut)"
+}
 
 ### 3b. Démarrage comme sur un vrai PC : écran de démarrage, puis écran de connexion ----------
 
@@ -387,6 +390,8 @@ ssh_vm 'echo "-- sessions ouvertes :" && loginctl list-sessions --no-legend; ech
 ssh_vm 'printf "[Autologin]\nUser=testeur\nSession=plasma\n" | sudo tee /etc/plasmalogin.conf.d/90-binixx-test.conf >/dev/null'
 [[ ${screens_status} -eq 0 ]] || die "le démarrage ne ressemble pas à celui de Windows (voir « Écran pendant le démarrage » plus haut)"
 reboot_vm
+
+[[ ${RUN_UPDATE} -eq 1 ]] || explorateur_etape
 
 ### 4. Mise à jour puis retour arrière ----------------------------------------------
 
@@ -408,6 +413,7 @@ EOF
         die "bootc switch vers la mise à jour"
     reboot_vm
     guest_checks after-update || die "vérifications après la mise à jour"
+    explorateur_etape
 
     log "Retour arrière vers la version précédente"
     ssh_vm sudo bootc rollback </dev/null 2>&1 | tee "${LOGS}/bootc-rollback.log" ||
