@@ -45,10 +45,14 @@ check_explorateur_session() {
     fi
     # Une copie du fichier d'origine, pour voir ce que KDE en fait
     cp -- "${rc}" /tmp/dolphinui-avant.rc
-    explorateur_session env WAYLAND_DISPLAY="${socket}" QT_QPA_PLATFORM=wayland \
-        setsid -f dolphin --new-window "${TEST_HOME}" >/tmp/dolphin-session.log 2>&1
+    echo "            info : environnement de la session : $(explorateur_session systemctl --user show-environment 2>&1 | grep -E '^(WAYLAND_DISPLAY|XDG_CURRENT_DESKTOP|KDE_FULL_SESSION|XDG_SESSION_TYPE)=' | tr '\n' ' ')"
+    # Lancé par le gestionnaire de la session de l'utilisateur, comme une application du menu (environnement de Plasma : thème, portails…),
+    # et non depuis la connexion SSH, dont l'environnement n'a ni thème KDE ni bureau ; il survit aussi à la fin de cette connexion.
+    explorateur_session systemd-run --user --collect --quiet --unit=binixx-test-dolphin \
+        -E WAYLAND_DISPLAY="${socket}" -E QT_QPA_PLATFORM=wayland -E XDG_CURRENT_DESKTOP=KDE -E KDE_FULL_SESSION=true \
+        dolphin --new-window "${TEST_HOME}" >/tmp/dolphin-session.log 2>&1
     if wait_for 90 explorateur_fenetre_ouverte; then pass "Dolphin est ouvert dans la session (${socket})"; else
-        fail "Dolphin ne s'ouvre pas : $(tail -n 5 /tmp/dolphin-session.log | tr '\n' ' ')"
+        fail "Dolphin ne s'ouvre pas : $(tail -n 5 /tmp/dolphin-session.log | tr '\n' ' ' | cut -c1-300) ; $(explorateur_session systemctl --user status binixx-test-dolphin --no-pager 2>&1 | tail -n 6 | tr '\n' ' ' | cut -c1-400)"
         return
     fi
     sleep 8 # le temps d'afficher la fenêtre avant la capture d'écran
