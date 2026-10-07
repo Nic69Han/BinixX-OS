@@ -38,9 +38,25 @@ if diag_installer; then
     mkdir -p /tmp/skel-vide
     useradd -m -k /tmp/skel-vide diagavant
     useradd -m diagapres
+    useradd -m diaginverse
+    # Barres d'outils dans l'ordre inverse du nôtre : ce que donnerait une seconde fusion après une mise à jour de Dolphin
+    python3 - "$(getent passwd diaginverse | cut -d: -f6)/${RC}" <<'PYEOF'
+import sys, xml.dom.minidom
+doc = xml.dom.minidom.parse(sys.argv[1])
+racine = doc.documentElement
+barres = racine.getElementsByTagName("ToolBar")
+premiere, seconde = barres[0], barres[1]
+racine.removeChild(seconde)
+racine.insertBefore(seconde, premiere)
+open(sys.argv[1], "w", encoding="utf-8").write(doc.toxml())
+print("ordre des barres après inversion :", [b.getAttribute("name") for b in racine.getElementsByTagName("ToolBar")])
+PYEOF
+    chown -R diaginverse:diaginverse "$(getent passwd diaginverse | cut -d: -f6)"
     (Xvfb :99 -screen 0 1366x768x24 -nolisten tcp >/tmp/diag-xvfb.log 2>&1 &)
     sleep 3
     diag_capture avant diagavant
     diag_capture apres diagapres
+    diag_capture apres2 diagapres
+    diag_capture inverse diaginverse
     pkill Xvfb || true
 fi

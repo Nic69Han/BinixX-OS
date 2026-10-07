@@ -32,7 +32,7 @@ dans `/etc/skel`, d'où `useradd` (donc Plasma Setup et l'installeur) les copie 
 | `.local/share/dolphin/view_properties/global/.directory` | Vue « détails » par défaut, colonnes Nom, Modifié le, Type, Taille |
 
 Les réglages qui valent pour tous les comptes sont dans `/etc/xdg/dolphinrc` (barre d'état pleine largeur, information au survol, curseur
-de taille) ; KDE les lit derrière ceux de l'utilisateur, qui reste prioritaire.
+de taille, lignes compactes à petites icônes et sans flèche d'arborescence dans la vue « détails ») ; KDE les lit derrière ceux de l'utilisateur, qui reste prioritaire.
 
 ### Pourquoi une mise à jour de Dolphin n'écrase rien
 

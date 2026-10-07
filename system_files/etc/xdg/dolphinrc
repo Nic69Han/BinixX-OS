@@ -9,3 +9,8 @@ ShowStatusBar=1
 ShowToolTips=true
 # Curseur de taille des icônes dans la barre d'état
 ShowZoomSlider=true
+
+[DetailsMode]
+# Comme l'Explorateur : lignes compactes à petites icônes, sans flèche pour déplier les dossiers dans la liste
+IconSize=16
+ExpandableFolders=false

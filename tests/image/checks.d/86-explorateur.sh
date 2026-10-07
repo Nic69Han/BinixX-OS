@@ -27,16 +27,22 @@ assert barres["commandToolBar"].getAttribute("newline") == "true", "la barre de 
 
 # Dolphin ignore sans bruit une action qu'il ne connaît pas : on vérifie que chaque nom est bien dans Dolphin ou dans les bibliothèques
 # KDE qui fournissent les actions standard (Couper, Copier, Renommer, Corbeille, Actualiser…), en chaîne ASCII ou UTF-16 selon la façon
-# dont Qt la range. Une faute de frappe, ou un renommage en amont, fait ainsi échouer la construction au lieu de faire disparaître un bouton.
-check "les actions de dolphinui.rc existent dans Dolphin ou dans les actions standard de KDE" python3 -c '
-import glob, xml.dom.minidom
+# dont Qt la range. Le nom doit y figurer en entier : « redisplay » se trouve dans « view_redisplay », qui est le vrai nom de l'action
+# Actualiser, et le bouton n'apparaissait pas. Une faute de frappe, ou un renommage en amont, fait échouer la construction au lieu de
+# faire disparaître un bouton.
+check "les actions de dolphinui.rc existent dans Dolphin ou dans les actions standard de KDE (nom entier)" python3 -c '
+import glob, re, xml.dom.minidom
 fichiers = (["/usr/bin/dolphin"] + glob.glob("/usr/lib64/libdolphin*.so*")
             + glob.glob("/usr/lib64/libKF6ConfigWidgets.so*") + glob.glob("/usr/lib64/libKF6XmlGui.so*"))
 assert len(fichiers) >= 3, fichiers
 contenu = b"".join(open(f, "rb").read() for f in fichiers)
 doc = xml.dom.minidom.parse("/etc/skel/.local/share/kxmlgui5/dolphin/dolphinui.rc")
 noms = {a.getAttribute("name") for a in doc.getElementsByTagName("Action")}
-manquantes = sorted(n for n in noms if n.encode() not in contenu and n.encode("utf-16-le") not in contenu)
+def present(nom):
+    ascii_ = re.compile(rb"(?<![A-Za-z0-9_])" + re.escape(nom.encode()) + rb"(?![A-Za-z0-9_])")
+    utf16 = re.compile(rb"(?<![A-Za-z0-9_]\x00)" + re.escape(nom.encode("utf-16-le")) + rb"(?![A-Za-z0-9_]\x00)")
+    return bool(ascii_.search(contenu) or utf16.search(contenu))
+manquantes = sorted(n for n in noms if not present(n))
 assert not manquantes, "introuvables dans " + ", ".join(fichiers) + " : " + ", ".join(manquantes)
 '
 
