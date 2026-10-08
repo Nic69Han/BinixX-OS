@@ -24,7 +24,7 @@ MARQUEUR = os.path.join(DOSSIER_REGLAGES, "grand-texte.json")
 POINTEUR_GRAND = 36
 POINTEUR_NORMAL = 24          # la taille de KDE quand rien n'est écrit
 TEXTE_GRAND = 130
-THEME_CURSEUR = "breeze_cursors"
+THEME_CURSEUR = "Breeze_Light"      # le pointeur blanc de Windows ; « breeze_cursors » est le noir
 
 # cle, titre, texte, thème global de Plasma, schéma de couleurs, aperçu (fond, texte, accent, barre de titre)
 Ambiance = namedtuple("Ambiance", "cle titre texte theme couleurs apercu")

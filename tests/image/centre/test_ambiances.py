@@ -419,7 +419,7 @@ class GrandTexte(unittest.TestCase):
     def test_la_commande_du_pointeur_est_celle_de_plasma(self):
         faux = FauxKde()
         self.activer(faux)
-        self.assertIn(["plasma-apply-cursortheme", "--size", "36", "breeze_cursors"], faux.commandes)
+        self.assertIn(["plasma-apply-cursortheme", "--size", "36", "Breeze_Light"], faux.commandes)
 
     def test_le_pointeur_garde_le_theme_choisi(self):
         faux = FauxKde({("kcminputrc", "Mouse", "cursorTheme"): "Oxygen_White"})
