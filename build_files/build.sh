@@ -196,6 +196,13 @@ kwriteconfig6 --file /etc/xdg/kwinrc --group Plugins --key kde-snap-overlayEnabl
 # Pavé numérique activé à l'ouverture de session, comme sous Windows (0 = activé)
 kwriteconfig6 --file /etc/xdg/kcminputrc --group Keyboard --key NumLock 0
 
+# Souris, comme sous Windows : un double-clic ouvre un fichier ou un dossier (un clic le sélectionne), et le pointeur est la flèche
+# blanche à contour sombre (« Breeze Light » ; le « Breeze » de KDE est noir à contour blanc). Valable pour le bureau, Dolphin et les
+# boîtes de dialogue des applications. Le thème global pose le même pointeur (look-and-feel/*/contents/defaults) ; cette valeur
+# couvre les cas où il n'est pas appliqué.
+kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key SingleClick false
+kwriteconfig6 --file /etc/xdg/kcminputrc --group Mouse --key cursorTheme Breeze_Light
+
 ### 4. Identité visuelle BinixX OS
 # Logo, icône, fond d'écran et écran de démarrage viennent de system_files/
 # (générés par branding/generer.py).
