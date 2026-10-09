@@ -15,6 +15,19 @@ for variante in light dark; do
         "cd /usr/share/plasma/desktoptheme/${nom} && test -s metadata.desktop && test -s widgets/panel-background.svg && test -s widgets/tasks.svgz && test -s dialogs/background.svgz && test -s translucent/widgets/panel-background.svg"
 done
 
+# Variantes opaques (build_files/win11os-opaque.py) : posées par défaut, parce que les thèmes d'origine comptent sur le flou de KWin et deviennent
+# illisibles sans lui. Les thèmes d'origine restent installés, inchangés.
+for variante in light dark; do
+    amont="Win11OS-${variante}"
+    aval="BinixX-Win11-${variante}"
+    check "${aval} : thème Kvantum sans transparence ni flou (huit réglages à false), même dessin que ${amont}" bash -c \
+        "k=/usr/share/Kvantum/${aval}/${aval}.kvconfig; for c in translucent_windows blurring popup_blurring transparent_dolphin_view transparent_pcmanfm_sidepane transparent_pcmanfm_view transparent_menutitle blur_translucent; do grep -qx \"\${c}=false\" \${k} || exit 1; done; cmp /usr/share/Kvantum/${aval}/${aval}.svg /usr/share/Kvantum/${amont}/${amont}.svg"
+    check "${amont} : le thème Kvantum d'origine est resté translucide (inchangé)" bash -c \
+        "grep -qx 'translucent_windows=true' /usr/share/Kvantum/${amont}/${amont}.kvconfig"
+    check "${aval} : thème Plasma sans transparence (« translucent » mène aux fonds opaques), sans la section Wallpaper du thème d'origine" bash -c \
+        "d=/usr/share/plasma/desktoptheme/${aval}; grep -qx 'Name=${aval}' \${d}/metadata.desktop && grep -qx 'X-KDE-PluginInfo-Name=${aval}' \${d}/metadata.desktop && ! grep -q 'Wallpaper' \${d}/metadata.desktop && test \"\$(readlink -f \${d}/translucent)\" = /usr/share/plasma/desktoptheme/${amont}/solid && test -s \${d}/translucent/widgets/panel-background.svg && test -s \${d}/widgets/panel-background.svg && test -s \${d}/dialogs/background.svgz"
+done
+
 # Licence : ces fichiers sont du projet Win11OS KDE, sous GNU GPL v3, copiés sans modification ; le texte de la licence, les auteurs et
 # la source (adresse et version exacte) accompagnent l'image.
 check "licence GPL v3, auteurs et source du thème fournis avec l'image" bash -c \
@@ -28,21 +41,22 @@ style_theme_global() ( # style_theme_global thème variante couleurs icônes
     set -e
     f="${LNF}/$1/contents/defaults"
     nom="Win11OS-$2"
+    opaque="BinixX-Win11-$2"
     grep -qx 'widgetStyle=kvantum' "${f}"
     grep -qx "ColorScheme=$3" "${f}"
-    grep -qx "name=${nom}" "${f}"
+    grep -qx "name=${opaque}" "${f}"
     grep -qx "theme=__aurorae__svg__${nom}" "${f}"
     grep -qx 'library=org.kde.kwin.aurorae' "${f}"
     grep -qx 'ButtonsOnRight=IAX' "${f}"
     grep -qx "Theme=$4" "${f}"
-    test -d "/usr/share/aurorae/themes/${nom}" -a -d "/usr/share/plasma/desktoptheme/${nom}" -a -d "/usr/share/Kvantum/${nom}"
+    test -d "/usr/share/aurorae/themes/${nom}" -a -d "/usr/share/plasma/desktoptheme/${opaque}" -a -d "/usr/share/Kvantum/${opaque}"
     test -s "/usr/share/color-schemes/$3.colors"
     test -s "/usr/share/icons/$4/index.theme"
 )
-check "Aube : Kvantum, fenêtres et thème Plasma Win11OS-light, couleurs BinixXClair" style_theme_global org.binixx.desktop light BinixXClair binixx-os
-check "Nuit : Kvantum, fenêtres et thème Plasma Win11OS-dark, couleurs BinixXSombre" style_theme_global org.binixx.dark.desktop dark BinixXSombre binixx-os-dark
+check "Aube : Kvantum et thème Plasma BinixX-Win11-light (opaques), fenêtres Win11OS-light, couleurs BinixXClair" style_theme_global org.binixx.desktop light BinixXClair binixx-os
+check "Nuit : Kvantum et thème Plasma BinixX-Win11-dark (opaques), fenêtres Win11OS-dark, couleurs BinixXSombre" style_theme_global org.binixx.dark.desktop dark BinixXSombre binixx-os-dark
 check "Contraste élevé : style Breeze, décoration Breeze, thème Plasma d'origine (pas de style Windows 11)" bash -c \
-    "f=${LNF}/org.binixx.contraste.desktop/contents/defaults; grep -qx 'widgetStyle=Breeze' \${f} && grep -qx 'ColorScheme=BinixXContraste' \${f} && grep -qx 'library=org.kde.breeze' \${f} && grep -qx 'name=default' \${f} && ! grep -v '^#' \${f} | grep -qi 'kvantum\|aurorae\|Win11OS'"
+    "f=${LNF}/org.binixx.contraste.desktop/contents/defaults; grep -qx 'widgetStyle=Breeze' \${f} && grep -qx 'ColorScheme=BinixXContraste' \${f} && grep -qx 'library=org.kde.breeze' \${f} && grep -qx 'name=default' \${f} && ! grep -v '^#' \${f} | grep -qi 'kvantum\|aurorae\|Win11'"
 # Dossiers jaunes : les icônes de BinixX OS sont celles de Breeze, avec le corps des dossiers en jaune au lieu de la couleur d'accent (bleue).
 # Générées à la construction depuis Breeze (build_files/icones-dossiers-jaunes.py).
 check "icônes BinixX OS (clair) : hérite de Breeze, dossiers de 32 à 96 pixels en jaune, couleurs du bureau figées (plus d'identifiant « current-color-scheme »)" bash -c \
@@ -65,9 +79,9 @@ check "contraste élevé : thème global complet (métadonnées, disposition du 
 # Kvantum ne lit le thème que dans le dossier de l'utilisateur : un compte neuf reçoit le thème clair (celui d'Aube) de /etc/skel
 style_skel() (
     f=/etc/skel/.config/Kvantum/kvantum.kvconfig
-    test -s "${f}" && [[ "$(kreadconfig6 --file "${f}" --group General --key theme)" == Win11OS-light ]]
+    test -s "${f}" && [[ "$(kreadconfig6 --file "${f}" --group General --key theme)" == BinixX-Win11-light ]]
 )
-check "un compte neuf reçoit le thème Kvantum Win11OS-light (/etc/skel/.config/Kvantum)" style_skel
+check "un compte neuf reçoit le thème Kvantum BinixX-Win11-light (/etc/skel/.config/Kvantum)" style_skel
 
 # Le thème Kvantum suit les couleurs : service et surveillance de ~/.config/kdeglobals dans chaque session, et la commande qui les relie
 check "service utilisateur binixx-kvantum : une commande, pas de limite de démarrages" bash -c \
@@ -84,16 +98,21 @@ style_synchronisation() (
     export HOME="${home}" XDG_CONFIG_HOME="${home}/.config"
     mkdir -p "${home}/.config"
     outil=/usr/libexec/binixx/binixx-ambiance
-    # sous les couleurs sombres, le thème sombre ; puis le thème clair sous les couleurs claires ; un autre thème choisi n'est pas remplacé
+    # sous les couleurs sombres, le thème sombre ; puis le thème clair sous les couleurs claires ; un thème translucide de Win11OS KDE choisi à la main
+    # est suivi dans sa famille ; un autre thème choisi n'est pas remplacé
+    printf '[General]\nColorScheme=BinixXSombre\n' >"${home}/.config/kdeglobals"
+    "${outil}" kvantum >/dev/null
+    [[ "$(kreadconfig6 --file "${home}/.config/Kvantum/kvantum.kvconfig" --group General --key theme)" == BinixX-Win11-dark ]]
+    printf '[General]\nColorScheme=BinixXClair\n' >"${home}/.config/kdeglobals"
+    "${outil}" kvantum >/dev/null
+    [[ "$(kreadconfig6 --file "${home}/.config/Kvantum/kvantum.kvconfig" --group General --key theme)" == BinixX-Win11-light ]]
+    printf '[General]\ntheme=Win11OS-light\n' >"${home}/.config/Kvantum/kvantum.kvconfig"
     printf '[General]\nColorScheme=BinixXSombre\n' >"${home}/.config/kdeglobals"
     "${outil}" kvantum >/dev/null
     [[ "$(kreadconfig6 --file "${home}/.config/Kvantum/kvantum.kvconfig" --group General --key theme)" == Win11OS-dark ]]
-    printf '[General]\nColorScheme=BinixXClair\n' >"${home}/.config/kdeglobals"
-    "${outil}" kvantum >/dev/null
-    [[ "$(kreadconfig6 --file "${home}/.config/Kvantum/kvantum.kvconfig" --group General --key theme)" == Win11OS-light ]]
     printf '[General]\ntheme=KvArc\n' >"${home}/.config/Kvantum/kvantum.kvconfig"
     printf '[General]\nColorScheme=BinixXSombre\n' >"${home}/.config/kdeglobals"
     "${outil}" kvantum >/dev/null
     [[ "$(kreadconfig6 --file "${home}/.config/Kvantum/kvantum.kvconfig" --group General --key theme)" == KvArc ]]
 )
-check "binixx-ambiance kvantum : le thème suit les couleurs sans remplacer un autre thème choisi" style_synchronisation
+check "binixx-ambiance kvantum : le thème suit les couleurs en gardant la famille d'un thème Win11OS translucide choisi à la main, sans remplacer un autre thème" style_synchronisation

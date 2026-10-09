@@ -349,7 +349,8 @@ class StyleKvantum(unittest.TestCase):
             return f.read()
 
     def test_un_theme_par_couleurs_et_aucun_pour_le_contraste(self):
-        self.assertEqual(A.KVANTUM_PAR_COULEURS, {"BinixXClair": "Win11OS-light", "BinixXSombre": "Win11OS-dark"})
+        self.assertEqual(A.KVANTUM_PAR_COULEURS, {"BinixXClair": "BinixX-Win11-light", "BinixXSombre": "BinixX-Win11-dark"})
+        self.assertEqual(A.KVANTUM_TRANSLUCIDE_PAR_COULEURS, {"BinixXClair": "Win11OS-light", "BinixXSombre": "Win11OS-dark"})
         self.assertNotIn(A.trouver("contraste").couleurs, A.KVANTUM_PAR_COULEURS)
 
     def test_le_fichier_est_celui_de_l_utilisateur(self):
@@ -363,18 +364,31 @@ class StyleKvantum(unittest.TestCase):
         faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXSombre"})
         modifie, message = A.synchroniser_kvantum(None, faux, self.fichier)
         self.assertTrue(modifie, message)
-        self.assertEqual(self.lire(), "[General]\ntheme=Win11OS-dark\n\n")
-        self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-dark")
+        self.assertEqual(self.lire(), "[General]\ntheme=BinixX-Win11-dark\n\n")
+        self.assertEqual(A.theme_kvantum(self.fichier), "BinixX-Win11-dark")
 
     def test_le_theme_suit_le_changement_de_couleurs(self):
-        self.ecrire("[General]\ntheme=Win11OS-light\n")
+        self.ecrire("[General]\ntheme=BinixX-Win11-light\n")
         self.assertTrue(A.synchroniser_kvantum("BinixXSombre", None, self.fichier)[0])
-        self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-dark")
+        self.assertEqual(A.theme_kvantum(self.fichier), "BinixX-Win11-dark")
+        self.assertTrue(A.synchroniser_kvantum("BinixXClair", None, self.fichier)[0])
+        self.assertEqual(A.theme_kvantum(self.fichier), "BinixX-Win11-light")
+
+    def test_un_theme_translucide_de_win11os_choisi_a_la_main_est_suivi_dans_sa_famille(self):
+        self.ecrire("[General]\ntheme=Win11OS-light\n")
+        modifie, message = A.synchroniser_kvantum("BinixXSombre", None, self.fichier)
+        self.assertTrue(modifie, message)
+        self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-dark")          # pas le BinixX-Win11-dark opaque
         self.assertTrue(A.synchroniser_kvantum("BinixXClair", None, self.fichier)[0])
         self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-light")
 
+    def test_le_theme_opaque_est_celui_par_defaut_quand_rien_n_est_choisi(self):
+        self.ecrire("[General]\n")
+        self.assertTrue(A.synchroniser_kvantum("BinixXSombre", None, self.fichier)[0])
+        self.assertEqual(A.theme_kvantum(self.fichier), "BinixX-Win11-dark")
+
     def test_deja_en_place_rien_n_est_reecrit(self):
-        self.ecrire("[General]\ntheme=Win11OS-light\n")
+        self.ecrire("[General]\ntheme=BinixX-Win11-light\n")
         avant = os.stat(self.fichier).st_mtime_ns
         modifie, message = A.synchroniser_kvantum("BinixXClair", None, self.fichier)
         self.assertFalse(modifie)
@@ -382,10 +396,10 @@ class StyleKvantum(unittest.TestCase):
         self.assertEqual(os.stat(self.fichier).st_mtime_ns, avant)
 
     def test_les_reglages_par_application_sont_gardes(self):
-        self.ecrire("[General]\ntheme=Win11OS-light\n\n[Applications]\nKvantumTheme-dark=firefox, thunderbird\n")
+        self.ecrire("[General]\ntheme=BinixX-Win11-light\n\n[Applications]\nKvantumTheme-dark=firefox, thunderbird\n")
         A.synchroniser_kvantum("BinixXSombre", None, self.fichier)
         texte = self.lire()
-        self.assertIn("theme=Win11OS-dark", texte)
+        self.assertIn("theme=BinixX-Win11-dark", texte)
         self.assertIn("[Applications]", texte)
         self.assertIn("KvantumTheme-dark=firefox, thunderbird", texte)
 
@@ -407,22 +421,22 @@ class StyleKvantum(unittest.TestCase):
         self.ecrire("pas un fichier de réglages\n[General\n")
         self.assertEqual(A.theme_kvantum(self.fichier), "")
         self.assertTrue(A.synchroniser_kvantum("BinixXClair", None, self.fichier)[0])
-        self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-light")
+        self.assertEqual(A.theme_kvantum(self.fichier), "BinixX-Win11-light")
 
     def test_appliquer_pose_le_theme_avant_les_couleurs_et_le_reprend_en_cas_d_echec(self):
         faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXClair"})
-        self.ecrire("[General]\ntheme=Win11OS-light\n")
+        self.ecrire("[General]\ntheme=BinixX-Win11-light\n")
         os.environ["XDG_CONFIG_HOME"] = self.dossier
         self.addCleanup(os.environ.pop, "XDG_CONFIG_HOME", None)
         self.assertTrue(A.appliquer("nuit", faux)[0])
-        self.assertEqual(A.theme_kvantum(), "Win11OS-dark")
+        self.assertEqual(A.theme_kvantum(), "BinixX-Win11-dark")
         self.assertTrue(A.appliquer("aube", faux)[0])
-        self.assertEqual(A.theme_kvantum(), "Win11OS-light")
+        self.assertEqual(A.theme_kvantum(), "BinixX-Win11-light")
         # le bureau ne répond pas : les couleurs n'ont pas changé, le thème Kvantum redevient celui de ces couleurs
         panne = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXClair"}, absents={
             "plasma-apply-lookandfeel", "lookandfeeltool", "plasma-apply-colorscheme"})
         self.assertFalse(A.appliquer("nuit", panne)[0])
-        self.assertEqual(A.theme_kvantum(), "Win11OS-light")
+        self.assertEqual(A.theme_kvantum(), "BinixX-Win11-light")
 
     def test_la_ligne_de_commande(self):
         os.environ["XDG_CONFIG_HOME"] = self.dossier
@@ -430,8 +444,8 @@ class StyleKvantum(unittest.TestCase):
         sorties = []
         faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXSombre"})
         self.assertEqual(A.main(["kvantum"], faux, sorties.append), 0)
-        self.assertEqual(A.theme_kvantum(), "Win11OS-dark")
-        self.assertIn("Win11OS-dark", sorties[0])
+        self.assertEqual(A.theme_kvantum(), "BinixX-Win11-dark")
+        self.assertIn("BinixX-Win11-dark", sorties[0])
         self.assertEqual(A.main(["kvantum"], faux, sorties.append), 0)    # sans rien à changer : aucune erreur
         self.assertIn("déjà en place", sorties[1])
 

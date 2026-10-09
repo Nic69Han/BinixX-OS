@@ -13,7 +13,7 @@ sombre) que Plasma choisit tout seul selon les couleurs. On relit toujours kdegl
 n'annonce rien sur la foi du code de sortie d'un outil. L'ambiance en cours se reconnaît à son schéma de couleurs.
 
 Aube et Nuit prennent le style Windows 11 du projet Win11OS KDE (docs/theme-windows-11.md) : les boutons, cases et barres de
-défilement des applications sont dessinés par Kvantum, qui a un thème clair et un thème sombre. Le choix du thème Kvantum n'est pas
+défilement des applications sont dessinés par Kvantum, qui a un thème clair et un thème sombre (variantes opaques de BinixX OS). Le choix du thème Kvantum n'est pas
 dans les réglages de Plasma mais dans un fichier à part (~/.config/Kvantum/kvantum.kvconfig) : on le garde d'accord avec les
 couleurs (voir synchroniser_kvantum), sans quoi des couleurs sombres sous un thème clair rendraient le texte illisible.
 """
@@ -31,9 +31,14 @@ POINTEUR_GRAND = 36
 POINTEUR_NORMAL = 24          # la taille de KDE quand rien n'est écrit
 TEXTE_GRAND = 130
 THEME_CURSEUR = "Breeze_Light"      # le pointeur blanc de Windows ; « breeze_cursors » est le noir
-# Thème Kvantum de chaque schéma de couleurs (le contraste élevé garde le style Breeze, qui suit toutes les couleurs à la lettre)
-KVANTUM_PAR_COULEURS = {"BinixXClair": "Win11OS-light", "BinixXSombre": "Win11OS-dark"}
-THEMES_KVANTUM = tuple(KVANTUM_PAR_COULEURS.values())
+# Thème Kvantum de chaque schéma de couleurs (le contraste élevé garde le style Breeze, qui suit toutes les couleurs à la lettre).
+# BinixX-Win11-* : les thèmes de Win11OS KDE rendus opaques à la construction (build_files/win11os-opaque.py), posés par défaut.
+# Win11OS-* : les thèmes d'origine, translucides, qu'on peut choisir à la main dans Kvantum Manager sur un PC qui sait flouter : on les suit
+# aussi (un thème clair sous des couleurs sombres serait illisible), sans jamais les remplacer par les opaques.
+KVANTUM_PAR_COULEURS = {"BinixXClair": "BinixX-Win11-light", "BinixXSombre": "BinixX-Win11-dark"}
+KVANTUM_TRANSLUCIDE_PAR_COULEURS = {"BinixXClair": "Win11OS-light", "BinixXSombre": "Win11OS-dark"}
+FAMILLES_KVANTUM = (KVANTUM_PAR_COULEURS, KVANTUM_TRANSLUCIDE_PAR_COULEURS)
+THEMES_KVANTUM = tuple(theme for famille in FAMILLES_KVANTUM for theme in famille.values())
 
 # cle, titre, texte, thème global de Plasma, schéma de couleurs, aperçu (fond, texte, accent, barre de titre)
 Ambiance = namedtuple("Ambiance", "cle titre texte theme couleurs apercu")
@@ -120,17 +125,18 @@ def poser_theme_kvantum(theme, chemin=None):
 
 def synchroniser_kvantum(couleurs=None, run=None, chemin=None):
     """Met le thème Kvantum d'accord avec les couleurs (celles données, sinon celles en place) ; (modifié, message).
-    Un autre thème choisi à la main dans Kvantum Manager n'est jamais remplacé, et les couleurs qui ne sont pas à nous
-    (contraste élevé, couleurs de KDE) ne touchent à rien."""
+    Un thème de Win11OS KDE choisi à la main (translucide) est suivi dans sa propre famille ; un autre thème (Kvantum Manager) n'est
+    jamais remplacé, et les couleurs qui ne sont pas à nous (contraste élevé, couleurs de KDE) ne touchent à rien."""
     couleurs = couleurs or couleurs_actuelles(run)
-    voulu = KVANTUM_PAR_COULEURS.get(couleurs)
-    if voulu is None:
+    if couleurs not in KVANTUM_PAR_COULEURS:
         return False, f"Couleurs « {couleurs or 'inconnues'} » : le thème Kvantum n'est pas touché."
     actuel = theme_kvantum(chemin)
+    famille = next((f for f in FAMILLES_KVANTUM if actuel in f.values()), None)
+    if actuel and famille is None:
+        return False, f"Un autre thème Kvantum est choisi (« {actuel} ») : il est laissé tel quel."
+    voulu = (famille or KVANTUM_PAR_COULEURS)[couleurs]
     if actuel == voulu:
         return False, f"Le thème Kvantum « {voulu} » est déjà en place."
-    if actuel and actuel not in THEMES_KVANTUM:
-        return False, f"Un autre thème Kvantum est choisi (« {actuel} ») : il est laissé tel quel."
     poser_theme_kvantum(voulu, chemin)
     return True, f"Thème Kvantum « {voulu} » en place."
 

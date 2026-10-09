@@ -10,6 +10,14 @@ Dans l'image :
   /usr/share/Kvantum/Win11OS-light, Win11OS-dark                 style des boutons, cases, barres de défilement (Kvantum)
   /usr/share/plasma/desktoptheme/Win11OS-light, Win11OS-dark     barre des tâches, fenêtres et bulles de Plasma
 
+Dérivés à la construction de l'image (build_files/win11os-opaque.py), à partir des copies ci-dessus :
+  /usr/share/Kvantum/BinixX-Win11-light, BinixX-Win11-dark        les thèmes Kvantum, avec les réglages de transparence et de flou
+                                                                  coupés (huit lignes du fichier .kvconfig) ; même dessin
+  /usr/share/plasma/desktoptheme/BinixX-Win11-light, -dark        liens vers les thèmes Plasma d'origine, sauf « translucent » qui mène
+                                                                  à « solid » (fonds opaques) ; section Wallpaper retirée
+  Ils sont posés par défaut : les thèmes d'origine comptent sur le flou de KWin et deviennent illisibles sans lui. Ces dérivés restent
+  sous GNU GPL version 3, comme les thèmes dont ils viennent ; les modifications sont celles décrites ici.
+
 Non repris, volontairement :
   wallpaper/, sddm-light/, sddm-dark/   fonds d'écran du projet (dessins proches du fond de Windows 11) et écran de connexion :
                                         BinixX OS garde son fond « Le marcheur de l'aube » et l'écran de connexion de Plasma

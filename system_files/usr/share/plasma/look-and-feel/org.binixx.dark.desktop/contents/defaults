@@ -1,5 +1,5 @@
 # Nuit : style Windows 11 sombre du projet Win11OS KDE (docs/theme-windows-11.md), avec les couleurs et le fond de BinixX OS.
-# Le thème Kvantum (Win11OS-dark) suit les couleurs : voir le thème clair.
+# Le thème Kvantum (BinixX-Win11-dark, opaque) suit les couleurs : voir le thème clair.
 [kdeglobals][KDE]
 widgetStyle=kvantum
 
@@ -10,7 +10,7 @@ ColorScheme=BinixXSombre
 Theme=binixx-os-dark
 
 [plasmarc][Theme]
-name=Win11OS-dark
+name=BinixX-Win11-dark
 
 [Wallpaper]
 Image=BinixX

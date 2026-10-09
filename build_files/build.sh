@@ -188,6 +188,11 @@ PYEOF
 # de Breeze a changé). Les thèmes globaux les posent (Icons Theme dans look-and-feel/*/contents/defaults).
 python3 /ctx/icones-dossiers-jaunes.py
 
+# Style Windows 11 en variantes opaques (BinixX-Win11-light et -dark, Kvantum et thème Plasma) : les thèmes de Win11OS KDE sont translucides et
+# comptent sur le flou de KWin ; sans flou on lit les fenêtres à travers le menu de démarrage. Voir build_files/win11os-opaque.py (échoue si les
+# réglages attendus ont disparu des thèmes d'origine, laissés inchangés à côté).
+python3 /ctx/win11os-opaque.py
+
 # Thème global par défaut pour tous les utilisateurs.
 # Fedora le définit dans kde-settings (priorité plus basse que /etc/xdg) : on corrige les deux.
 kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key LookAndFeelPackage org.binixx.desktop

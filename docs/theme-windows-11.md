@@ -1,7 +1,7 @@
 # Style Windows 11 (Win11OS KDE)
 
 Les ambiances **Aube** (clair) et **Nuit** (sombre) prennent l'allure de Windows 11 : fenêtres à angles arrondis et boutons à droite,
-boutons, cases et barres de défilement plats, barre des tâches et fenêtres de Plasma translucides. Ce style vient du projet
+boutons, cases et barres de défilement plats, barre des tâches et menus de Plasma dans le style de Windows 11. Ce style vient du projet
 **Win11OS KDE** de yeyushengfan258 ([GitHub](https://github.com/yeyushengfan258/Win11OS-kde), licence GNU GPL version 3), repris
 **sans modification** ; BinixX OS y met ses couleurs, son fond d'écran et sa disposition.
 
@@ -10,8 +10,8 @@ boutons, cases et barres de défilement plats, barre des tâches et fenêtres de
 | Élément | D'où il vient | Où il est dans l'image |
 | --- | --- | --- |
 | Barre de titre des fenêtres (angles arrondis, réduire, agrandir, fermer) | Win11OS KDE, thème Aurorae `Win11OS-light` / `Win11OS-dark` | `/usr/share/aurorae/themes/` |
-| Boutons, cases, barres de défilement, onglets des applications | Win11OS KDE, thème Kvantum `Win11OS-light` / `Win11OS-dark` | `/usr/share/Kvantum/` (paquet Fedora `kvantum`) |
-| Barre des tâches, fenêtres de Plasma, bulles, icônes de la zone de notification | Win11OS KDE, thème Plasma `Win11OS-light` / `Win11OS-dark` | `/usr/share/plasma/desktoptheme/` |
+| Boutons, cases, barres de défilement, onglets des applications | Win11OS KDE, thème Kvantum, en **variante opaque** `BinixX-Win11-light` / `BinixX-Win11-dark` | `/usr/share/Kvantum/` (paquet Fedora `kvantum`) |
+| Barre des tâches, fenêtres de Plasma, bulles, icônes de la zone de notification | Win11OS KDE, thème Plasma, en **variante opaque** `BinixX-Win11-light` / `BinixX-Win11-dark` | `/usr/share/plasma/desktoptheme/` |
 | **Dossiers jaunes** (et les dossiers Documents, Images, Musique… en jaune aussi) | BinixX OS, à partir des icônes de Breeze | thèmes d'icônes `binixx-os` et `binixx-os-dark` (`/usr/share/icons/`) |
 | Couleurs (accent bleu BinixX OS, texte, sélection) | BinixX OS | `BinixXClair`, `BinixXSombre` |
 | Fond d'écran « Le marcheur de l'aube », disposition du panneau, logo du bouton Démarrer | BinixX OS | inchangés |
@@ -48,6 +48,23 @@ est dans l'image** :
 - **Contraste élevé** garde les icônes de Breeze sombre : son contraste se vérifie sur ses couleurs noir, blanc et jaune.
 - Pour revenir aux dossiers bleus : Configuration du système → Apparence et comportement → Icônes → Breeze.
 
+## Opaque par défaut
+
+Les thèmes de Win11OS KDE sont **translucides** (comme l'acrylique de Windows 11) et comptent sur l'effet « flou » de KWin pour rester lisibles.
+Sans flou (PC sans accélération graphique, machine virtuelle, bureau à distance), on voit à travers : le test VM a montré les fenêtres du
+dessous se lire **par-dessus** le menu de démarrage, texte compris. BinixX OS cible aussi de vieux PC : à la construction,
+`build_files/win11os-opaque.py` fabrique donc deux variantes opaques et les pose par défaut :
+
+- **Kvantum** `BinixX-Win11-light` / `-dark` : copie du thème avec huit réglages coupés (`translucent_windows`, `blurring`, `popup_blurring`,
+  `transparent_dolphin_view`, `transparent_pcmanfm_sidepane`, `transparent_pcmanfm_view`, `transparent_menutitle`, `blur_translucent`) ; même dessin.
+- **Plasma** `BinixX-Win11-light` / `-dark` : liens vers le thème d'origine, sauf `translucent` qui mène à `solid` (Plasma choisit l'un ou l'autre
+  selon que le flou est disponible : il trouve donc toujours les fonds opaques) ; la section `Wallpaper` du thème d'origine, qui nomme des fonds
+  d'écran non livrés, est retirée.
+- La construction **échoue** si un de ces réglages a disparu du thème d'origine (au lieu de livrer en silence des fenêtres redevenues translucides).
+- Les thèmes d'origine **restent installés, inchangés**. Sur un PC qui sait flouter, on retrouve la transparence en choisissant `Win11OS-light` ou
+  `Win11OS-dark` dans Kvantum Manager, et `Win11OS-light` / `Win11OS-dark` dans Configuration du système → Style de Plasma ; le thème Kvantum
+  suit alors les couleurs dans **sa** famille (voir plus bas).
+
 ## Comment ça se règle
 
 - **Aube** et **Nuit** (Paramètres → Personnalisation → Thèmes : clair ou sombre) posent le thème global correspondant : style
@@ -64,7 +81,7 @@ est dans l'image** :
   3. un service de chaque session (`binixx-kvantum.path` surveille `~/.config/kdeglobals`, `binixx-kvantum.service` lance
      `binixx-ambiance kvantum`) refait la même chose chaque fois que les couleurs changent, même depuis Configuration du système,
      et à l'ouverture de session (comptes existants).
-  Un autre thème Kvantum choisi à la main (Kvantum Manager) n'est jamais remplacé, et des couleurs qui ne sont pas celles de
+  Un thème `Win11OS-*` d'origine (translucide) choisi à la main est suivi dans sa famille, jamais remplacé par l'opaque ; un autre thème Kvantum choisi à la main (Kvantum Manager) n'est jamais remplacé, et des couleurs qui ne sont pas celles de
   BinixX OS (Contraste élevé, couleurs de KDE) ne touchent à rien.
 
 ## Pour un compte déjà créé
@@ -88,8 +105,8 @@ des auteurs et de la source, et l'absence des fonds d'écran du projet.
   version ; si une mise à jour de Fedora casse le style, le test le dit avant que `stable` ne bouge.
 - **Applications GTK** (Firefox, Thunderbird, applications Flatpak GTK…) : elles gardent leur propre dessin ; le style de Kvantum
   ne s'applique qu'aux applications Qt.
-- **Transparence** : le style rend les fenêtres translucides et demande à KWin de flouter le fond (effet « flou » activé par défaut dans
-  Plasma). Sur un PC sans accélération graphique, la translucidité est moins nette.
+- **Transparence** : les variantes posées par défaut sont opaques (voir « Opaque par défaut ») ; l'effet « verre dépoli » de Windows 11 n'est donc pas là
+  tant qu'on n'a pas choisi à la main les thèmes d'origine.
 - **Dossiers** : jaunes, mais au dessin de Breeze (plats, avec un onglet plus foncé), pas celui, dégradé, de l'Explorateur de Windows 11.
   Les autres icônes (applications, fichiers) sont celles de Breeze.
 
@@ -104,7 +121,8 @@ des auteurs et de la source, et l'absence des fonds d'écran du projet.
 ## Tests
 
 - **Image** (`tests/image/checks.d/82-theme-windows-11.sh`) : `kvantum` installé et son style Qt 6 présent ; les trois thèmes de chaque
-  variante (Aurorae, Kvantum, Plasma) complets ; licence, auteurs et source ; fonds d'écran et écran de connexion du projet absents ;
+  variante (Aurorae, Kvantum, Plasma) complets ; les variantes opaques (huit réglages Kvantum à `false`, `translucent` qui mène à `solid`, pas de
+  section Wallpaper) et les thèmes d'origine restés translucides ; licence, auteurs et source ; fonds d'écran et écran de connexion du projet absents ;
   chaque thème global pose des noms qui existent vraiment ; Contraste élevé n'utilise ni Kvantum ni Aurorae ; thème Kvantum de
   `/etc/skel` ; service et surveillance activés ; `binixx-ambiance kvantum` suit les couleurs sans remplacer un autre thème choisi.
   Les tests Python de `tests/image/centre/test_ambiances.py` couvrent la logique (thème par couleurs, fichier réécrit sans perdre les
