@@ -19,6 +19,9 @@ theme_reglage() {
     printf '%s' "${valeur}"
 }
 theme_kvantum() { theme_session kreadconfig6 --file "${TEST_HOME}/.config/Kvantum/kvantum.kvconfig" --group General --key theme; }
+# Vrai quand le thème Kvantum est celui-là. À donner à wait_for sous cette forme : « wait_for 30 test "$(theme_kvantum)" = X » lirait le
+# thème une seule fois, avant d'attendre, et comparerait toujours la même valeur
+theme_kvantum_egal() { [[ "$(theme_kvantum)" == "$1" ]]; }
 
 check_theme_base() {
     section "Style Windows 11 (compte neuf, thème Kvantum qui suit les couleurs)"
@@ -44,13 +47,13 @@ check_theme_base() {
     local avant
     avant="$(theme_reglage kdeglobals General ColorScheme)"
     theme_session kwriteconfig6 --file kdeglobals --group General --key ColorScheme BinixXSombre
-    if wait_for 30 test "$(theme_kvantum)" = Win11OS-dark; then
+    if wait_for 30 theme_kvantum_egal Win11OS-dark; then
         pass "couleurs sombres écrites dans kdeglobals : le thème Kvantum est passé à Win11OS-dark tout seul"
     else
         fail "le thème Kvantum n'a pas suivi les couleurs sombres : '$(theme_kvantum)' ; $(theme_session systemctl --user status binixx-kvantum.service --no-pager 2>&1 | tail -n 4 | tr '\n' ' ' | cut -c1-300)"
     fi
     theme_session kwriteconfig6 --file kdeglobals --group General --key ColorScheme BinixXClair
-    if wait_for 30 test "$(theme_kvantum)" = Win11OS-light; then
+    if wait_for 30 theme_kvantum_egal Win11OS-light; then
         pass "couleurs claires écrites dans kdeglobals : le thème Kvantum est revenu à Win11OS-light tout seul"
     else
         fail "le thème Kvantum n'a pas suivi les couleurs claires : '$(theme_kvantum)'"
@@ -62,7 +65,7 @@ check_theme_base() {
     fi
     theme=Win11OS-light
     [[ "${avant}" == BinixXSombre ]] && theme=Win11OS-dark
-    wait_for 30 test "$(theme_kvantum)" = "${theme}" || true
+    wait_for 30 theme_kvantum_egal "${theme}" || true
     echo "            info : couleurs remises à '${avant:-(rien dans kdeglobals)}', thème Kvantum : $(theme_kvantum)"
 }
 register_check base check_theme_base
@@ -121,7 +124,7 @@ check_theme_fin() {
     local out
     if out="$(theme_session /usr/libexec/binixx/binixx-ambiance appliquer aube 2>&1)"; then pass "binixx-ambiance appliquer aube : ${out}"; else fail "appliquer aube : ${out:0:300}"; fi
     theme_egal "le bureau est revenu à Aube, couleurs" "$(theme_reglage kdeglobals General ColorScheme)" BinixXClair
-    wait_for 30 test "$(theme_kvantum)" = Win11OS-light || true
+    wait_for 30 theme_kvantum_egal Win11OS-light || true
     theme_egal "thème Kvantum" "$(theme_kvantum)" Win11OS-light
 }
 register_check theme-fin check_theme_fin
