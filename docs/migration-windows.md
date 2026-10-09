@@ -81,6 +81,11 @@ En ligne de commande : `binixx-migrer analyser|copier|favoris|sources` (voir `bi
 | Gestionnaire des tâches (Ctrl + Maj + Échap) | Moniteur système (Ctrl + Échap) |
 | VPN (Paramètres → Réseau → VPN) | Configuration du système → Connexions → « + » : L2TP/IPsec, IKEv2, SSTP, OpenVPN, Cisco AnyConnect, WireGuard |
 
+**Souris** : comme sous Windows, un clic sélectionne et un **double-clic ouvre** un fichier ou un dossier (bureau, Dolphin, boîtes de
+dialogue), et le pointeur est la **flèche blanche** à contour sombre. Pour revenir au simple clic : Configuration du système →
+Comportement de l'espace de travail → Comportement général → « Cliquer sur les fichiers ou dossiers » → « Les ouvre ». Pour un pointeur noir :
+Configuration du système → Apparence → Curseurs → « Breeze ».
+
 Raccourcis identiques : Alt + Tab, Ctrl + C / V / X / Z, Windows + L (verrouiller), Windows + D (bureau),
 Alt + F4 (fermer), Windows + flèches (ancrer une fenêtre à gauche ou à droite).
 
