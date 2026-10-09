@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=ArtCraft
+GenericName=Images et vidéos par intelligence artificielle (web)
+Comment=Studio de création d'images et de vidéos par IA, dans une fenêtre dédiée (compte ArtCraft gratuit à créer)
+Exec=/usr/libexec/binixx/binixx-webapp https://app.getartcraft.com/
+Icon=applications-graphics
+Terminal=false
+Categories=Graphics;2DGraphics;
+Keywords=artcraft;ia;intelligence artificielle;image;vidéo;génération;création;
+StartupNotify=true
+# Classe de fenêtre de Chromium en mode application, pour grouper la fenêtre sous cette icône
+StartupWMClass=chrome-app.getartcraft.com__-Default
