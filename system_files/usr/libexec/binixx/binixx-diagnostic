@@ -69,6 +69,57 @@ run lpstat -p
 section "Applications Flatpak installées"
 run flatpak list --app --columns=application,version
 
+# Pourquoi une application manque (« Aucune entrée pour… » dans Discover, bouton « Installer » sans effet) : la source Flathub
+# est-elle déclarée et joignable, le catalogue est-il téléchargé, le service du premier démarrage a-t-il fini ou échoué ?
+section "Applications : source Flathub et installation au premier démarrage"
+dossier_flatpaks="${BINIXX_FLATPAKS_DIR:-/usr/share/binixx/flatpaks}"
+dossier_etat="${BINIXX_ETAT_DIR:-/var/lib/binixx}"
+run flatpak remotes --system --columns=name,options
+listes=()
+for liste in "${dossier_flatpaks}/system-flatpaks.list" "${dossier_flatpaks}"/system-flatpaks.d/*.list; do
+    if [[ -r "${liste}" ]]; then listes+=("${liste}"); fi
+done
+if [[ ${#listes[@]} -gt 0 ]] && command -v flatpak >/dev/null 2>&1; then
+    mapfile -t prevues < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "${listes[@]}" | sort -u)
+    mapfile -t presentes < <(flatpak list --system --app --columns=application 2>/dev/null)
+    manquantes=()
+    for appli in "${prevues[@]}"; do
+        if ! printf '%s\n' "${presentes[@]}" | grep -qxF "${appli}"; then manquantes+=("${appli}"); fi
+    done
+    printf 'Applications prévues d'\''office : %d ; manquantes : %d%s\n' "${#prevues[@]}" "${#manquantes[@]}" \
+        "$([[ ${#manquantes[@]} -gt 0 ]] && printf ' (%s)' "${manquantes[*]}")"
+else
+    printf '(liste des applications prévues ou flatpak absents)\n'
+fi
+if [[ -f "${dossier_etat}/flatpaks.sha256" ]]; then
+    printf 'Installation des applications prévues : terminée (le %s)\n' "$(date -r "${dossier_etat}/flatpaks.sha256" '+%Y-%m-%d %H:%M')"
+else
+    printf 'Installation des applications prévues : pas encore terminée\n'
+fi
+run systemctl show binixx-flatpak-install.service --no-pager -p ActiveState -p SubState -p Result -p NRestarts -p ExecMainStatus
+printf -- '-- catalogue des applications (taille, date) --\n'
+catalogues=(/var/lib/flatpak/appstream/flathub/*/active/appstream.xml.gz)
+if [[ -e "${catalogues[0]}" ]]; then
+    stat -c '%s octets, %y' "${catalogues[@]}" | cut -c1-40
+else
+    printf 'aucun : Discover ne trouvera pas les applications de Flathub\n'
+fi
+# Seul le code de réponse est gardé : ni adresse, ni contenu
+if command -v curl >/dev/null 2>&1; then
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 8 https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null)"
+    if [[ "${code}" == "200" ]]; then
+        printf 'Flathub joignable depuis ce PC : oui\n'
+    else
+        printf 'Flathub joignable depuis ce PC : non (code %s)\n' "${code:-aucun}"
+    fi
+fi
+printf -- '-- journal du service d'\''installation (40 dernières lignes) --\n'
+if command -v journalctl >/dev/null 2>&1; then
+    journalctl -u binixx-flatpak-install.service -b --no-pager -n 40 -o short-monotonic 2>&1 | tail -n 40
+else
+    printf '(journalctl absent)\n'
+fi
+
 section "Réglages du système modifiés depuis l'installation (noms des fichiers seulement)"
 run /usr/libexec/binixx/binixx-reparer-systeme liste --texte
 
