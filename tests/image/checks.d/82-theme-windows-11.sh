@@ -17,6 +17,30 @@ done
 
 # Variantes opaques (build_files/win11os-opaque.py) : posées par défaut, parce que les thèmes d'origine comptent sur le flou de KWin et deviennent
 # illisibles sans lui. Les thèmes d'origine restent installés, inchangés.
+# Plasma lit les fonds (menu de démarrage, barre des tâches, bulles) dans « solid » sans composition, dans « translucent » avec le flou de KWin, et
+# dans « dialogs » et « widgets » avec composition mais sans flou (machine virtuelle, vieux PC) : ce dernier cas, translucide dans l'original,
+# avait laissé voir les fenêtres du dessous à travers le menu dans le test VM. Les trois doivent mener à « solid », et aucun fichier « .svgz »
+# d'origine ne doit cacher un fond « .svg » opaque (Plasma cherche « .svgz » d'abord).
+plasma_fonds_opaques() ( # plasma_fonds_opaques light|dark
+    set -e
+    racine=/usr/share/plasma/desktoptheme
+    amont="${racine}/Win11OS-$1"
+    aval="${racine}/BinixX-Win11-$1"
+    test "$(readlink -f "${aval}/solid")" = "${amont}/solid"
+    test "$(readlink -f "${aval}/translucent")" = "${amont}/solid"
+    for fond in dialogs/background widgets/background widgets/panel-background; do
+        test -s "${aval}/solid/${fond}.svg"
+        test -s "${aval}/translucent/${fond}.svg"
+        test -s "${aval}/${fond}.svg"
+        test "$(readlink -f "${aval}/${fond}.svg")" = "${amont}/solid/${fond}.svg"
+        test ! -e "${aval}/${fond}.svgz"
+    done
+    test "$(readlink -f "${aval}/widgets/tooltip.svgz")" = "${amont}/solid/widgets/tooltip.svgz"
+    # le reste du thème est celui d'origine
+    test "$(readlink -f "${aval}/widgets/tasks.svgz")" = "${amont}/widgets/tasks.svgz"
+    test -s "${aval}/widgets/button.svg"
+)
+
 for variante in light dark; do
     amont="Win11OS-${variante}"
     aval="BinixX-Win11-${variante}"
@@ -24,8 +48,9 @@ for variante in light dark; do
         "k=/usr/share/Kvantum/${aval}/${aval}.kvconfig; for c in translucent_windows blurring popup_blurring transparent_dolphin_view transparent_pcmanfm_sidepane transparent_pcmanfm_view transparent_menutitle blur_translucent; do grep -qx \"\${c}=false\" \${k} || exit 1; done; cmp /usr/share/Kvantum/${aval}/${aval}.svg /usr/share/Kvantum/${amont}/${amont}.svg"
     check "${amont} : le thème Kvantum d'origine est resté translucide (inchangé)" bash -c \
         "grep -qx 'translucent_windows=true' /usr/share/Kvantum/${amont}/${amont}.kvconfig"
-    check "${aval} : thème Plasma sans transparence (« translucent » mène aux fonds opaques), sans la section Wallpaper du thème d'origine" bash -c \
-        "d=/usr/share/plasma/desktoptheme/${aval}; grep -qx 'Name=${aval}' \${d}/metadata.desktop && grep -qx 'X-KDE-PluginInfo-Name=${aval}' \${d}/metadata.desktop && ! grep -q 'Wallpaper' \${d}/metadata.desktop && test \"\$(readlink -f \${d}/translucent)\" = /usr/share/plasma/desktoptheme/${amont}/solid && test -s \${d}/translucent/widgets/panel-background.svg && test -s \${d}/widgets/panel-background.svg && test -s \${d}/dialogs/background.svgz"
+    check "${aval} : thème Plasma sans la section Wallpaper du thème d'origine, nommé ${aval}" bash -c \
+        "d=/usr/share/plasma/desktoptheme/${aval}; grep -qx 'Name=${aval}' \${d}/metadata.desktop && grep -qx 'X-KDE-PluginInfo-Name=${aval}' \${d}/metadata.desktop && ! grep -q 'Wallpaper' \${d}/metadata.desktop"
+    check "${aval} : thème Plasma, les trois chemins que Plasma lit (solid, translucent, et dialogs/widgets sans flou) mènent aux fonds opaques de ${amont}/solid" plasma_fonds_opaques "${variante}"
 done
 
 # Licence : ces fichiers sont du projet Win11OS KDE, sous GNU GPL v3, copiés sans modification ; le texte de la licence, les auteurs et

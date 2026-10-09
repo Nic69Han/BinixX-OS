@@ -57,9 +57,14 @@ dessous se lire **par-dessus** le menu de démarrage, texte compris. BinixX OS c
 
 - **Kvantum** `BinixX-Win11-light` / `-dark` : copie du thème avec huit réglages coupés (`translucent_windows`, `blurring`, `popup_blurring`,
   `transparent_dolphin_view`, `transparent_pcmanfm_sidepane`, `transparent_pcmanfm_view`, `transparent_menutitle`, `blur_translucent`) ; même dessin.
-- **Plasma** `BinixX-Win11-light` / `-dark` : liens vers le thème d'origine, sauf `translucent` qui mène à `solid` (Plasma choisit l'un ou l'autre
-  selon que le flou est disponible : il trouve donc toujours les fonds opaques) ; la section `Wallpaper` du thème d'origine, qui nomme des fonds
-  d'écran non livrés, est retirée.
+- **Plasma** `BinixX-Win11-light` / `-dark` : liens vers le thème d'origine. Plasma lit les fonds de la barre des tâches, du menu de démarrage, des
+  bulles et des info-bulles à **trois** endroits selon l'état de l'écran : `solid` sans composition, `translucent` avec le flou de KWin, et les
+  dossiers `dialogs/` et `widgets/` eux-mêmes avec composition mais **sans flou** (machine virtuelle, vieux PC, bureau à distance). Ce troisième cas
+  était translucide dans le thème d'origine et laissait voir les fenêtres du dessous à travers le menu de démarrage dans le test VM (la première
+  version des variantes n'avait traité que `translucent`). Les trois mènent maintenant aux fonds opaques de `solid` : `solid` et `translucent` par un
+  lien, `dialogs/` et `widgets/` fichier par fichier (les fichiers d'origine qui ont un équivalent opaque sont écartés, y compris un `.svgz` qui
+  cacherait un `.svg`, car Plasma cherche `.svgz` d'abord). La section `Wallpaper` du thème d'origine, qui nomme des fonds d'écran non livrés, est
+  retirée.
 - La construction **échoue** si un de ces réglages a disparu du thème d'origine (au lieu de livrer en silence des fenêtres redevenues translucides).
 - Les thèmes d'origine **restent installés, inchangés**. Sur un PC qui sait flouter, on retrouve la transparence en choisissant `Win11OS-light` ou
   `Win11OS-dark` dans Kvantum Manager, et `Win11OS-light` / `Win11OS-dark` dans Configuration du système → Style de Plasma ; le thème Kvantum
@@ -121,8 +126,8 @@ des auteurs et de la source, et l'absence des fonds d'écran du projet.
 ## Tests
 
 - **Image** (`tests/image/checks.d/82-theme-windows-11.sh`) : `kvantum` installé et son style Qt 6 présent ; les trois thèmes de chaque
-  variante (Aurorae, Kvantum, Plasma) complets ; les variantes opaques (huit réglages Kvantum à `false`, `translucent` qui mène à `solid`, pas de
-  section Wallpaper) et les thèmes d'origine restés translucides ; licence, auteurs et source ; fonds d'écran et écran de connexion du projet absents ;
+  variante (Aurorae, Kvantum, Plasma) complets ; les variantes opaques (huit réglages Kvantum à `false`, les trois chemins Plasma — `solid`, `translucent`, `dialogs/` et `widgets/` — qui mènent
+  à `solid`, sans `.svgz` d'origine qui les cache, pas de section Wallpaper) et les thèmes d'origine restés translucides ; licence, auteurs et source ; fonds d'écran et écran de connexion du projet absents ;
   chaque thème global pose des noms qui existent vraiment ; Contraste élevé n'utilise ni Kvantum ni Aurorae ; thème Kvantum de
   `/etc/skel` ; service et surveillance activés ; `binixx-ambiance kvantum` suit les couleurs sans remplacer un autre thème choisi.
   Les tests Python de `tests/image/centre/test_ambiances.py` couvrent la logique (thème par couleurs, fichier réécrit sans perdre les

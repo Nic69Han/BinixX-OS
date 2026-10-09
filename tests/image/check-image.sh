@@ -12,9 +12,16 @@ fail() {
     failures=$((failures + 1))
 }
 check() { # check "description" commande...
-    local desc="$1"
+    local desc="$1" etat
     shift
-    if "$@" >/dev/null 2>&1; then pass "${desc}"; else fail "${desc}"; fi
+    # « set -e » compte dans la commande (une fonction qui l'active échoue dès sa première commande en échec) : bash l'ignorerait sous « if »,
+    # d'où ce code de retour lu à part
+    (
+        set -e
+        "$@"
+    ) >/dev/null 2>&1
+    etat=$?
+    if [[ "${etat}" -eq 0 ]]; then pass "${desc}"; else fail "${desc}"; fi
 }
 section() { printf '\n== %s\n' "$*"; }
 
