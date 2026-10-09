@@ -1,5 +1,7 @@
+# Nuit : style Windows 11 sombre du projet Win11OS KDE (docs/theme-windows-11.md), avec les couleurs et le fond de BinixX OS.
+# Le thème Kvantum (Win11OS-dark) suit les couleurs : voir le thème clair.
 [kdeglobals][KDE]
-widgetStyle=Breeze
+widgetStyle=kvantum
 
 [kdeglobals][General]
 ColorScheme=BinixXSombre
@@ -8,7 +10,7 @@ ColorScheme=BinixXSombre
 Theme=breeze-dark
 
 [plasmarc][Theme]
-name=default
+name=Win11OS-dark
 
 [Wallpaper]
 Image=BinixX
@@ -17,8 +19,10 @@ Image=BinixX
 cursorTheme=Breeze_Light
 
 [kwinrc][org.kde.kdecoration2]
-library=org.kde.breeze
-theme=Breeze
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__Win11OS-dark
+ButtonsOnLeft=M
+ButtonsOnRight=IAX
 
 [ksplashrc][KSplash]
 Theme=org.kde.breeze.desktop

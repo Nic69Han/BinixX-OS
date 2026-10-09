@@ -11,8 +11,14 @@ L'allure se pose avec les outils de Plasma (plasma-apply-lookandfeel, plasma-app
 les couleurs, les icônes, le style des fenêtres et les applications ouvertes ; le fond d'écran, lui, a deux versions (claire et
 sombre) que Plasma choisit tout seul selon les couleurs. On relit toujours kdeglobals pour vérifier que ça a marché : on
 n'annonce rien sur la foi du code de sortie d'un outil. L'ambiance en cours se reconnaît à son schéma de couleurs.
+
+Aube et Nuit prennent le style Windows 11 du projet Win11OS KDE (docs/theme-windows-11.md) : les boutons, cases et barres de
+défilement des applications sont dessinés par Kvantum, qui a un thème clair et un thème sombre. Le choix du thème Kvantum n'est pas
+dans les réglages de Plasma mais dans un fichier à part (~/.config/Kvantum/kvantum.kvconfig) : on le garde d'accord avec les
+couleurs (voir synchroniser_kvantum), sans quoi des couleurs sombres sous un thème clair rendraient le texte illisible.
 """
 
+import configparser
 import json
 import os
 from collections import namedtuple
@@ -25,6 +31,9 @@ POINTEUR_GRAND = 36
 POINTEUR_NORMAL = 24          # la taille de KDE quand rien n'est écrit
 TEXTE_GRAND = 130
 THEME_CURSEUR = "Breeze_Light"      # le pointeur blanc de Windows ; « breeze_cursors » est le noir
+# Thème Kvantum de chaque schéma de couleurs (le contraste élevé garde le style Breeze, qui suit toutes les couleurs à la lettre)
+KVANTUM_PAR_COULEURS = {"BinixXClair": "Win11OS-light", "BinixXSombre": "Win11OS-dark"}
+THEMES_KVANTUM = tuple(KVANTUM_PAR_COULEURS.values())
 
 # cle, titre, texte, thème global de Plasma, schéma de couleurs, aperçu (fond, texte, accent, barre de titre)
 Ambiance = namedtuple("Ambiance", "cle titre texte theme couleurs apercu")
@@ -38,7 +47,7 @@ AMBIANCES = (
     Ambiance("contraste", "Contraste élevé", "Texte blanc sur fond noir, sélection en jaune : chaque élément se détache "
                                               "nettement, pour mieux lire quand la vue est fatiguée ou l'écran très "
                                               "lumineux.",
-             "org.binixx.dark.desktop", "BinixXContraste", ("#000000", "#FFFFFF", "#FFDD00", "#FFDD00")),
+             "org.binixx.contraste.desktop", "BinixXContraste", ("#000000", "#FFFFFF", "#FFDD00", "#FFDD00")),
 )
 CLES = tuple(a.cle for a in AMBIANCES)
 
@@ -71,6 +80,61 @@ def ambiance_actuelle(run=None):
     return next((a for a in AMBIANCES if a.couleurs == couleurs), None)
 
 
+def fichier_kvantum():
+    """Le fichier où Kvantum range le thème choisi (celui de l'utilisateur : il n'en lit aucun autre)."""
+    base = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
+    return os.path.join(base, "Kvantum", "kvantum.kvconfig")
+
+
+def _lire_kvantum(chemin):
+    lecteur = configparser.ConfigParser(interpolation=None, strict=False)
+    lecteur.optionxform = str  # Kvantum écrit des clés en minuscules ; on ne touche pas à la casse
+    try:
+        with open(chemin, encoding="utf-8") as fichier:
+            lecteur.read_file(fichier)
+    except (OSError, configparser.Error, UnicodeDecodeError):
+        return None
+    return lecteur
+
+
+def theme_kvantum(chemin=None):
+    """Le thème Kvantum choisi ; "" si le fichier n'existe pas, est illisible ou n'en nomme aucun."""
+    lecteur = _lire_kvantum(chemin or fichier_kvantum())
+    return lecteur.get("General", "theme", fallback="").strip() if lecteur else ""
+
+
+def poser_theme_kvantum(theme, chemin=None):
+    """Écrit le thème dans [General] en gardant le reste du fichier (réglages par application) ; écriture atomique."""
+    chemin = chemin or fichier_kvantum()
+    lecteur = _lire_kvantum(chemin) or configparser.ConfigParser(interpolation=None, strict=False)
+    lecteur.optionxform = str
+    if not lecteur.has_section("General"):
+        lecteur.add_section("General")
+    lecteur.set("General", "theme", theme)
+    os.makedirs(os.path.dirname(chemin), exist_ok=True)
+    temporaire = f"{chemin}.{os.getpid()}.tmp"
+    with open(temporaire, "w", encoding="utf-8") as fichier:
+        lecteur.write(fichier, space_around_delimiters=False)
+    os.replace(temporaire, chemin)
+
+
+def synchroniser_kvantum(couleurs=None, run=None, chemin=None):
+    """Met le thème Kvantum d'accord avec les couleurs (celles données, sinon celles en place) ; (modifié, message).
+    Un autre thème choisi à la main dans Kvantum Manager n'est jamais remplacé, et les couleurs qui ne sont pas à nous
+    (contraste élevé, couleurs de KDE) ne touchent à rien."""
+    couleurs = couleurs or couleurs_actuelles(run)
+    voulu = KVANTUM_PAR_COULEURS.get(couleurs)
+    if voulu is None:
+        return False, f"Couleurs « {couleurs or 'inconnues'} » : le thème Kvantum n'est pas touché."
+    actuel = theme_kvantum(chemin)
+    if actuel == voulu:
+        return False, f"Le thème Kvantum « {voulu} » est déjà en place."
+    if actuel and actuel not in THEMES_KVANTUM:
+        return False, f"Un autre thème Kvantum est choisi (« {actuel} ») : il est laissé tel quel."
+    poser_theme_kvantum(voulu, chemin)
+    return True, f"Thème Kvantum « {voulu} » en place."
+
+
 def _sans_ecran():
     """Les outils plasma-apply-* démarrent une application Qt : sans écran (ssh, test, tâche programmée) elle s'arrête avant
     d'avoir rien fait. On leur donne alors la plateforme « offscreen » : ils écrivent les réglages et préviennent les
@@ -101,12 +165,15 @@ def appliquer(cle, run=None):
     if ambiance.cle == "contraste":
         # Une couleur d'accentuation choisie à la main écraserait le jaune : on l'enlève (elle n'existe pas la plupart du temps)
         run(["kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", "AccentColor", "--delete"], timeout=15)
+    # Le thème Kvantum d'abord : les applications qui changent de style avec le thème global le trouvent déjà en place
+    synchroniser_kvantum(ambiance.couleurs, run)
     _essayer([["plasma-apply-lookandfeel", "--apply", ambiance.theme], ["lookandfeeltool", "--apply", ambiance.theme]], run)
     # Le thème global pose déjà ses couleurs ; pour le contraste élevé, on les remplace par les nôtres. Dans tous les cas on
     # force le schéma voulu : c'est lui qui dit quelle ambiance est en cours. Pas de secours par écriture directe du nom :
     # sans les couleurs que l'outil copie dans kdeglobals, le nom seul ne changerait rien à l'écran.
     _essayer([["plasma-apply-colorscheme", ambiance.couleurs]], run, lambda: couleurs_actuelles(run) == ambiance.couleurs)
     if couleurs_actuelles(run) != ambiance.couleurs:
+        synchroniser_kvantum(None, run)  # rien n'a changé : le thème Kvantum redevient celui des couleurs qui sont toujours là
         return False, ("L'ambiance « %s » n'a pas pu être appliquée : le bureau ne répond pas. Essayez depuis une session "
                        "ouverte." % ambiance.titre)
     return True, f"L'ambiance « {ambiance.titre} » est en place."
@@ -186,7 +253,7 @@ def desactiver_grand_texte(run=None, chemin_marqueur=None, chemin_texte=None):
 
 
 def main(argv=None, run=None, sortie=print, chemin_marqueur=None, chemin_texte=None):
-    """binixx-ambiance liste | etat | appliquer AMBIANCE | grand-texte oui|non ; code de sortie 1 en cas d'échec."""
+    """binixx-ambiance liste | etat | appliquer AMBIANCE | grand-texte oui|non | kvantum ; code de sortie 1 en cas d'échec."""
     import argparse
 
     parser = argparse.ArgumentParser(prog="binixx-ambiance", description="Ambiances du bureau : Aube, Nuit, Contraste élevé.")
@@ -195,6 +262,8 @@ def main(argv=None, run=None, sortie=print, chemin_marqueur=None, chemin_texte=N
     sous.add_parser("etat", help="l'ambiance en cours et l'état de « Grand texte »")
     poser = sous.add_parser("appliquer", help="poser une ambiance")
     poser.add_argument("ambiance", choices=CLES)
+    sous.add_parser("kvantum", help="mettre le thème Kvantum d'accord avec les couleurs en place (lancé à l'ouverture de session "
+                                    "et quand les couleurs changent)")
     grand = sous.add_parser("grand-texte", help="activer ou désactiver « Grand texte »")
     grand.add_argument("choix", choices=("oui", "non"))
     args = parser.parse_args(argv)
@@ -206,6 +275,10 @@ def main(argv=None, run=None, sortie=print, chemin_marqueur=None, chemin_texte=N
         courante = ambiance_actuelle(run)
         sortie(f"ambiance={courante.cle if courante else 'aucune'}")
         sortie(f"grand-texte={'oui' if grand_texte_actif(chemin_marqueur, chemin_texte) else 'non'}")
+        return 0
+    if args.action == "kvantum":
+        _, message = synchroniser_kvantum(None, run)
+        sortie(message)
         return 0
     if args.action == "appliquer":
         reussi, message = appliquer(args.ambiance, run)

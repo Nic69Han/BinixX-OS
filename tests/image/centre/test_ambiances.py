@@ -16,6 +16,11 @@ DEPOT = os.path.join(ICI, "../../../system_files")
 CAPTURES = os.environ.get("BINIXX_CAPTURES")
 sys.path.insert(0, RACINE)
 
+# Appliquer une ambiance écrit aussi le thème Kvantum de l'utilisateur (~/.config/Kvantum) : ces tests ne touchent jamais au vrai dossier
+_MAISON = tempfile.TemporaryDirectory()
+os.environ["HOME"] = _MAISON.name
+os.environ.pop("XDG_CONFIG_HOME", None)
+
 from binixx_centre import ambiances as A  # noqa: E402
 from binixx_centre import icones, taille_texte as T  # noqa: E402
 
@@ -29,7 +34,8 @@ except ImportError:
 SCHEMA = os.environ.get("BINIXX_SCHEMA_CONTRASTE", os.path.join(DEPOT, "usr/share/color-schemes/BinixXContraste.colors"))
 LNF = os.environ.get("BINIXX_LNF", os.path.join(DEPOT, "usr/share/plasma/look-and-feel"))
 PARAMETRES = os.environ.get("BINIXX_PARAMETRES", os.path.join(DEPOT, "usr/share/binixx/parametres/parametres.tsv"))
-THEMES = {"org.binixx.desktop": "BinixXClair", "org.binixx.dark.desktop": "BinixXSombre"}
+THEMES = {"org.binixx.desktop": "BinixXClair", "org.binixx.dark.desktop": "BinixXSombre",
+          "org.binixx.contraste.desktop": "BinixXContraste"}
 
 
 class FauxKde:
@@ -148,7 +154,14 @@ class Ambiances(unittest.TestCase):
             ambiance = A.trouver(cle)
             with open(os.path.join(LNF, ambiance.theme, "contents", "defaults"), encoding="utf-8") as fichier:
                 self.assertIn(f"ColorScheme={ambiance.couleurs}", fichier.read().splitlines(), cle)
-        self.assertEqual(A.trouver("contraste").theme, A.trouver("nuit").theme)   # le contraste part du thème sombre
+        # le contraste élevé a son propre thème global : style Breeze (qui suit les couleurs à la lettre), pas le style Windows 11
+        contraste = A.trouver("contraste")
+        self.assertEqual(contraste.theme, "org.binixx.contraste.desktop")
+        with open(os.path.join(LNF, contraste.theme, "contents", "defaults"), encoding="utf-8") as fichier:
+            lignes = fichier.read().splitlines()
+        self.assertIn("ColorScheme=BinixXContraste", lignes)
+        self.assertIn("widgetStyle=Breeze", lignes)
+        self.assertNotIn("widgetStyle=kvantum", lignes)
 
     def test_les_icones_de_la_page_existent(self):
         for nom in ("sun", "moon", "eye", "type"):
@@ -242,11 +255,11 @@ class Allure(unittest.TestCase):
         self.assertEqual(faux.couleurs(), "BinixXSombre")
         self.assertEqual(faux.valeurs[("kdeglobals", "KDE", "LookAndFeelPackage")], "org.binixx.dark.desktop")
 
-    def test_contraste_part_du_theme_sombre_et_remplace_les_couleurs(self):
+    def test_contraste_a_son_theme_global_et_remplace_les_couleurs(self):
         faux = FauxKde()
         self.assertTrue(A.appliquer("contraste", faux)[0])
         self.assertEqual(faux.couleurs(), "BinixXContraste")
-        self.assertEqual(faux.valeurs[("kdeglobals", "KDE", "LookAndFeelPackage")], "org.binixx.dark.desktop")
+        self.assertEqual(faux.valeurs[("kdeglobals", "KDE", "LookAndFeelPackage")], "org.binixx.contraste.desktop")
 
     def test_contraste_enleve_une_couleur_d_accentuation_choisie_a_la_main(self):
         faux = FauxKde({("kdeglobals", "General", "AccentColor"): "255,0,0"})
@@ -316,6 +329,111 @@ class Allure(unittest.TestCase):
             faux = FauxKde({("kdeglobals", "General", "ColorScheme"): schema})
             self.assertIsNone(A.ambiance_actuelle(faux), schema)
         self.assertIsNone(A.ambiance_actuelle(FauxKde(panne=True)))
+
+
+class StyleKvantum(unittest.TestCase):
+    """Le thème Kvantum (style Windows 11 des applications) doit suivre les couleurs : clair sous Aube, sombre sous Nuit."""
+
+    def setUp(self):
+        self.dossier = tempfile.mkdtemp()
+        self.addCleanup(__import__("shutil").rmtree, self.dossier, True)
+        self.fichier = os.path.join(self.dossier, "Kvantum", "kvantum.kvconfig")
+
+    def ecrire(self, texte):
+        os.makedirs(os.path.dirname(self.fichier), exist_ok=True)
+        with open(self.fichier, "w", encoding="utf-8") as f:
+            f.write(texte)
+
+    def lire(self):
+        with open(self.fichier, encoding="utf-8") as f:
+            return f.read()
+
+    def test_un_theme_par_couleurs_et_aucun_pour_le_contraste(self):
+        self.assertEqual(A.KVANTUM_PAR_COULEURS, {"BinixXClair": "Win11OS-light", "BinixXSombre": "Win11OS-dark"})
+        self.assertNotIn(A.trouver("contraste").couleurs, A.KVANTUM_PAR_COULEURS)
+
+    def test_le_fichier_est_celui_de_l_utilisateur(self):
+        self.addCleanup(os.environ.pop, "XDG_CONFIG_HOME", None)
+        os.environ["XDG_CONFIG_HOME"] = "/tmp/autre-config"
+        self.assertEqual(A.fichier_kvantum(), "/tmp/autre-config/Kvantum/kvantum.kvconfig")
+        os.environ.pop("XDG_CONFIG_HOME")
+        self.assertEqual(A.fichier_kvantum(), os.path.expanduser("~/.config/Kvantum/kvantum.kvconfig"))
+
+    def test_sans_fichier_il_est_cree_avec_le_theme_des_couleurs(self):
+        faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXSombre"})
+        modifie, message = A.synchroniser_kvantum(None, faux, self.fichier)
+        self.assertTrue(modifie, message)
+        self.assertEqual(self.lire(), "[General]\ntheme=Win11OS-dark\n\n")
+        self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-dark")
+
+    def test_le_theme_suit_le_changement_de_couleurs(self):
+        self.ecrire("[General]\ntheme=Win11OS-light\n")
+        self.assertTrue(A.synchroniser_kvantum("BinixXSombre", None, self.fichier)[0])
+        self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-dark")
+        self.assertTrue(A.synchroniser_kvantum("BinixXClair", None, self.fichier)[0])
+        self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-light")
+
+    def test_deja_en_place_rien_n_est_reecrit(self):
+        self.ecrire("[General]\ntheme=Win11OS-light\n")
+        avant = os.stat(self.fichier).st_mtime_ns
+        modifie, message = A.synchroniser_kvantum("BinixXClair", None, self.fichier)
+        self.assertFalse(modifie)
+        self.assertIn("déjà en place", message)
+        self.assertEqual(os.stat(self.fichier).st_mtime_ns, avant)
+
+    def test_les_reglages_par_application_sont_gardes(self):
+        self.ecrire("[General]\ntheme=Win11OS-light\n\n[Applications]\nKvantumTheme-dark=firefox, thunderbird\n")
+        A.synchroniser_kvantum("BinixXSombre", None, self.fichier)
+        texte = self.lire()
+        self.assertIn("theme=Win11OS-dark", texte)
+        self.assertIn("[Applications]", texte)
+        self.assertIn("KvantumTheme-dark=firefox, thunderbird", texte)
+
+    def test_un_autre_theme_choisi_a_la_main_n_est_pas_remplace(self):
+        self.ecrire("[General]\ntheme=KvArc\n")
+        modifie, message = A.synchroniser_kvantum("BinixXSombre", None, self.fichier)
+        self.assertFalse(modifie)
+        self.assertIn("KvArc", message)
+        self.assertEqual(A.theme_kvantum(self.fichier), "KvArc")
+
+    def test_le_contraste_et_les_couleurs_inconnues_ne_touchent_a_rien(self):
+        for couleurs in ("BinixXContraste", "BreezeDark", "MonSchema"):
+            modifie, _ = A.synchroniser_kvantum(couleurs, None, self.fichier)
+            self.assertFalse(modifie, couleurs)
+            self.assertFalse(os.path.exists(self.fichier), couleurs)
+        self.assertFalse(A.synchroniser_kvantum(None, FauxKde(), self.fichier)[0])  # pas de couleurs connues non plus
+
+    def test_un_fichier_illisible_est_remplace_sans_planter(self):
+        self.ecrire("pas un fichier de réglages\n[General\n")
+        self.assertEqual(A.theme_kvantum(self.fichier), "")
+        self.assertTrue(A.synchroniser_kvantum("BinixXClair", None, self.fichier)[0])
+        self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-light")
+
+    def test_appliquer_pose_le_theme_avant_les_couleurs_et_le_reprend_en_cas_d_echec(self):
+        faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXClair"})
+        self.ecrire("[General]\ntheme=Win11OS-light\n")
+        os.environ["XDG_CONFIG_HOME"] = self.dossier
+        self.addCleanup(os.environ.pop, "XDG_CONFIG_HOME", None)
+        self.assertTrue(A.appliquer("nuit", faux)[0])
+        self.assertEqual(A.theme_kvantum(), "Win11OS-dark")
+        self.assertTrue(A.appliquer("aube", faux)[0])
+        self.assertEqual(A.theme_kvantum(), "Win11OS-light")
+        # le bureau ne répond pas : les couleurs n'ont pas changé, le thème Kvantum redevient celui de ces couleurs
+        panne = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXClair"}, absents={
+            "plasma-apply-lookandfeel", "lookandfeeltool", "plasma-apply-colorscheme"})
+        self.assertFalse(A.appliquer("nuit", panne)[0])
+        self.assertEqual(A.theme_kvantum(), "Win11OS-light")
+
+    def test_la_ligne_de_commande(self):
+        os.environ["XDG_CONFIG_HOME"] = self.dossier
+        self.addCleanup(os.environ.pop, "XDG_CONFIG_HOME", None)
+        sorties = []
+        faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXSombre"})
+        self.assertEqual(A.main(["kvantum"], faux, sorties.append), 0)
+        self.assertEqual(A.theme_kvantum(), "Win11OS-dark")
+        self.assertIn("Win11OS-dark", sorties[0])
+        self.assertEqual(A.main(["kvantum"], faux, sorties.append), 0)    # sans rien à changer : aucune erreur
+        self.assertIn("déjà en place", sorties[1])
 
 
 class SansEcran(unittest.TestCase):

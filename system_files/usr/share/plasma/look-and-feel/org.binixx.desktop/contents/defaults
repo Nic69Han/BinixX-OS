@@ -1,5 +1,9 @@
+# Aube : style Windows 11 du projet Win11OS KDE (docs/theme-windows-11.md), avec les couleurs et le fond de BinixX OS.
+# widgetStyle=kvantum : boutons, cases et barres de défilement dessinés par Kvantum ; le thème Kvantum lui-même (Win11OS-light)
+# n'est pas un réglage de Plasma mais le contenu de ~/.config/Kvantum/kvantum.kvconfig (binixx-ambiance kvantum le tient d'accord
+# avec les couleurs).
 [kdeglobals][KDE]
-widgetStyle=Breeze
+widgetStyle=kvantum
 
 [kdeglobals][General]
 ColorScheme=BinixXClair
@@ -8,7 +12,7 @@ ColorScheme=BinixXClair
 Theme=breeze
 
 [plasmarc][Theme]
-name=default
+name=Win11OS-light
 
 [Wallpaper]
 Image=BinixX
@@ -16,9 +20,12 @@ Image=BinixX
 [kcminputrc][Mouse]
 cursorTheme=Breeze_Light
 
+# Barre de titre de Windows : l'icône de l'application à gauche, réduire, agrandir et fermer à droite
 [kwinrc][org.kde.kdecoration2]
-library=org.kde.breeze
-theme=Breeze
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__Win11OS-light
+ButtonsOnLeft=M
+ButtonsOnRight=IAX
 
 [ksplashrc][KSplash]
 Theme=org.kde.breeze.desktop

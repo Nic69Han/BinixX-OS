@@ -132,6 +132,7 @@ Choisies avec le propriétaire après comparaison ; chaque ligne est une pull re
 | **P3. Créer une application web** | Transformer n'importe quel site (intranet, logiciel de gestion en ligne) en application du menu. | Outil « Web Apps » de Zorin OS 18 | À faire |
 | **P4. Clé USB bootable** | « Rufus / Etcher » dans le catalogue, vers l'outil KDE d'écriture d'ISO : installer BinixX OS sur le PC suivant. | Deepin Boot Maker | À faire |
 | **P5. Poste partagé** | Option de l'image d'entreprise : la session repart propre à chaque redémarrage (réception, borne, salle de formation). | « Restauration sans souci » de Deepin 25 | À faire |
+| **X2. Style Windows 11** | Aube et Nuit prennent l'allure de Windows 11 : fenêtres à angles arrondis, boutons et cases plats, barre des tâches et fenêtres de Plasma translucides, grâce au projet Win11OS KDE (GPL-3.0, repris sans modification) avec les couleurs, le fond et la disposition de BinixX OS ; Contraste élevé garde le style Breeze. Suite prévue : icônes Windows 11 (dossiers jaunes), menu Démarrer en grille, écran de connexion : [theme-windows-11.md](theme-windows-11.md). | Win11OS KDE (yeyushengfan258) | En test |
 
 Écartés pour l'instant : synchronisation des réglages dans le nuage (serveur nécessaire), IA intégrée (en attente),
 édition « Lite » (seconde image à maintenir), partitions système et données séparées et instantanés des fichiers Btrfs

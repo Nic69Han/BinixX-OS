@@ -1,0 +1,20 @@
+Win11OS KDE theme : fichiers de BinixX OS venant du projet de yeyushengfan258
+
+Projet   : https://github.com/yeyushengfan258/Win11OS-kde
+Version  : commit 9f021c3e71da7baf59a0614ab858d53b1e455fd5 (27 juin 2025)
+Licence  : GNU GPL version 3 (fichier COPYING). Auteurs : fichier AUTHORS.
+           Les fichiers ci-dessous sont des copies, sans modification, de ceux du projet.
+
+Dans l'image :
+  /usr/share/aurorae/themes/Win11OS-light, Win11OS-dark          décoration des fenêtres (barre de titre, boutons)
+  /usr/share/Kvantum/Win11OS-light, Win11OS-dark                 style des boutons, cases, barres de défilement (Kvantum)
+  /usr/share/plasma/desktoptheme/Win11OS-light, Win11OS-dark     barre des tâches, fenêtres et bulles de Plasma
+
+Non repris, volontairement :
+  wallpaper/, sddm-light/, sddm-dark/   fonds d'écran du projet (dessins proches du fond de Windows 11) et écran de connexion :
+                                        BinixX OS garde son fond « Le marcheur de l'aube » et l'écran de connexion de Plasma
+  plasma/look-and-feel/, color-schemes/ remplacés par les thèmes globaux et les couleurs de BinixX OS
+                                        (usr/share/plasma/look-and-feel/org.binixx*, couleurs BinixXClair et BinixXSombre)
+
+Le code et les réglages propres à BinixX OS restent sous licence Apache 2.0 (fichier LICENSE du dépôt) ; les fichiers de ce dossier
+et des trois thèmes ci-dessus restent sous GNU GPL version 3.

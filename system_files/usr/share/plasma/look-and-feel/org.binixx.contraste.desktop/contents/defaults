@@ -1,0 +1,26 @@
+# Contraste élevé : style Breeze, qui suit à la lettre les couleurs du schéma (noir, blanc et jaune), et non le style Windows 11 de
+# Kvantum, qui dessine ses propres couleurs. Texte blanc sur fond noir, sélection en jaune.
+[kdeglobals][KDE]
+widgetStyle=Breeze
+
+[kdeglobals][General]
+ColorScheme=BinixXContraste
+
+[kdeglobals][Icons]
+Theme=breeze-dark
+
+[plasmarc][Theme]
+name=default
+
+[Wallpaper]
+Image=BinixX
+
+[kcminputrc][Mouse]
+cursorTheme=Breeze_Light
+
+[kwinrc][org.kde.kdecoration2]
+library=org.kde.breeze
+theme=Breeze
+
+[ksplashrc][KSplash]
+Theme=org.kde.breeze.desktop

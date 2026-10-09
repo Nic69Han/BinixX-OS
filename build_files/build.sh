@@ -72,6 +72,12 @@ SECURITY=(
     mokutil
 )
 
+# Style Windows 11 des applications : Kvantum dessine les boutons, cases et barres de défilement
+# (thèmes Win11OS-light et Win11OS-dark de usr/share/Kvantum, docs/theme-windows-11.md)
+APPEARANCE=(
+    kvantum
+)
+
 # Administration à la souris : Cockpit, console web de Fedora (domaine Active Directory, mises à
 # jour et retour arrière, pare-feu, disques, services, journaux), et pare-feu dans
 # Configuration du système (plasma-firewall)
@@ -122,6 +128,7 @@ dnf5 -y install \
     "${SCANNING[@]}" \
     "${VIDEOCONF[@]}" \
     "${SECURITY[@]}" \
+    "${APPEARANCE[@]}" \
     "${LANGUAGE[@]}" \
     "${CLOUD[@]}" \
     "${VPN[@]}" \
@@ -140,6 +147,9 @@ cp -a --update=none "${LNF_DIR}/org.kde.breeze.desktop/." "${LNF_DIR}/org.binixx
 # Thème global sombre org.binixx.dark.desktop : même disposition, reste copié de Brise sombre
 cp -a "${LNF_DIR}/org.binixx.desktop/contents/layouts" "${LNF_DIR}/org.binixx.dark.desktop/contents/"
 cp -a --update=none "${LNF_DIR}/org.kde.breezedark.desktop/." "${LNF_DIR}/org.binixx.dark.desktop/"
+# Thème global contraste élevé org.binixx.contraste.desktop (style Breeze, sans Kvantum) : même disposition, reste copié de Brise sombre
+cp -a "${LNF_DIR}/org.binixx.desktop/contents/layouts" "${LNF_DIR}/org.binixx.contraste.desktop/contents/"
+cp -a --update=none "${LNF_DIR}/org.kde.breezedark.desktop/." "${LNF_DIR}/org.binixx.contraste.desktop/"
 
 # Couleurs BinixX OS clair et sombre : celles de Brise, avec le bleu BinixX OS comme couleur d'accent
 # (sélection, survol, focus, liens), comme les couleurs d'accent de Zorin OS 18. Générées
@@ -322,6 +332,9 @@ systemctl enable plasma-setup.service
 # Centre d'administration (Cockpit), joignable seulement depuis le PC lui-même
 # (usr/lib/systemd/system/cockpit.socket.d/50-binixx-localhost.conf)
 systemctl enable cockpit.socket
+# Thème Kvantum d'accord avec les couleurs du bureau, pour chaque utilisateur : à l'ouverture de session et chaque fois que ses
+# couleurs changent (usr/lib/systemd/user/binixx-kvantum.{path,service})
+systemctl --global enable binixx-kvantum.service binixx-kvantum.path
 
 ### 7. Sécurité
 # Pare-feu : zone binixx par défaut (usr/lib/firewalld/zones/binixx.xml) au lieu de

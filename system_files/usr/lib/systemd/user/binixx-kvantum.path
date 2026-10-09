@@ -1,0 +1,11 @@
+[Unit]
+Description=BinixX OS : surveille les couleurs du bureau pour garder le thème Kvantum d'accord
+Documentation=https://github.com/Nic69Han/BinixX-OS/blob/main/docs/theme-windows-11.md
+
+[Path]
+# kdeglobals est réécrit à chaque changement de couleurs, par Configuration du système comme par le Centre BinixX OS
+PathChanged=%h/.config/kdeglobals
+Unit=binixx-kvantum.service
+
+[Install]
+WantedBy=default.target

@@ -258,13 +258,16 @@ d'origine » remet tout.
 
 | Ambiance | Ce qui change |
 |---|---|
-| **Aube** | Le thème clair de BinixX OS (couleurs `BinixXClair`). |
-| **Nuit** | Le thème sombre de BinixX OS (couleurs `BinixXSombre`). Les icônes de Breeze s'assombrissent ou s'éclaircissent tout seules avec les couleurs. |
-| **Contraste élevé** | Noir, blanc et jaune (couleurs `BinixXContraste`, `usr/share/color-schemes/`) : texte blanc sur fond noir, sélection et focus en jaune, barre de titre jaune pour la fenêtre active. |
+| **Aube** | Le thème clair de BinixX OS (couleurs `BinixXClair`), au style Windows 11 : fenêtres, boutons et barre des tâches du projet Win11OS KDE ([theme-windows-11.md](theme-windows-11.md)). |
+| **Nuit** | Le thème sombre de BinixX OS (couleurs `BinixXSombre`), même style en sombre. Les icônes de Breeze s'assombrissent ou s'éclaircissent tout seules avec les couleurs. |
+| **Contraste élevé** | Noir, blanc et jaune (couleurs `BinixXContraste`, `usr/share/color-schemes/`) : texte blanc sur fond noir, sélection et focus en jaune, barre de titre jaune pour la fenêtre active. Style Breeze (thème global `org.binixx.contraste.desktop`), qui suit les couleurs à la lettre. |
 
 « **Grand texte** » est un interrupteur à part, qui se combine avec n'importe quelle allure : texte à 130 % (la logique de « Taille du
 texte », ci-dessus) et pointeur de souris plus gros (36 au lieu de 24).
 
+- **Thème Kvantum** : Aube et Nuit dessinent les boutons et cases avec Kvantum, dont le thème (clair ou sombre) est rangé hors des réglages
+  de Plasma ; `binixx-ambiance appliquer` le pose avant le thème global, et `binixx-ambiance kvantum` (lancé par un service de la session
+  à chaque changement de `kdeglobals`) le garde d'accord avec les couleurs ([détails](theme-windows-11.md#comment-ça-se-règle)).
 - **Comment** : l'allure se pose avec les outils de Plasma (`plasma-apply-lookandfeel` pour le thème global, puis
   `plasma-apply-colorscheme` pour le schéma de couleurs ; `lookandfeeltool` si le premier manque) :
   les couleurs, les icônes et les fenêtres changent tout de suite, y compris dans les applications ouvertes. Le fond d'écran a une
