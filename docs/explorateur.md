@@ -1,25 +1,26 @@
 # Explorateur BinixX
 
-Dolphin, l'explorateur de fichiers de KDE, préréglé pour ressembler à l'**Explorateur de fichiers de Windows 11** : mêmes boutons
-aux mêmes endroits, même vue « détails ». On garde Dolphin plutôt que d'écrire ou d'installer un autre explorateur : il sait déjà
-parler aux dossiers partagés Windows, aux téléphones, aux archives et à la corbeille, et KDE le met à jour.
+Dolphin, l'explorateur de fichiers de KDE, **épuré** : une seule ligne de boutons, les fichiers en grandes icônes, pas de barre d'état.
+Il reste l'explorateur de fichiers de BinixX OS (Windows + E) : il sait déjà parler aux dossiers partagés Windows, aux téléphones, aux
+archives et à la corbeille, et KDE le met à jour. Seule sa présentation change : l'ouverture par défaut de Dolphin était jugée trop
+chargée (deux barres, une vue en liste serrée, une barre d'état).
 
 ## Ce qu'on voit à l'ouverture
 
-| Dans l'Explorateur de Windows 11 | Dans BinixX OS |
+| Élément | Où |
 | --- | --- |
-| Précédent, Suivant, Dossier parent, Actualiser | Les quatre premiers boutons de la première ligne |
-| Barre d'adresse (chemin cliquable), Rechercher | Barre d'adresse de Dolphin (cliquer dans la zone vide pour saisir un chemin), bouton de recherche (Ctrl + F) |
-| **Nouveau ▾** | **Créer nouveau** : dossier, document texte, classeur, présentation (vierges, au format Microsoft Office : voir [migration-windows.md](migration-windows.md)) |
-| Couper, Copier, Coller, Renommer, Supprimer | Cinq boutons à icône seule (le nom s'affiche au survol) ; « Supprimer » envoie à la corbeille |
-| **Trier ▾**, **Afficher ▾** | **Trier par**, **Configuration des affichages** (taille des icônes, liste, détails, aperçus, fichiers cachés) |
-| Colonnes Nom, Modifié le, Type, Taille | Mêmes colonnes, dans le même ordre |
-| Volet de navigation | Panneau « Emplacements » à gauche (F9 pour l'afficher ou le masquer) |
-| Barre d'état « 12 éléments » | Barre d'état sur toute la largeur, avec le curseur de taille |
+| Précédent, Suivant, Dossier parent | Les trois premiers boutons de la ligne, à icône seule (le nom s'affiche au survol) |
+| Barre d'adresse | Le chemin cliquable, au milieu (cliquer dans la zone vide pour saisir un chemin) |
+| Rechercher | Loupe (Ctrl + F) |
+| Affichage | Bouton à flèche : taille des icônes, liste, détails, aperçus, fichiers cachés (« Configuration des affichages ») |
+| Menu | Les trois traits : tout le reste (Nouvelle fenêtre, Créer nouveau, Trier par, Réglages…) |
+| Fichiers | Grandes icônes (niveau de zoom 3, comme les « icônes moyennes » de Windows) |
+| Volet de gauche | Panneau « Emplacements » (F9 pour l'afficher ou le masquer) |
 | Information au survol d'un fichier | Fiche d'information au survol |
 
-La **première ligne** porte la navigation et l'adresse ; la **seconde**, appelée barre de commandes comme sous Windows, porte les
-actions sur les fichiers. Un clic droit sur une barre → « Configurer les barres d'outils » permet de changer les boutons.
+Les actions qu'on faisait avec des boutons restent à portée : **clic droit** (Couper, Copier, Coller, Renommer, Déplacer dans la corbeille,
+Créer nouveau → dossier, document texte, classeur, présentation), ou **Ctrl + X, Ctrl + C, Ctrl + V, F2, Suppr**. Pour trier : menu →
+Trier par, ou clic droit dans le dossier → Trier par. Pour remettre des boutons : clic droit sur la barre → « Configurer les barres d'outils ».
 
 ## Comment c'est fait
 
@@ -28,17 +29,17 @@ dans `/etc/skel`, d'où `useradd` (donc Plasma Setup et l'installeur) les copie 
 
 | Fichier (dans le dossier personnel) | Rôle |
 | --- | --- |
-| `.local/share/kxmlgui5/dolphin/dolphinui.rc` | Les deux barres d'outils et la priorité de chaque bouton (icône seule ou icône et texte) |
-| `.local/share/dolphin/view_properties/global/.directory` | Vue « détails » par défaut, colonnes Nom, Modifié le, Type, Taille |
+| `.local/share/kxmlgui5/dolphin/dolphinui.rc` | La barre d'outils (sept boutons) et la priorité de chacun (icône seule) |
+| `.local/share/dolphin/view_properties/global/.directory` | Vue par défaut : icônes (`ViewMode=0`, `ZoomLevel=3`) ; si on passe en vue « détails », colonnes Nom, Modifié le, Type, Taille |
 
-Les réglages qui valent pour tous les comptes sont dans `/etc/xdg/dolphinrc` (barre d'état pleine largeur, information au survol, curseur
-de taille, lignes compactes à petites icônes et sans flèche d'arborescence dans la vue « détails ») ; KDE les lit derrière ceux de l'utilisateur, qui reste prioritaire.
+Les réglages qui valent pour tous les comptes sont dans `/etc/xdg/dolphinrc` (pas de barre d'état, information au survol, lignes compactes à petites
+icônes et sans flèche d'arborescence pour qui passe en vue « détails ») ; KDE les lit derrière ceux de l'utilisateur, qui reste prioritaire.
 
 ### Pourquoi une mise à jour de Dolphin n'écrase rien
 
 `dolphinui.rc` porte volontairement la **version 1**, très inférieure à celle de Dolphin. C'est le mécanisme que KDE (kxmlgui) prévoit
-pour les réglages d'un utilisateur : il garde le fichier de Dolphin, avec ses menus, et y reprend seulement les barres d'outils et les
-propriétés des boutons du fichier du compte. Si Dolphin ajoute un menu ou un bouton, il apparaît ; nos barres, elles, ne bougent pas.
+pour les réglages d'un utilisateur : il garde le fichier de Dolphin, avec ses menus, et y reprend seulement la barre d'outils et les
+propriétés des boutons du fichier du compte. Si Dolphin ajoute un menu ou un bouton, il apparaît ; notre barre, elle, ne bouge pas.
 Un nom de bouton que Dolphin ne connaît plus est ignoré sans erreur : le test de l'image vérifie donc que chaque nom existe encore.
 
 ## Pour un compte déjà créé
@@ -58,18 +59,24 @@ rangé dans `~/.local/share/binixx/sauvegardes/`. `binixx-explorateur retablir` 
 
 - **Pas de colonnes à la manière du Finder de macOS** : Dolphin les a retirées avec KDE 4.8 (le code était devenu trop difficile à maintenir) et
   la recherche n'a trouvé aucun explorateur Qt maintenu qui les propose. C'est un point de l'ambiance macOS, à étudier séparément.
-- **Icônes de Breeze**, comme le reste du bureau. Des icônes dans le style de Windows 11 (les Fluent UI System Icons de Microsoft, sous
-  licence MIT) viendront dans une étape suivante.
-- **Un seul clic ouvre un fichier**, comme partout dans KDE ; Windows demande un double-clic. Réglage : Configuration du système → Comportement de
-  l'espace de travail → Comportement général. Non modifié ici : il touche aussi le bureau et toutes les applications KDE.
-- Les titres des groupes du panneau de gauche (« Emplacements », « Appareils »…) sont ceux de KDE : on ne peut pas les renommer
-  « Accès rapide » ou « Ce PC » sans traduire Dolphin.
+- **Pas de barre d'état** : le nombre d'éléments sélectionnés et la place libre ne sont plus affichés. Pour les retrouver : menu → Configurer
+  Dolphin (réglage de la barre d'état) ou, en une ligne, `ShowStatusBar=1` dans `~/.config/dolphinrc` (2 : aucune, 1 : pleine largeur).
+- **Le panneau de gauche** garde les groupes de KDE (« Emplacements », « Distant », « Récent ») : on ne peut pas les renommer « Accès rapide »
+  ou « Ce PC » sans traduire Dolphin.
+- **Icônes de Breeze**, comme le reste du bureau, tant que le thème d'icônes n'est pas changé.
+
+## Pourquoi pas un autre explorateur
+
+Quatre explorateurs ont été comparés sur la même image de Fedora 44 : Dolphin (KDE), Nautilus (GNOME), COSMIC Files et Spacedrive. Nautilus et
+COSMIC Files tirent chacun leur bureau, leurs réglages et leurs services ; Spacedrive est une version alpha, sous licence AGPL, sans paquet
+officiel. Dolphin épuré donne l'allure la plus proche de celle des explorateurs de Windows 11 et de macOS, sans rien ajouter au système.
 
 ## Tests
 
-- **Image** (`tests/image/checks.d/86-explorateur.sh`) : fichiers présents, XML valide, version 1, les deux barres et leurs boutons, chaque
-  nom de bouton présent dans Dolphin ou dans les actions standard de KDE, vue par défaut, `dolphinrc` lu sans fichier utilisateur, compte
-  créé par `useradd`, commande `binixx-explorateur` (appliquer, conserver, remplacer avec sauvegarde, rétablir).
+- **Image** (`tests/image/checks.d/86-explorateur.sh`) : fichiers présents, XML valide, version 1, une seule barre et ses sept boutons dans l'ordre,
+  chaque nom de bouton présent dans Dolphin ou dans les actions standard de KDE, clés de réglage encore connues de Dolphin, vue par défaut,
+  `dolphinrc` lu sans fichier utilisateur, compte créé par `useradd`, commande `binixx-explorateur` (appliquer, conserver, remplacer avec
+  sauvegarde, rétablir).
 - **VM** (`tests/vm/checks.d/86-explorateur.sh`) : le compte de l'installation a reçu les fichiers de `/etc/skel` ; Dolphin s'ouvre dans la
-  vraie session et KDE réécrit alors le fichier du compte avec la version de Dolphin, ses menus **et** nos deux barres (c'est la preuve que
+  vraie session et KDE réécrit alors le fichier du compte avec la version de Dolphin, ses menus **et** notre barre (c'est la preuve que
   la fusion a eu lieu) ; une capture d'écran (`explorateur.png`) est jointe aux journaux du test.

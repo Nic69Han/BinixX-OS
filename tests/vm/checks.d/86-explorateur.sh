@@ -1,9 +1,9 @@
 # shellcheck shell=bash
-# Explorateur BinixX : Dolphin préréglé comme l'Explorateur de Windows 11.
-#  - phase base : le compte de l'installation a reçu les barres d'outils et la vue « détails » de /etc/skel (c'est ce que fait
+# Explorateur BinixX : Dolphin épuré (une seule ligne de boutons, vue en icônes, pas de barre d'état).
+#  - phase base : le compte de l'installation a reçu la barre d'outils et la vue en icônes de /etc/skel (c'est ce que fait
 #    l'installeur à la création du compte), et les réglages communs de /etc/xdg/dolphinrc sont lus dans la session ;
 #  - phase explorateur (lancée par run-vm-test.sh, qui photographie ensuite l'écran : explorateur.png) : Dolphin s'ouvre dans la vraie
-#    session, et on vérifie que KDE a bien repris nos barres d'outils dans son fichier (il réécrit alors le fichier du compte avec la
+#    session, et on vérifie que KDE a bien repris notre barre d'outils dans son fichier (il réécrit alors le fichier du compte avec la
 #    version de Dolphin pour les menus). La fenêtre reste ouverte pour la capture.
 explorateur_session() {
     local uid
@@ -14,13 +14,13 @@ explorateur_session() {
 check_explorateur_compte() {
     section "Explorateur BinixX (compte de l'installation)"
     local rc=.local/share/kxmlgui5/dolphin/dolphinui.rc vues=.local/share/dolphin/view_properties/global/.directory out
-    check "barres d'outils de Dolphin dans le dossier personnel (copiées de /etc/skel à la création du compte)" \
+    check "barre d'outils de Dolphin dans le dossier personnel (copiées de /etc/skel à la création du compte)" \
         cmp "/etc/skel/${rc}" "${TEST_HOME}/${rc}"
-    check "vue « détails » par défaut dans le dossier personnel" cmp "/etc/skel/${vues}" "${TEST_HOME}/${vues}"
-    if [[ "$(explorateur_session kreadconfig6 --file dolphinrc --group General --key ShowStatusBar)" == 1 ]]; then
-        pass "dolphinrc (/etc/xdg) lu dans la session : barre d'état sur toute la largeur"
+    check "vue en icônes par défaut dans le dossier personnel" cmp "/etc/skel/${vues}" "${TEST_HOME}/${vues}"
+    if [[ "$(explorateur_session kreadconfig6 --file dolphinrc --group General --key ShowStatusBar)" == 2 ]]; then
+        pass "dolphinrc (/etc/xdg) lu dans la session : pas de barre d'état"
     else
-        fail "dolphinrc : ShowStatusBar='$(explorateur_session kreadconfig6 --file dolphinrc --group General --key ShowStatusBar)' (1 attendu)"
+        fail "dolphinrc : ShowStatusBar='$(explorateur_session kreadconfig6 --file dolphinrc --group General --key ShowStatusBar)' (2 attendu)"
     fi
     out="$(explorateur_session /usr/libexec/binixx/binixx-explorateur etat 2>&1)"
     if [[ "${out}" == explorateur=oui ]]; then pass "binixx-explorateur etat : ${out}"; else fail "binixx-explorateur etat : ${out:0:200}"; fi
@@ -75,12 +75,14 @@ barres = [b.getAttribute("name") for b in doc.getElementsByTagName("ToolBar")]
 menus = [m.getAttribute("name") for m in doc.getElementsByTagName("Menu")]
 print("            info : dolphinui.rc après le lancement : version %s, barres %s, menus %s" % (version, barres, menus))
 assert version.isdigit() and int(version) > 1, "la version devrait être celle de Dolphin, pas notre 1 (KDE n'a pas fusionné le fichier)"
-assert "mainToolBar" in barres and "commandToolBar" in barres, barres
+assert "mainToolBar" in barres and "commandToolBar" not in barres, barres
+actions = [a.getAttribute("name") for b in doc.getElementsByTagName("ToolBar") for a in b.getElementsByTagName("Action")]
+assert "view_settings" in actions and "url_navigators" in actions, actions
 assert "file" in menus and "view" in menus, "les menus de Dolphin devraient avoir été repris du fichier d'origine : %s" % menus
 PYEOF
     local code=$?
     if [[ ${code} -eq 0 ]]; then
-        pass "KDE a repris nos deux barres d'outils dans le fichier de Dolphin (menus et version de Dolphin conservés)"
+        pass "KDE a repris notre barre d'outils dans le fichier de Dolphin (menus et version de Dolphin conservés)"
     else
         fail "le fichier dolphinui.rc du compte n'a pas été fusionné comme prévu (voir la ligne ci-dessus)"
     fi

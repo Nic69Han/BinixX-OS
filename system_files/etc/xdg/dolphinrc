@@ -1,17 +1,15 @@
 # Explorateur BinixX : réglages par défaut de Dolphin, valables pour tous les comptes (docs/explorateur.md).
 # KDE les lit après le dossier personnel de l'utilisateur : ce qu'il règle lui-même reste prioritaire.
-# Les barres d'outils et la vue « détails » sont dans /etc/skel (comptes créés après l'installation), car Dolphin
+# La barre d'outils et la vue en icônes sont dans /etc/skel (comptes créés après l'installation), car Dolphin
 # ne les lit que dans le dossier personnel.
 [General]
-# Barre d'état sur toute la largeur (« 12 éléments », « 1 élément sélectionné »), comme celle de l'Explorateur
-ShowStatusBar=1
+# Pas de barre d'état en bas de la fenêtre : la fenêtre ne garde que ses fichiers (0 : étroite, 1 : pleine largeur, 2 : aucune)
+ShowStatusBar=2
 # Fiche d'information au survol d'un fichier, comme l'info-bulle de l'Explorateur
 ShowToolTips=true
-# Curseur de taille des icônes dans la barre d'état
-ShowZoomSlider=true
 
 [DetailsMode]
-# Comme l'Explorateur : lignes compactes à petites icônes, sans flèche pour déplier les dossiers dans la liste
+# Pour qui passe en vue « détails » : lignes compactes à petites icônes, sans flèche pour déplier les dossiers dans la liste
 IconSize=16
 # Dolphin prend PreviewSize, et non IconSize, quand les aperçus sont affichés (c'est le cas par défaut) : sans cette ligne les
 # lignes restent hautes (icônes de 48 px)

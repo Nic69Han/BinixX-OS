@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE gui SYSTEM "kpartgui.dtd">
 <!--
-  Explorateur BinixX : les barres d'outils de Dolphin disposées comme celles de l'Explorateur de fichiers de Windows 11
-  (docs/explorateur.md).
+  Explorateur BinixX : Dolphin épuré, une seule ligne de boutons (docs/explorateur.md).
 
-  Ce fichier ne contient que les barres d'outils et les propriétés des actions. Sa version (1) est volontairement plus
-  basse que celle de Dolphin : au premier lancement, KDE garde la version de Dolphin pour les menus et y reprend ces barres,
-  si bien qu'une mise à jour de Dolphin n'est jamais écrasée par ce fichier.
+  Ce fichier ne contient que la barre d'outils et les propriétés des actions. Sa version (1) est volontairement plus basse que
+  celle de Dolphin : au premier lancement, KDE garde la version de Dolphin pour les menus et y reprend cette barre, si bien
+  qu'une mise à jour de Dolphin n'est jamais écrasée par ce fichier.
 
-  Première ligne : revenir, avancer, dossier parent, actualiser, barre d'adresse, recherche, menu.
-  Seconde ligne (la « barre de commandes » de Windows) : Nouveau, Couper, Copier, Coller, Renommer, Corbeille, Trier, Affichage.
+  Une ligne : revenir, avancer, dossier parent, barre d'adresse, recherche, affichage (taille des icônes, liste, détails), menu.
+  Couper, Copier, Coller, Renommer, Supprimer et Nouveau restent à portée : clic droit, Ctrl + X / C / V, F2, Suppr.
   Un nom d'action que Dolphin ne connaît pas est simplement ignoré.
 -->
 <gui name="dolphin" version="1">
@@ -18,40 +17,16 @@
         <Action name="go_back" />
         <Action name="go_forward" />
         <Action name="go_up" />
-        <Action name="view_redisplay" />
         <Action name="url_navigators" />
         <Action name="toggle_search" />
-        <Action name="hamburger_menu" />
-    </ToolBar>
-    <ToolBar noMerge="1" name="commandToolBar" newline="true" iconText="TextBesideIcon">
-        <text context="@title:menu">Command Bar</text>
-        <Action name="new_menu" />
-        <Separator />
-        <Action name="edit_cut" />
-        <Action name="edit_copy" />
-        <Action name="edit_paste" />
-        <Action name="renamefile" />
-        <Action name="movetotrash" />
-        <Separator />
-        <Action name="sort" />
         <Action name="view_settings" />
-        <Separator />
-        <Action name="split_view" />
+        <Action name="hamburger_menu" />
     </ToolBar>
     <ActionProperties scheme="Default">
         <Action priority="0" name="go_back" />
         <Action priority="0" name="go_forward" />
         <Action priority="0" name="go_up" />
-        <Action priority="0" name="view_redisplay" />
         <Action priority="0" name="toggle_search" />
-        <Action priority="0" name="edit_cut" />
-        <Action priority="0" name="edit_copy" />
-        <Action priority="0" name="edit_paste" />
-        <Action priority="0" name="renamefile" />
-        <Action priority="0" name="movetotrash" />
-        <Action priority="0" name="split_view" />
-        <Action priority="256" name="new_menu" />
-        <Action priority="256" name="sort" />
-        <Action priority="256" name="view_settings" />
+        <Action priority="0" name="view_settings" />
     </ActionProperties>
 </gui>

@@ -1,4 +1,5 @@
 [Dolphin]
 Version=4
-ViewMode=1
+ViewMode=0
+ZoomLevel=3
 VisibleRoles=Details_text,Details_modificationtime,Details_type,Details_size

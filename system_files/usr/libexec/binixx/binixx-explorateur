@@ -1,7 +1,7 @@
 #!/usr/bin/bash
-# Explorateur BinixX : donne à un compte existant la disposition de Dolphin des comptes neufs (barre de commandes comme celle de
-# l'Explorateur de Windows 11, vue « détails »). Les comptes créés après l'installation la reçoivent déjà de /etc/skel ; une mise à
-# jour de BinixX OS ne change pas les comptes existants, d'où cette commande (docs/explorateur.md).
+# Explorateur BinixX : donne à un compte existant la disposition de Dolphin des comptes neufs (une seule ligne de boutons, vue en
+# icônes). Les comptes créés après l'installation la reçoivent déjà de /etc/skel ; une mise à jour de BinixX OS ne change pas les
+# comptes existants, d'où cette commande (docs/explorateur.md).
 #
 # Rien n'est supprimé : les fichiers remplacés ou retirés sont rangés dans ~/.local/share/binixx/sauvegardes/.
 # Fermer Dolphin avant : il réécrit ses réglages en se fermant.
@@ -35,7 +35,8 @@ ranger() { # ranger fichier...
     printf '%s\n' "${dossier}"
 }
 
-installe() { grep -q 'name="commandToolBar"' "${MAISON}/${FICHIERS[0]}" 2>/dev/null; }
+# Le bouton d'affichage (taille des icônes, liste, détails) est dans la barre : c'est ce qui distingue notre disposition de celle de KDE
+installe() { grep -q 'name="view_settings"' "${MAISON}/${FICHIERS[0]}" 2>/dev/null; }
 
 case "${1:-}" in
 appliquer)

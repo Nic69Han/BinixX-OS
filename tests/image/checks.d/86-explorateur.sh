@@ -1,28 +1,25 @@
 # shellcheck shell=bash
-section "Explorateur BinixX (Dolphin préréglé comme l'Explorateur de Windows 11)"
+section "Explorateur BinixX (Dolphin épuré : une barre, vue en icônes)"
 RC=.local/share/kxmlgui5/dolphin/dolphinui.rc
 VUES=.local/share/dolphin/view_properties/global/.directory
 check "barres d'outils de Dolphin dans /etc/skel (comptes créés après l'installation)" test -s "/etc/skel/${RC}"
-check "vue « détails » par défaut dans /etc/skel" test -s "/etc/skel/${VUES}"
+check "vue par défaut dans /etc/skel" test -s "/etc/skel/${VUES}"
 check "commande binixx-explorateur exécutable" test -x /usr/libexec/binixx/binixx-explorateur
 check "les fichiers de /etc/skel sont de vrais fichiers (pas des liens)" \
     bash -c "! test -L /etc/skel/${RC} && ! test -L /etc/skel/${VUES}"
 
-# La première ligne ressemble à celle de l'Explorateur (navigation, adresse), la seconde est sa barre de commandes. Le fichier garde une
-# version plus basse que celle de Dolphin : c'est ce qui fait que KDE y reprend les barres sans écraser les menus d'une mise à jour.
-check "dolphinui.rc : XML valide, version 1, deux barres d'outils avec les actions de l'Explorateur" python3 -c '
+# Une seule ligne de boutons : navigation, adresse, recherche, affichage, menu. Le fichier garde une version plus basse que celle de
+# Dolphin : c'est ce qui fait que KDE y reprend la barre sans écraser les menus d'une mise à jour.
+check "dolphinui.rc : XML valide, version 1, une seule barre d'outils, épurée" python3 -c '
 import xml.dom.minidom
 doc = xml.dom.minidom.parse("/etc/skel/.local/share/kxmlgui5/dolphin/dolphinui.rc").documentElement
 assert doc.tagName == "gui" and doc.getAttribute("name") == "dolphin", "pas un fichier de Dolphin"
 assert doc.getAttribute("version") == "1", "version " + doc.getAttribute("version") + " : doit rester inférieure à celle de Dolphin"
 barres = {b.getAttribute("name"): b for b in doc.getElementsByTagName("ToolBar")}
-assert set(barres) == {"mainToolBar", "commandToolBar"}, sorted(barres)
-actions = {nom: [a.getAttribute("name") for a in b.getElementsByTagName("Action")] for nom, b in barres.items()}
-for nom in ("go_back", "go_forward", "go_up", "url_navigators"):
-    assert nom in actions["mainToolBar"], nom
-for nom in ("new_menu", "edit_cut", "edit_copy", "edit_paste", "renamefile", "movetotrash", "sort", "view_settings"):
-    assert nom in actions["commandToolBar"], nom
-assert barres["commandToolBar"].getAttribute("newline") == "true", "la barre de commandes doit être sur une seconde ligne"
+assert set(barres) == {"mainToolBar"}, sorted(barres)
+actions = [a.getAttribute("name") for a in barres["mainToolBar"].getElementsByTagName("Action")]
+assert actions == ["go_back", "go_forward", "go_up", "url_navigators", "toggle_search", "view_settings", "hamburger_menu"], actions
+assert barres["mainToolBar"].getAttribute("newline") != "true", "la barre doit rester sur une seule ligne"
 '
 
 # Dolphin ignore sans bruit une action qu'il ne connaît pas : on vérifie que chaque nom est bien dans Dolphin ou dans les bibliothèques
@@ -48,20 +45,36 @@ assert not manquantes, "introuvables dans " + ", ".join(fichiers) + " : " + ", "
 
 explorateur_vue_par_defaut() {
     local f="/etc/skel/${VUES}"
-    [[ "$(kreadconfig6 --file "${f}" --group Dolphin --key ViewMode)" == 1 ]] &&
+    [[ "$(kreadconfig6 --file "${f}" --group Dolphin --key ViewMode)" == 0 ]] &&
         [[ "$(kreadconfig6 --file "${f}" --group Dolphin --key Version)" == 4 ]] &&
+        [[ "$(kreadconfig6 --file "${f}" --group Dolphin --key ZoomLevel)" == 3 ]] &&
         [[ "$(kreadconfig6 --file "${f}" --group Dolphin --key VisibleRoles)" == "Details_text,Details_modificationtime,Details_type,Details_size" ]]
 }
-check "vue par défaut : détails (ViewMode=1), colonnes Nom, Modifié le, Type, Taille" explorateur_vue_par_defaut
+check "vue par défaut : icônes (ViewMode=0, ZoomLevel=3) ; colonnes Nom, Modifié le, Type, Taille pour qui passe en détails" explorateur_vue_par_defaut
+
+# Les clés de réglage que ces fichiers utilisent existent encore dans Dolphin (sinon il les ignorerait sans rien dire)
+check "les réglages de Dolphin utilisés (ZoomLevel, ShowStatusBar, ShowToolTips, IconSize, PreviewSize, ExpandableFolders, VisibleRoles) existent encore" python3 -c '
+import glob, re
+fichiers = ["/usr/bin/dolphin"] + glob.glob("/usr/lib64/libdolphin*.so*")
+assert len(fichiers) >= 2, fichiers
+contenu = b"".join(open(f, "rb").read() for f in fichiers)
+def present(nom):
+    ascii_ = re.compile(rb"(?<![A-Za-z0-9_])" + re.escape(nom.encode()) + rb"(?![A-Za-z0-9_])")
+    utf16 = re.compile(rb"(?<![A-Za-z0-9_]\x00)" + re.escape(nom.encode("utf-16-le")) + rb"(?![A-Za-z0-9_]\x00)")
+    return bool(ascii_.search(contenu) or utf16.search(contenu))
+manquantes = [n for n in ("ZoomLevel", "ShowStatusBar", "ShowToolTips", "IconSize", "PreviewSize", "ExpandableFolders", "VisibleRoles") if not present(n)]
+assert not manquantes, "introuvables dans Dolphin : " + ", ".join(manquantes)
+'
 
 # Réglages valables pour tous les comptes : /etc/xdg/dolphinrc, lu par KDE derrière le dossier personnel (cascade)
 explorateur_dolphinrc() (
     home="$(mktemp -d)"
     trap 'rm -rf "${home}"' EXIT
-    lire() { HOME="${home}" XDG_CONFIG_HOME="${home}/.config" kreadconfig6 --file dolphinrc --group General --key "$1"; }
-    [[ "$(lire ShowStatusBar)" == 1 && "$(lire ShowToolTips)" == true && "$(lire ShowZoomSlider)" == true ]]
+    lire() { HOME="${home}" XDG_CONFIG_HOME="${home}/.config" kreadconfig6 --file dolphinrc --group "$1" --key "$2"; }
+    [[ "$(lire General ShowStatusBar)" == 2 && "$(lire General ShowToolTips)" == true ]] &&
+        [[ "$(lire DetailsMode IconSize)" == 16 && "$(lire DetailsMode PreviewSize)" == 16 && "$(lire DetailsMode ExpandableFolders)" == false ]]
 )
-check "dolphinrc : barre d'état sur toute la largeur, infobulle au survol, curseur de taille (lus sans fichier utilisateur)" explorateur_dolphinrc
+check "dolphinrc : pas de barre d'état, infobulle au survol, lignes compactes en vue détails (lus sans fichier utilisateur)" explorateur_dolphinrc
 
 # Un compte créé par useradd reçoit les deux fichiers (c'est ce que font Plasma Setup et l'installeur)
 explorateur_compte_neuf() (
@@ -71,7 +84,7 @@ explorateur_compte_neuf() (
     cmp "/etc/skel/${RC}" "/home/binixx-test-explorateur/${RC}"
     cmp "/etc/skel/${VUES}" "/home/binixx-test-explorateur/${VUES}"
 )
-check "un compte neuf reçoit les barres d'outils et la vue « détails » de /etc/skel" explorateur_compte_neuf
+check "un compte neuf reçoit la barre d'outils et la vue en icônes de /etc/skel" explorateur_compte_neuf
 
 # La commande donne la même disposition à un compte existant, sans rien écraser sans --forcer, range ce qu'elle remplace, et la retire
 explorateur_commande() (
