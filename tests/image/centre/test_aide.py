@@ -35,6 +35,82 @@ class Diagnostic(unittest.TestCase):
                       "== Espace disque ==", "Fin du rapport."):
             self.assertIn(titre, fini.stdout)
         self.assertNotIn("inet ", fini.stdout)  # aucune adresse IP
+        self.assertIn("== Applications : source Flathub et installation au premier démarrage ==", fini.stdout)
+
+
+class DiagnosticFlathub(unittest.TestCase):
+    """La section « Flathub » du rapport, avec de fausses commandes : les applications manquantes, l'état du service et la
+    joignabilité de Flathub doivent se lire d'un coup d'œil, même sur un PC où il n'y a rien d'installé."""
+
+    def setUp(self):
+        self.dossier = tempfile.TemporaryDirectory()
+        base = self.dossier.name
+        self.faux = os.path.join(base, "bin")
+        self.flatpaks = os.path.join(base, "flatpaks")
+        self.etat = os.path.join(base, "etat")
+        for d in (self.faux, os.path.join(self.flatpaks, "system-flatpaks.d"), self.etat):
+            os.makedirs(d)
+        with open(os.path.join(self.flatpaks, "system-flatpaks.list"), "w", encoding="utf-8") as f:
+            f.write("# applications\norg.kde.okular  # lecteur PDF\norg.kde.gwenview\n\n")
+        with open(os.path.join(self.flatpaks, "system-flatpaks.d", "entreprise.list"), "w", encoding="utf-8") as f:
+            f.write("org.example.Metier\n")
+        self.installees = os.path.join(base, "installees")
+        with open(self.installees, "w", encoding="utf-8") as f:
+            f.write("org.kde.okular\n")
+        self.ecrire("flatpak", f'''case "$1" in
+    remotes) printf 'flathub\\tsystem\\n' ;;
+    list) cat "{self.installees}" ;;
+esac''')
+        self.ecrire("systemctl", 'printf "ActiveState=failed\\nResult=exit-code\\n"')
+        self.ecrire("journalctl", 'printf "flatpak install : erreur de test\\n"')
+
+    def tearDown(self):
+        self.dossier.cleanup()
+
+    def ecrire(self, nom, corps):
+        chemin = os.path.join(self.faux, nom)
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write("#!/bin/sh\n" + corps + "\n")
+        os.chmod(chemin, 0o755)
+
+    def rapport(self, code_http):
+        self.ecrire("curl", f"printf '{code_http}'")
+        env = {"PATH": self.faux + os.pathsep + os.environ["PATH"], "BINIXX_FLATPAKS_DIR": self.flatpaks,
+               "BINIXX_ETAT_DIR": self.etat}
+        fini = script("binixx-diagnostic", env=env)
+        self.assertEqual(fini.returncode, 0, fini.stderr)
+        debut = fini.stdout.index("== Applications : source Flathub")
+        return fini.stdout[debut:].split("\n== ", 2)[0]
+
+    def test_les_applications_manquantes_sont_nommees_listes_de_l_entreprise_comprises(self):
+        section = self.rapport("200")
+        self.assertIn("Applications prévues d'office : 3 ; manquantes : 2 (org.example.Metier org.kde.gwenview)", section)
+        self.assertIn("flathub", section)
+
+    def test_installation_pas_terminee_puis_terminee(self):
+        self.assertIn("Installation des applications prévues : pas encore terminée", self.rapport("200"))
+        with open(os.path.join(self.etat, "flatpaks.sha256"), "w", encoding="utf-8") as f:
+            f.write("x\n")
+        self.assertIn("Installation des applications prévues : terminée (le ", self.rapport("200"))
+
+    def test_etat_du_service_et_journal(self):
+        section = self.rapport("200")
+        self.assertIn("ActiveState=failed", section)
+        self.assertIn("flatpak install : erreur de test", section)
+
+    def test_flathub_joignable_ou_non(self):
+        self.assertIn("Flathub joignable depuis ce PC : oui", self.rapport("200"))
+        self.assertIn("Flathub joignable depuis ce PC : non (code 000)", self.rapport("000"))
+
+    def test_sans_catalogue_le_rapport_le_dit(self):
+        # sur la machine de test il n'y a pas de catalogue Flathub : le rapport l'écrit au lieu de se taire
+        if not os.path.exists("/var/lib/flatpak/appstream/flathub"):
+            self.assertIn("aucun : Discover ne trouvera pas les applications de Flathub", self.rapport("200"))
+
+    def test_sans_adresse_ip_ni_adresse_de_site(self):
+        section = self.rapport("200")
+        self.assertNotIn("inet ", section)
+        self.assertNotIn("https://", section)
 
 
 class Reinitialisation(unittest.TestCase):

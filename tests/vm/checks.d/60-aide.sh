@@ -13,6 +13,12 @@ check_aide() {
     else
         warn "rapport : état de l'image (rpm-ostree) absent pour l'utilisateur"
     fi
+    if grep -q '== Applications : source Flathub' <<<"${report}" && grep -q "Applications prévues d'office : " <<<"${report}" &&
+        grep -q 'Flathub joignable depuis ce PC : ' <<<"${report}"; then
+        pass "rapport : état de Flathub et de l'installation des applications présent"
+    else
+        fail "rapport : section « Applications : source Flathub » absente ou incomplète"
+    fi
     if grep -q 'inet ' <<<"${report}"; then fail "rapport : une adresse IP s'y trouve"; else pass "rapport sans adresse IP"; fi
     local state
     state="$(runuser -u "${TEST_USER}" -- bash -c '

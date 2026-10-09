@@ -68,13 +68,20 @@ BinixX OS et de la dernière mise à jour, services en échec, erreurs récentes
 disque, mémoire, état du réseau (types et états des connexions seulement), cartes graphiques, réseau
 et son, imprimantes, applications Flatpak, noms des réglages du système modifiés.
 
+La section **« Applications : source Flathub et installation au premier démarrage »** sert quand une application manque
+(Discover répond « Aucune entrée pour… », un bouton « Installer » reste sans effet) : sources Flatpak déclarées, nombre et noms des
+applications prévues d'office qui ne sont pas installées, installation du premier démarrage terminée ou non (et quand), état du
+service `binixx-flatpak-install` avec les 40 dernières lignes de son journal, catalogue des applications téléchargé ou non, et
+**Flathub joignable ou non depuis ce PC** (le rapport fait une seule requête vers `dl.flathub.org` ; seul le code de réponse est
+gardé). On y lit si le PC n'a pas fini d'installer ses applications, n'a pas pu joindre Flathub ou n'a pas son catalogue.
+
 Il ne contient ni mot de passe, ni contenu de fichier, ni adresse IP, ni nom de réseau Wi-Fi, et il
 n'exige aucun droit particulier. L'utilisateur le relit avant de l'envoyer ; un administrateur peut aussi
 le lancer lui-même : `/usr/libexec/binixx/binixx-diagnostic`.
 
 ## Tests
 
-`tests/image/centre/test_aide.py` : rapport complet et sans adresse IP, cycle programmer / appliquer /
+`tests/image/centre/test_aide.py` : rapport complet et sans adresse IP (dont la section Flathub, avec de fausses commandes : applications manquantes, installation terminée ou non, Flathub joignable ou non), cycle programmer / appliquer /
 annuler de la remise à zéro (la langue et le clavier restent), création du rapport par la page. Le test
 VM rejoue le rapport et la programmation sur le système installé.
 
