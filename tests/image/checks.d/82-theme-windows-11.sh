@@ -59,8 +59,8 @@ check "icônes BinixX OS : licence de Breeze et note sur la modification fournie
     "test -s /usr/share/icons/binixx-os/LISEZMOI.txt && ls /usr/share/icons/binixx-os | grep -qi 'COPYING\|LICENSE'"
 check "Contraste élevé garde les icônes de Breeze sombre (pas de dossiers jaunes : le contraste se vérifie sur les couleurs)" bash -c \
     "grep -qx 'Theme=breeze-dark' ${LNF}/org.binixx.contraste.desktop/contents/defaults"
-check "contraste élevé : thème global complet (métadonnées, disposition du panneau, écran de démarrage)" bash -c \
-    "grep -q '\"Id\": \"org.binixx.contraste.desktop\"' ${LNF}/org.binixx.contraste.desktop/metadata.json && cmp ${LNF}/org.binixx.desktop/contents/layouts/org.kde.plasma.desktop-layout.js ${LNF}/org.binixx.contraste.desktop/contents/layouts/org.kde.plasma.desktop-layout.js && test -f ${LNF}/org.binixx.contraste.desktop/contents/splash/Splash.qml"
+check "contraste élevé : thème global complet (métadonnées, disposition du panneau, aperçus hérités de Brise sombre)" bash -c \
+    "grep -q '\"Id\": \"org.binixx.contraste.desktop\"' ${LNF}/org.binixx.contraste.desktop/metadata.json && cmp ${LNF}/org.binixx.desktop/contents/layouts/org.kde.plasma.desktop-layout.js ${LNF}/org.binixx.contraste.desktop/contents/layouts/org.kde.plasma.desktop-layout.js && test -f ${LNF}/org.binixx.contraste.desktop/contents/previews/preview.png && test -f ${LNF}/org.binixx.contraste.desktop/contents/previews/fullscreenpreview.jpg"
 
 # Kvantum ne lit le thème que dans le dossier de l'utilisateur : un compte neuf reçoit le thème clair (celui d'Aube) de /etc/skel
 style_skel() (
