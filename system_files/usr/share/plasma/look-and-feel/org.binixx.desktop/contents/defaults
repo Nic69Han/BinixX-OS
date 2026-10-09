@@ -9,7 +9,7 @@ widgetStyle=kvantum
 ColorScheme=BinixXClair
 
 [kdeglobals][Icons]
-Theme=breeze
+Theme=binixx-os
 
 [plasmarc][Theme]
 name=Win11OS-light

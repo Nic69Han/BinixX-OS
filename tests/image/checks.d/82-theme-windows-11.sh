@@ -37,11 +37,28 @@ style_theme_global() ( # style_theme_global thème variante couleurs icônes
     grep -qx "Theme=$4" "${f}"
     test -d "/usr/share/aurorae/themes/${nom}" -a -d "/usr/share/plasma/desktoptheme/${nom}" -a -d "/usr/share/Kvantum/${nom}"
     test -s "/usr/share/color-schemes/$3.colors"
+    test -s "/usr/share/icons/$4/index.theme"
 )
-check "Aube : Kvantum, fenêtres et thème Plasma Win11OS-light, couleurs BinixXClair" style_theme_global org.binixx.desktop light BinixXClair breeze
-check "Nuit : Kvantum, fenêtres et thème Plasma Win11OS-dark, couleurs BinixXSombre" style_theme_global org.binixx.dark.desktop dark BinixXSombre breeze-dark
+check "Aube : Kvantum, fenêtres et thème Plasma Win11OS-light, couleurs BinixXClair" style_theme_global org.binixx.desktop light BinixXClair binixx-os
+check "Nuit : Kvantum, fenêtres et thème Plasma Win11OS-dark, couleurs BinixXSombre" style_theme_global org.binixx.dark.desktop dark BinixXSombre binixx-os-dark
 check "Contraste élevé : style Breeze, décoration Breeze, thème Plasma d'origine (pas de style Windows 11)" bash -c \
     "f=${LNF}/org.binixx.contraste.desktop/contents/defaults; grep -qx 'widgetStyle=Breeze' \${f} && grep -qx 'ColorScheme=BinixXContraste' \${f} && grep -qx 'library=org.kde.breeze' \${f} && grep -qx 'name=default' \${f} && ! grep -v '^#' \${f} | grep -qi 'kvantum\|aurorae\|Win11OS'"
+# Dossiers jaunes : les icônes de BinixX OS sont celles de Breeze, avec le corps des dossiers en jaune au lieu de la couleur d'accent (bleue).
+# Générées à la construction depuis Breeze (build_files/icones-dossiers-jaunes.py).
+check "icônes BinixX OS (clair) : hérite de Breeze, dossiers de 32 à 96 pixels en jaune, couleurs du bureau figées (plus d'identifiant « current-color-scheme »)" bash -c \
+    "grep -qx 'Inherits=breeze' /usr/share/icons/binixx-os/index.theme && for t in 32 48 64 96; do grep -q 'fill:#f2cb40' /usr/share/icons/binixx-os/places/\${t}/folder.svg && grep -q 'id=\"couleurs-fixes-binixx\"' /usr/share/icons/binixx-os/places/\${t}/folder.svg && ! grep -q 'id=\"current-color-scheme\"' /usr/share/icons/binixx-os/places/\${t}/folder.svg || exit 1; done"
+check "icônes BinixX OS : petits dossiers (16, 22 et 24 pixels) en jaune aussi, ouverts comme fermés" bash -c \
+    "for t in 16 22 24; do for f in folder folder-open; do grep -q 'fill:#fdbc4b' /usr/share/icons/binixx-os/places/\${t}/\${f}.svg || exit 1; done; done"
+check "icônes BinixX OS : les dossiers des répertoires usuels (Documents, Téléchargements, Musique, Images, Vidéos) sont jaunes aussi" bash -c \
+    "for f in folder-documents folder-download folder-music folder-pictures folder-videos; do grep -q 'fill:#f2cb40' /usr/share/icons/binixx-os/places/64/\${f}.svg || exit 1; done"
+check "icônes BinixX OS : le type « dossier » (inode-directory) mène au dossier jaune" bash -c \
+    "test \"\$(readlink -f /usr/share/icons/binixx-os/mimetypes/64/inode-directory.svg)\" = /usr/share/icons/binixx-os/places/64/folder.svg"
+check "icônes BinixX OS sombres : Breeze sombre pour le reste, mêmes dossiers jaunes (liens vers le thème clair)" bash -c \
+    "grep -qx 'Inherits=breeze-dark' /usr/share/icons/binixx-os-dark/index.theme && test \"\$(readlink -f /usr/share/icons/binixx-os-dark/places/64/folder.svg)\" = /usr/share/icons/binixx-os/places/64/folder.svg"
+check "icônes BinixX OS : licence de Breeze et note sur la modification fournies" bash -c \
+    "test -s /usr/share/icons/binixx-os/LISEZMOI.txt && ls /usr/share/icons/binixx-os | grep -qi 'COPYING\|LICENSE'"
+check "Contraste élevé garde les icônes de Breeze sombre (pas de dossiers jaunes : le contraste se vérifie sur les couleurs)" bash -c \
+    "grep -qx 'Theme=breeze-dark' ${LNF}/org.binixx.contraste.desktop/contents/defaults"
 check "contraste élevé : thème global complet (métadonnées, disposition du panneau, écran de démarrage)" bash -c \
     "grep -q '\"Id\": \"org.binixx.contraste.desktop\"' ${LNF}/org.binixx.contraste.desktop/metadata.json && cmp ${LNF}/org.binixx.desktop/contents/layouts/org.kde.plasma.desktop-layout.js ${LNF}/org.binixx.contraste.desktop/contents/layouts/org.kde.plasma.desktop-layout.js && test -f ${LNF}/org.binixx.contraste.desktop/contents/splash/Splash.qml"
 

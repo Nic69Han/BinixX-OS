@@ -75,9 +75,9 @@ theme_egal() {
 theme_fenetre_ouverte() { theme_session busctl --user list --no-legend | grep -q 'org\.kde\.dolphin'; }
 
 # Pose une ambiance, relit chaque réglage du thème global, puis ouvre Dolphin pour la capture d'écran
-# theme_scene <ambiance> <couleurs> <style> <décoration des fenêtres> <thème Plasma> <thème Kvantum ou rien>
+# theme_scene <ambiance> <couleurs> <style> <décoration des fenêtres> <thème Plasma> <thème Kvantum ou rien> <thème d'icônes>
 theme_scene() {
-    local ambiance="$1" couleurs="$2" style="$3" decoration="$4" plasma="$5" kvantum="$6" out uid socket lu
+    local ambiance="$1" couleurs="$2" style="$3" decoration="$4" plasma="$5" kvantum="$6" icones="$7" out uid socket lu
     section "Style Windows 11 : ${ambiance}"
     if ! wait_for 120 theme_session busctl --user status org.kde.plasmashell; then
         fail "Plasma ne répond pas sur le bus de la session : ${ambiance} ne peut pas être posé"
@@ -90,6 +90,7 @@ theme_scene() {
     theme_egal "décoration des fenêtres" "$(theme_reglage kwinrc org.kde.kdecoration2 theme)" "${decoration}"
     lu="$(theme_reglage plasmarc Theme name)"
     theme_egal "thème Plasma" "${lu:-default}" "${plasma}"
+    theme_egal "thème d'icônes (dossiers jaunes sauf en contraste élevé)" "$(theme_reglage kdeglobals Icons Theme)" "${icones}"
     echo "            info : boutons des fenêtres : gauche '$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnLeft)', droite '$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnRight)'"
     if [[ -n "${kvantum}" ]]; then theme_egal "thème Kvantum" "$(theme_kvantum)" "${kvantum}"; fi
     uid="$(id -u "${TEST_USER}")"
@@ -108,9 +109,9 @@ theme_scene() {
     fi
     sleep 10 # le temps d'afficher la fenêtre avant la capture d'écran
 }
-check_theme_aube() { theme_scene aube BinixXClair kvantum __aurorae__svg__Win11OS-light Win11OS-light Win11OS-light; }
-check_theme_nuit() { theme_scene nuit BinixXSombre kvantum __aurorae__svg__Win11OS-dark Win11OS-dark Win11OS-dark; }
-check_theme_contraste() { theme_scene contraste BinixXContraste Breeze Breeze default ""; }
+check_theme_aube() { theme_scene aube BinixXClair kvantum __aurorae__svg__Win11OS-light Win11OS-light Win11OS-light binixx-os; }
+check_theme_nuit() { theme_scene nuit BinixXSombre kvantum __aurorae__svg__Win11OS-dark Win11OS-dark Win11OS-dark binixx-os-dark; }
+check_theme_contraste() { theme_scene contraste BinixXContraste Breeze Breeze default "" breeze-dark; }
 register_check theme-aube check_theme_aube
 register_check theme-nuit check_theme_nuit
 register_check theme-contraste check_theme_contraste

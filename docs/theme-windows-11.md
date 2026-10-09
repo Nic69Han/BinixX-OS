@@ -12,6 +12,7 @@ boutons, cases et barres de défilement plats, barre des tâches et fenêtres de
 | Barre de titre des fenêtres (angles arrondis, réduire, agrandir, fermer) | Win11OS KDE, thème Aurorae `Win11OS-light` / `Win11OS-dark` | `/usr/share/aurorae/themes/` |
 | Boutons, cases, barres de défilement, onglets des applications | Win11OS KDE, thème Kvantum `Win11OS-light` / `Win11OS-dark` | `/usr/share/Kvantum/` (paquet Fedora `kvantum`) |
 | Barre des tâches, fenêtres de Plasma, bulles, icônes de la zone de notification | Win11OS KDE, thème Plasma `Win11OS-light` / `Win11OS-dark` | `/usr/share/plasma/desktoptheme/` |
+| **Dossiers jaunes** (et les dossiers Documents, Images, Musique… en jaune aussi) | BinixX OS, à partir des icônes de Breeze | thèmes d'icônes `binixx-os` et `binixx-os-dark` (`/usr/share/icons/`) |
 | Couleurs (accent bleu BinixX OS, texte, sélection) | BinixX OS | `BinixXClair`, `BinixXSombre` |
 | Fond d'écran « Le marcheur de l'aube », disposition du panneau, logo du bouton Démarrer | BinixX OS | inchangés |
 | Pointeur blanc, double-clic | BinixX OS | inchangés |
@@ -24,8 +25,28 @@ Les boutons des fenêtres sont placés comme sous Windows : l'icône de l'applic
 - **Son écran de connexion** : il remplacerait celui de Plasma ; il se jugerait sur un test de connexion que l'image ne fait pas encore.
 - **Ses thèmes globaux et ses couleurs** : remplacés par ceux de BinixX OS (`org.binixx.desktop`, `org.binixx.dark.desktop`, couleurs
   `BinixXClair` et `BinixXSombre`), qui posent les thèmes ci-dessus.
-- **Les icônes « Win11 »** et le **menu Démarrer en grille** du même auteur : deux autres projets, non repris pour l'instant (voir « Et
-  ensuite »). Les icônes restent celles de Breeze : les dossiers sont bleus (couleur d'accent de BinixX OS) et non jaunes.
+- **Le thème d'icônes « Win11 »** du même auteur (une cinquantaine de Mo de sources) : ses icônes imitent de près celles des applications de
+  Microsoft (Explorateur de fichiers, Photos, Xbox, Visual Studio…), ce que BinixX OS préfère ne pas distribuer. Les dossiers jaunes
+  sont faits autrement (voir plus bas) ; le reste des icônes est celui de Breeze.
+- **Le menu Démarrer en grille** du même auteur : un autre projet, non repris pour l'instant (voir « Et ensuite »).
+
+## Dossiers jaunes
+
+Dans Breeze, un dossier prend la couleur d'accentuation du bureau : bleu BinixX OS, donc des dossiers bleus. Windows a des dossiers jaunes.
+`build_files/icones-dossiers-jaunes.py` fabrique, à chaque construction de l'image, deux thèmes d'icônes à partir de **Breeze tel qu'il
+est dans l'image** :
+
+- `binixx-os` (Aube) : hérite de Breeze ; **près de 200 dossiers** copiés avec une seule modification, la couleur du corps du dossier (jaune
+  `#f2cb40` de Breeze, `#fdbc4b` aux tailles 16, 22 et 24 pixels), plus les liens qui y mènent (le type « dossier », les dossiers de
+  l'application…). Documents, Téléchargements, Musique, Images, Vidéos… gardent leur pictogramme, sur fond jaune.
+- `binixx-os-dark` (Nuit) : hérite de Breeze sombre ; ses dossiers sont ceux de `binixx-os` (liens), le reste vient de Breeze sombre.
+- Les pictogrammes dans les dossiers gardent leur couleur sombre dans les deux thèmes (l'identifiant de la feuille de style du dessin
+  est retiré pour que le bureau ne les recolore pas : en blanc sur du jaune, ils disparaîtraient).
+- Si Breeze change le dessin de ses dossiers, la construction **échoue** (aucun dossier à la couleur d'accent trouvé) au lieu de livrer
+  des dossiers redevenus bleus sans le dire. Les licences de Breeze (LGPL-3.0 ou plus, CC-BY-SA-4.0) sont copiées dans le thème avec une note
+  disant ce qui a été modifié.
+- **Contraste élevé** garde les icônes de Breeze sombre : son contraste se vérifie sur ses couleurs noir, blanc et jaune.
+- Pour revenir aux dossiers bleus : Configuration du système → Apparence et comportement → Icônes → Breeze.
 
 ## Comment ça se règle
 
@@ -56,7 +77,7 @@ Apparence et comportement → Thème global → **Breeze**.
 
 Les fichiers de Win11OS KDE (`aurorae`, `Kvantum`, `plasma/desktoptheme`) sont sous **GNU GPL version 3** : leur texte, la liste des
 auteurs et l'adresse exacte de la source (version et empreinte du commit) sont fournis dans l'image, dans
-`/usr/share/licenses/binixx-win11os-kde/` (`COPYING`, `AUTHORS`, `SOURCE.txt`). Ces fichiers sont des **copies sans modification** ;
+`/usr/share/licenses/binixx-win11os-kde/` (`COPYING`, `AUTHORS`, `SOURCE.txt`). Ces fichiers sont des **copies sans modification** (les dossiers jaunes, eux, sont dérivés de Breeze : voir plus haut) ;
 le code et les réglages propres à BinixX OS restent sous licence Apache 2.0. Le test de l'image vérifie la présence de la licence,
 des auteurs et de la source, et l'absence des fonds d'écran du projet.
 
@@ -69,13 +90,14 @@ des auteurs et de la source, et l'absence des fonds d'écran du projet.
   ne s'applique qu'aux applications Qt.
 - **Transparence** : le style rend les fenêtres translucides et demande à KWin de flouter le fond (effet « flou » activé par défaut dans
   Plasma). Sur un PC sans accélération graphique, la translucidité est moins nette.
-- **Couleur des dossiers** : bleue, comme les couleurs d'accent de BinixX OS. Les dossiers jaunes de Windows demandent un thème
-  d'icônes dédié.
+- **Dossiers** : jaunes, mais au dessin de Breeze (plats, avec un onglet plus foncé), pas celui, dégradé, de l'Explorateur de Windows 11.
+  Les autres icônes (applications, fichiers) sont celles de Breeze.
 
 ## Et ensuite
 
-- Des icônes dans le style de Windows 11 : le thème « Win11 » du même auteur (GPL-3.0, une cinquantaine de Mo de sources) ou les icônes Fluent de
-  Microsoft (licence MIT, [fluentui-system-icons](https://github.com/microsoft/fluentui-system-icons)) en thème partiel qui hérite de Breeze.
+- Des icônes plus proches de celles de Windows 11 : les icônes Fluent de Microsoft (licence MIT,
+  [fluentui-system-icons](https://github.com/microsoft/fluentui-system-icons)) en thème partiel qui hérite de BinixX OS ; leurs pictogrammes d'interface sont
+  libres de réutilisation, contrairement aux icônes d'applications de Microsoft.
 - Un menu Démarrer en grille d'applications épinglées.
 - L'écran de connexion du projet, avec un test de connexion en VM.
 
@@ -87,7 +109,10 @@ des auteurs et de la source, et l'absence des fonds d'écran du projet.
   `/etc/skel` ; service et surveillance activés ; `binixx-ambiance kvantum` suit les couleurs sans remplacer un autre thème choisi.
   Les tests Python de `tests/image/centre/test_ambiances.py` couvrent la logique (thème par couleurs, fichier réécrit sans perdre les
   réglages par application, thème choisi à la main respecté, ordre dans `appliquer`).
+- Dossiers jaunes, dans les mêmes tests de l'image : thèmes `binixx-os` et `binixx-os-dark` (héritage, jaune de chaque taille de 16 à 96 pixels,
+  dossiers Documents, Téléchargements, Musique, Images et Vidéos, type « dossier », liens du thème sombre, licence) ; chaque thème global
+  nomme un thème d'icônes qui existe ; Contraste élevé reste sur Breeze sombre.
 - **VM** (`tests/vm/checks.d/82-theme-windows-11.sh`) : le compte de l'installation a le thème clair ; la surveillance tourne ; un
   changement de couleurs dans `kdeglobals` fait changer le thème Kvantum tout seul ; pour chaque ambiance, le style, la
-  décoration des fenêtres, le thème Plasma et le thème Kvantum relus dans la session sont ceux annoncés. Captures d'écran jointes aux journaux : `theme-aube.png`,
+  décoration des fenêtres, le thème Plasma, le thème d'icônes et le thème Kvantum relus dans la session sont ceux annoncés. Captures d'écran jointes aux journaux : `theme-aube.png`,
   `theme-nuit.png`, `theme-contraste.png` (Dolphin ouvert) et `theme-*-menu.png` (menu de démarrage ouvert).

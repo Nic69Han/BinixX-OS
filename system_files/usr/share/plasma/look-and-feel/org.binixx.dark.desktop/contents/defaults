@@ -7,7 +7,7 @@ widgetStyle=kvantum
 ColorScheme=BinixXSombre
 
 [kdeglobals][Icons]
-Theme=breeze-dark
+Theme=binixx-os-dark
 
 [plasmarc][Theme]
 name=Win11OS-dark

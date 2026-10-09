@@ -183,6 +183,11 @@ for source, (scheme, name, colors) in SCHEMES.items():
     print(f"{scheme}.colors : {replaced} couleurs d'accent BinixX OS")
 PYEOF
 
+# Icônes BinixX OS (clair et sombre) : celles de Breeze, avec des dossiers jaunes comme ceux de Windows au lieu de dossiers à la couleur
+# d'accent (bleue). Générées depuis le Breeze de l'image : voir build_files/icones-dossiers-jaunes.py (échoue si le dessin des dossiers
+# de Breeze a changé). Les thèmes globaux les posent (Icons Theme dans look-and-feel/*/contents/defaults).
+python3 /ctx/icones-dossiers-jaunes.py
+
 # Thème global par défaut pour tous les utilisateurs.
 # Fedora le définit dans kde-settings (priorité plus basse que /etc/xdg) : on corrige les deux.
 kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key LookAndFeelPackage org.binixx.desktop
