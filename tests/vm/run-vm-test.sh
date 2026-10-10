@@ -383,6 +383,22 @@ guest_checks base || base_status=$?
 screenshot bureau
 [[ ${base_status} -eq 0 ]] || die "vérifications du premier démarrage"
 
+### Explorateur de fichiers : Dolphin ouvert dans la session, puis capture d'écran --------
+
+# La phase « explorateur » (tests/vm/checks.d/86-explorateur.sh) ouvre Dolphin et vérifie que KDE a repris les barres d'outils BinixX OS ;
+# la fenêtre reste ouverte le temps de la capture (explorateur.png), puis on la ferme. Elle vient après la mise à jour : le contrôle des
+# ambiances laisse le bureau en « Contraste élevé » et en « Grand texte » jusqu'à là, et la capture doit montrer le bureau normal.
+explorateur_etape() {
+    log "Explorateur de fichiers (Dolphin) dans la session"
+    local explorateur_status=0
+    guest_checks explorateur || explorateur_status=$?
+    screenshot explorateur
+    # SIGKILL, comme dans theme_etape : avec SIGTERM, les processus de vignettes de Dolphin plantent à l'arrêt et DrKonqi pose des
+    # icônes de rapport de plantage dans la zone de notification, visibles sur les captures du style Windows 11 qui suivent
+    ssh_vm 'pkill -KILL -x dolphin; pkill -KILL -x kioworker; true' || true
+    [[ ${explorateur_status} -eq 0 ]] || die "explorateur de fichiers (voir « Explorateur BinixX » plus haut)"
+}
+
 ### 3b. Démarrage comme sur un vrai PC : écran de démarrage, puis écran de connexion ----------
 
 # L'installation automatique laisse « console=ttyS0 » dans les paramètres du noyau : les messages partent sur le port série et
@@ -400,7 +416,10 @@ ssh_vm 'printf "[Autologin]\nUser=testeur\nSession=plasma\n" | sudo tee /etc/pla
 [[ ${screens_status} -eq 0 ]] || die "le démarrage ne ressemble pas à celui de Windows (voir « Écran pendant le démarrage » plus haut)"
 reboot_vm
 
-[[ ${RUN_UPDATE} -eq 1 ]] || theme_etape
+if [[ ${RUN_UPDATE} -ne 1 ]]; then
+    explorateur_etape
+    theme_etape
+fi
 
 ### 4. Mise à jour puis retour arrière ----------------------------------------------
 
@@ -422,6 +441,7 @@ EOF
         die "bootc switch vers la mise à jour"
     reboot_vm
     guest_checks after-update || die "vérifications après la mise à jour"
+    explorateur_etape
     theme_etape
 
     log "Retour arrière vers la version précédente"
