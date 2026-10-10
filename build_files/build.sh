@@ -203,10 +203,13 @@ KDE_SETTINGS_GLOBALS=/usr/share/kde-settings/kde-profile/default/xdg/kdeglobals
 if [[ -f "${KDE_SETTINGS_GLOBALS}" ]]; then
     sed -i 's/^LookAndFeelPackage=.*/LookAndFeelPackage=org.binixx.desktop/' "${KDE_SETTINGS_GLOBALS}"
 fi
-# Paire clair / sombre proposée par Configuration du système → Thème global (bascule
-# automatique selon l'heure possible)
+# Paire clair / sombre de Plasma : Aube le jour, Nuit le soir, **bascule automatique activée** (Plasma 6.5 et plus, module
+# lookandfeelautoswitcher de kded) aux heures du lever et du coucher du soleil (celles de « Couleur de nuit » ; 6 h et 18 h quand la
+# position est inconnue), quand l'ordinateur n'est pas utilisé pendant quelques secondes. Choisir une ambiance à la main (Centre BinixX OS
+# → Ambiances, binixx-ambiance appliquer) coupe la bascule ; l'interrupteur « Aube le jour, Nuit le soir » la remet.
 kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key DefaultLightLookAndFeel org.binixx.desktop
 kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key DefaultDarkLookAndFeel org.binixx.dark.desktop
+kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key AutomaticLookAndFeel --type bool true
 
 # Fenêtres, comme Zorin OS 18 :
 # - les nouvelles fenêtres s'ouvrent au centre de l'écran ;

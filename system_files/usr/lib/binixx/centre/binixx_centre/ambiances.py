@@ -6,6 +6,8 @@ Aucune dépendance à Qt : testé seul (tests/image/centre/test_ambiances.py) ; 
 Deux choses indépendantes, pour qu'on puisse avoir une ambiance sombre ET un grand texte :
   - l'allure : Aube (thème BinixX OS clair), Nuit (thème BinixX OS sombre) ou Contraste élevé (noir, blanc et jaune) ;
   - « Grand texte » : le texte à 130 % (voir taille_texte.py) et un pointeur de souris plus gros.
+Et la bascule automatique « Aube le jour, Nuit le soir », activée d'office (voir activer_bascule_auto) : choisir une allure à la main
+la coupe, sinon Plasma reviendrait à Aube ou à Nuit au prochain lever ou coucher du soleil (un contraste élevé perdu le soir).
 
 L'allure se pose avec les outils de Plasma (plasma-apply-lookandfeel, plasma-apply-colorscheme), qui changent tout de suite
 les couleurs, les icônes, le style des fenêtres et les applications ouvertes ; le fond d'écran, lui, a deux versions (claire et
@@ -21,6 +23,7 @@ couleurs (voir synchroniser_kvantum), sans quoi des couleurs sombres sous un th�
 import configparser
 import json
 import os
+import time
 from collections import namedtuple
 
 from . import launch, taille_texte
@@ -55,6 +58,11 @@ AMBIANCES = (
              "org.binixx.contraste.desktop", "BinixXContraste", ("#000000", "#FFFFFF", "#FFDD00", "#FFDD00")),
 )
 CLES = tuple(a.cle for a in AMBIANCES)
+# Bascule automatique de Plasma (6.5 et plus) : le module « lookandfeelautoswitcher » de kded pose le thème global clair le jour et le
+# sombre la nuit, aux heures du lever et du coucher du soleil (celles de « Couleur de nuit » ; 6 h et 18 h quand la position est
+# inconnue). Ses réglages sont dans kdeglobals, groupe KDE ; /etc/xdg/kdeglobals l'active d'office avec la paire Aube / Nuit.
+AUTO_JOUR, AUTO_NUIT = "aube", "nuit"
+ATTENTE_AUTO = 10           # secondes laissées à Plasma pour poser l'ambiance de l'heure
 
 
 def trouver(cle):
@@ -162,12 +170,67 @@ def _essayer(commandes, run, verifie=None):
     return False
 
 
+def bascule_auto_active(run=None):
+    """True si Plasma passe tout seul d'Aube à Nuit et retour (réglage du système compris)."""
+    return lire("kdeglobals", "KDE", "AutomaticLookAndFeel", run).lower() == "true"
+
+
+def _ecrire_reglage_auto(cle, valeur, run):
+    """Écrit un réglage de la bascule ; --notify prévient tout de suite le module de Plasma (il surveille kdeglobals par D-Bus)."""
+    code, _ = run(["kwriteconfig6", "--file", "kdeglobals", "--group", "KDE", "--key", cle, "--notify", valeur], timeout=15)
+    return code == 0
+
+
+def _couper_bascule_auto(run):
+    """Coupe la bascule si elle est active ; True si elle l'était (et l'est plus)."""
+    if not bascule_auto_active(run):
+        return False
+    _ecrire_reglage_auto("AutomaticLookAndFeel", "false", run)
+    return not bascule_auto_active(run)
+
+
+def activer_bascule_auto(run=None, attente=ATTENTE_AUTO, dormir=time.sleep):
+    """Aube le jour, Nuit le soir ; (réussi, message). La paire Aube / Nuit est reposée (un autre thème a pu y être mis à la main dans
+    Configuration du système). Plasma pose aussitôt l'ambiance de l'heure : on l'attend un peu pour la dire ; sans session ouverte, elle
+    viendra à la prochaine."""
+    run = run or launch.run
+    for cle, valeur in (("DefaultLightLookAndFeel", trouver(AUTO_JOUR).theme), ("DefaultDarkLookAndFeel", trouver(AUTO_NUIT).theme),
+                        ("AutomaticLookAndFeel", "true")):
+        _ecrire_reglage_auto(cle, valeur, run)
+    if not bascule_auto_active(run):
+        return False, "La bascule automatique n'a pas pu être activée : le réglage n'a pas pu être écrit."
+    for _ in range(attente):
+        courante = ambiance_actuelle(run)
+        if courante is not None and courante.cle in (AUTO_JOUR, AUTO_NUIT):
+            break
+        dormir(1)
+    courante = ambiance_actuelle(run)
+    if courante is not None and courante.cle in (AUTO_JOUR, AUTO_NUIT):
+        synchroniser_kvantum(courante.couleurs, run)
+        return True, f"Aube le jour, Nuit le soir : c'est activé (en ce moment : {courante.titre})."
+    return True, "Aube le jour, Nuit le soir : c'est activé ; l'ambiance de l'heure arrive dans un instant."
+
+
+def desactiver_bascule_auto(run=None):
+    """Plus de changement tout seul : l'ambiance en place reste ; (réussi, message)."""
+    run = run or launch.run
+    if not bascule_auto_active(run):
+        return True, "La bascule automatique était déjà coupée."
+    if not _couper_bascule_auto(run):
+        return False, "La bascule automatique n'a pas pu être coupée : le réglage n'a pas pu être écrit."
+    courante = ambiance_actuelle(run)
+    return True, ("Bascule automatique coupée : le bureau reste en « %s »." % courante.titre if courante is not None
+                  else "Bascule automatique coupée.")
+
+
 def appliquer(cle, run=None):
-    """Pose l'ambiance `cle` ; (réussi, message en français)."""
+    """Pose l'ambiance `cle` ; (réussi, message en français). Choisir à la main coupe la bascule automatique Aube / Nuit."""
     run = run or launch.run
     ambiance = trouver(cle)
     if ambiance is None:
         return False, "Cette ambiance n'existe pas : " + ", ".join(CLES) + "."
+    # D'abord : sinon Plasma remettrait Aube ou Nuit au prochain lever ou coucher du soleil
+    bascule_coupee = _couper_bascule_auto(run)
     if ambiance.cle == "contraste":
         # Une couleur d'accentuation choisie à la main écraserait le jaune : on l'enlève (elle n'existe pas la plupart du temps)
         run(["kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", "AccentColor", "--delete"], timeout=15)
@@ -182,6 +245,9 @@ def appliquer(cle, run=None):
         synchroniser_kvantum(None, run)  # rien n'a changé : le thème Kvantum redevient celui des couleurs qui sont toujours là
         return False, ("L'ambiance « %s » n'a pas pu être appliquée : le bureau ne répond pas. Essayez depuis une session "
                        "ouverte." % ambiance.titre)
+    if bascule_coupee:
+        return True, (f"L'ambiance « {ambiance.titre} » est en place. Elle ne changera plus toute seule le soir et le matin "
+                      "(« Aube le jour, Nuit le soir » est coupé).")
     return True, f"L'ambiance « {ambiance.titre} » est en place."
 
 
@@ -259,7 +325,8 @@ def desactiver_grand_texte(run=None, chemin_marqueur=None, chemin_texte=None):
 
 
 def main(argv=None, run=None, sortie=print, chemin_marqueur=None, chemin_texte=None):
-    """binixx-ambiance liste | etat | appliquer AMBIANCE | grand-texte oui|non | kvantum ; code de sortie 1 en cas d'échec."""
+    """binixx-ambiance liste | etat | appliquer AMBIANCE | auto oui|non | grand-texte oui|non | kvantum ; code de sortie 1 en cas
+    d'échec."""
     import argparse
 
     parser = argparse.ArgumentParser(prog="binixx-ambiance", description="Ambiances du bureau : Aube, Nuit, Contraste élevé.")
@@ -268,6 +335,8 @@ def main(argv=None, run=None, sortie=print, chemin_marqueur=None, chemin_texte=N
     sous.add_parser("etat", help="l'ambiance en cours et l'état de « Grand texte »")
     poser = sous.add_parser("appliquer", help="poser une ambiance")
     poser.add_argument("ambiance", choices=CLES)
+    auto = sous.add_parser("auto", help="Aube le jour, Nuit le soir : activer (oui) ou couper (non) la bascule automatique")
+    auto.add_argument("choix", choices=("oui", "non"))
     sous.add_parser("kvantum", help="mettre le thème Kvantum d'accord avec les couleurs en place (lancé à l'ouverture de session "
                                     "et quand les couleurs changent)")
     grand = sous.add_parser("grand-texte", help="activer ou désactiver « Grand texte »")
@@ -281,6 +350,7 @@ def main(argv=None, run=None, sortie=print, chemin_marqueur=None, chemin_texte=N
         courante = ambiance_actuelle(run)
         sortie(f"ambiance={courante.cle if courante else 'aucune'}")
         sortie(f"grand-texte={'oui' if grand_texte_actif(chemin_marqueur, chemin_texte) else 'non'}")
+        sortie(f"auto={'oui' if bascule_auto_active(run) else 'non'}")
         return 0
     if args.action == "kvantum":
         _, message = synchroniser_kvantum(None, run)
@@ -288,6 +358,8 @@ def main(argv=None, run=None, sortie=print, chemin_marqueur=None, chemin_texte=N
         return 0
     if args.action == "appliquer":
         reussi, message = appliquer(args.ambiance, run)
+    elif args.action == "auto":
+        reussi, message = activer_bascule_auto(run) if args.choix == "oui" else desactiver_bascule_auto(run)
     elif args.choix == "oui":
         reussi, message = activer_grand_texte(run, chemin_marqueur, chemin_texte)
     else:

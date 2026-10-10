@@ -103,6 +103,8 @@ snap="$(kreadconfig6 --file /etc/xdg/kwinrc --group Plugins --key kde-snap-overl
 if [[ "${snap}" == true ]]; then pass "kde-snap-overlay activé par défaut"; else fail "kde-snap-overlayEnabled='${snap}'"; fi
 check "logo BinixX OS sur le bouton Démarrer" \
     grep -q 'writeConfig("icon", "binixx")' "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
+check "menu de démarrage : « Toutes les applications » en grille, comme Windows 11 (applicationsDisplay=0)" \
+    grep -q 'kickoff.writeConfig("applicationsDisplay", 0)' "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
 
 section "Identité visuelle"
 # shellcheck source=/dev/null  # fichier de l'image, absent du dépôt

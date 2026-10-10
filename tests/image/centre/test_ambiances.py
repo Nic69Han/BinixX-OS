@@ -246,8 +246,9 @@ class Allure(unittest.TestCase):
         self.assertTrue(reussi)
         self.assertEqual(message, "L'ambiance « Aube » est en place.")
         self.assertEqual(faux.couleurs(), "BinixXClair")
-        self.assertEqual(faux.commandes[0], ["plasma-apply-lookandfeel", "--apply", "org.binixx.desktop"])
-        self.assertEqual(faux.commandes[1], ["plasma-apply-colorscheme", "BinixXClair"])
+        outils = [c for c in faux.commandes if c[0] != "kreadconfig6"]          # les lectures (bascule, couleurs) mises à part
+        self.assertEqual(outils[0], ["plasma-apply-lookandfeel", "--apply", "org.binixx.desktop"])
+        self.assertEqual(outils[1], ["plasma-apply-colorscheme", "BinixXClair"])
 
     def test_nuit(self):
         faux = FauxKde()
@@ -329,6 +330,97 @@ class Allure(unittest.TestCase):
             faux = FauxKde({("kdeglobals", "General", "ColorScheme"): schema})
             self.assertIsNone(A.ambiance_actuelle(faux), schema)
         self.assertIsNone(A.ambiance_actuelle(FauxKde(panne=True)))
+
+
+AUTO = ("kdeglobals", "KDE", "AutomaticLookAndFeel")
+
+
+class BasculeAuto(unittest.TestCase):
+    """Aube le jour, Nuit le soir : Plasma (module lookandfeelautoswitcher) fait la bascule ; on la règle et on la coupe quand on
+    choisit une allure à la main."""
+
+    def ecritures_auto(self, faux):
+        return [c for c in faux.commandes if c[0] == "kwriteconfig6" and c[c.index("--key") + 1] == "AutomaticLookAndFeel"]
+
+    def test_lue_dans_kdeglobals(self):
+        self.assertFalse(A.bascule_auto_active(FauxKde()))
+        self.assertTrue(A.bascule_auto_active(FauxKde({AUTO: "true"})))
+        self.assertFalse(A.bascule_auto_active(FauxKde({AUTO: "false"})))
+        self.assertFalse(A.bascule_auto_active(FauxKde({AUTO: "true"}, panne=True)))
+
+    def test_activer_pose_la_paire_aube_nuit_et_previent_plasma(self):
+        faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXSombre",
+                        ("kdeglobals", "KDE", "DefaultDarkLookAndFeel"): "org.kde.breezedark.desktop"})
+        reussi, message = A.activer_bascule_auto(faux, dormir=lambda s: self.fail("rien à attendre"))
+        self.assertTrue(reussi)
+        self.assertEqual(faux.valeurs[AUTO], "true")
+        self.assertEqual(faux.valeurs[("kdeglobals", "KDE", "DefaultLightLookAndFeel")], "org.binixx.desktop")
+        self.assertEqual(faux.valeurs[("kdeglobals", "KDE", "DefaultDarkLookAndFeel")], "org.binixx.dark.desktop")
+        for argv in (c for c in faux.commandes if c[0] == "kwriteconfig6"):
+            self.assertIn("--notify", argv)        # sans lui, le module de Plasma ne l'apprendrait qu'à la prochaine session
+        self.assertIn("en ce moment : Nuit", message)
+
+    def test_activer_attend_que_plasma_pose_l_ambiance_de_l_heure(self):
+        faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXContraste"})
+        attentes = []
+
+        def dormir(secondes):
+            attentes.append(secondes)
+            if len(attentes) == 2:        # Plasma a posé Nuit
+                faux.valeurs[("kdeglobals", "General", "ColorScheme")] = "BinixXSombre"
+        reussi, message = A.activer_bascule_auto(faux, dormir=dormir)
+        self.assertTrue(reussi)
+        self.assertEqual(attentes, [1, 1])
+        self.assertIn("en ce moment : Nuit", message)
+
+    def test_activer_sans_session_le_dit(self):
+        faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXContraste"})
+        attentes = []
+        reussi, message = A.activer_bascule_auto(faux, attente=3, dormir=attentes.append)
+        self.assertTrue(reussi)
+        self.assertEqual(len(attentes), 3)
+        self.assertIn("dans un instant", message)
+
+    def test_activer_quand_rien_ne_s_ecrit(self):
+        reussi, message = A.activer_bascule_auto(FauxKde(panne=True), dormir=lambda s: None)
+        self.assertFalse(reussi)
+        self.assertIn("n'a pas pu être activée", message)
+
+    def test_choisir_une_allure_coupe_la_bascule_avant_tout(self):
+        for cle in A.CLES:
+            faux = FauxKde({AUTO: "true", ("kdeglobals", "General", "ColorScheme"): "BinixXClair"})
+            reussi, message = A.appliquer(cle, faux)
+            self.assertTrue(reussi, cle)
+            self.assertEqual(faux.valeurs[AUTO], "false", cle)
+            self.assertIn("coupé", message, cle)
+            premiere_ecriture = faux.commandes.index(self.ecritures_auto(faux)[0])
+            theme_global = next(i for i, c in enumerate(faux.commandes) if c[0] == "plasma-apply-lookandfeel")
+            self.assertLess(premiere_ecriture, theme_global, cle)    # sinon Plasma pourrait remettre Aube ou Nuit entre-temps
+
+    def test_sans_bascule_choisir_n_y_touche_pas(self):
+        faux = FauxKde()
+        self.assertEqual(A.appliquer("nuit", faux), (True, "L'ambiance « Nuit » est en place."))
+        self.assertEqual(self.ecritures_auto(faux), [])
+
+    def test_desactiver_garde_l_ambiance_en_place(self):
+        faux = FauxKde({AUTO: "true", ("kdeglobals", "General", "ColorScheme"): "BinixXSombre"})
+        reussi, message = A.desactiver_bascule_auto(faux)
+        self.assertTrue(reussi)
+        self.assertEqual(faux.valeurs[AUTO], "false")
+        self.assertIn("reste en « Nuit »", message)
+        self.assertEqual(faux.couleurs(), "BinixXSombre")
+        self.assertEqual(A.desactiver_bascule_auto(faux), (True, "La bascule automatique était déjà coupée."))
+
+    def test_la_bascule_est_active_d_office_dans_l_image(self):
+        chemin = os.path.join(ICI, "../../../build_files/build.sh")
+        if not os.path.exists(chemin):      # dans l'image : contrôlé par tests/image/checks.d/83-ambiances.sh (/etc/xdg/kdeglobals)
+            self.skipTest("build_files absent")
+        with open(chemin, encoding="utf-8") as fichier:
+            construction = fichier.read()
+        self.assertIn("kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key AutomaticLookAndFeel --type bool true", construction)
+        for cle, theme in (("DefaultLightLookAndFeel", "org.binixx.desktop"), ("DefaultDarkLookAndFeel", "org.binixx.dark.desktop")):
+            self.assertIn(f"--group KDE --key {cle} {theme}", construction)
+        self.assertEqual((A.trouver(A.AUTO_JOUR).theme, A.trouver(A.AUTO_NUIT).theme), ("org.binixx.desktop", "org.binixx.dark.desktop"))
 
 
 class StyleKvantum(unittest.TestCase):
@@ -660,11 +752,21 @@ class LigneDeCommande(unittest.TestCase):
 
     def test_etat_puis_appliquer(self):
         faux = FauxKde()
-        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=aucune\ngrand-texte=non"))
+        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=aucune\ngrand-texte=non\nauto=non"))
         self.assertEqual(self.lancer("appliquer", "nuit", faux=faux), (0, "L'ambiance « Nuit » est en place."))
-        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=nuit\ngrand-texte=non"))
+        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=nuit\ngrand-texte=non\nauto=non"))
         self.assertEqual(self.lancer("appliquer", "contraste", faux=faux)[0], 0)
-        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=contraste\ngrand-texte=non"))
+        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=contraste\ngrand-texte=non\nauto=non"))
+
+    def test_auto_oui_non(self):
+        faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXClair"})
+        code, texte = self.lancer("auto", "oui", faux=faux)
+        self.assertEqual(code, 0)
+        self.assertIn("en ce moment : Aube", texte)
+        self.assertEqual(self.lancer("etat", faux=faux)[1].splitlines()[2], "auto=oui")
+        self.assertEqual(self.lancer("auto", "non", faux=faux)[0], 0)
+        self.assertEqual(self.lancer("etat", faux=faux)[1].splitlines()[2], "auto=non")
+        self.assertEqual(self.lancer("auto", "oui", faux=FauxKde(panne=True))[0], 1)
 
     def test_grand_texte_oui_non(self):
         faux = FauxKde()
@@ -677,9 +779,9 @@ class LigneDeCommande(unittest.TestCase):
         faux = FauxKde()
         self.lancer("appliquer", "contraste", faux=faux)
         self.lancer("grand-texte", "oui", faux=faux)
-        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=contraste\ngrand-texte=oui"))
+        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=contraste\ngrand-texte=oui\nauto=non"))
         self.lancer("appliquer", "aube", faux=faux)       # changer d'allure ne touche pas à la taille du texte
-        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=aube\ngrand-texte=oui"))
+        self.assertEqual(self.lancer("etat", faux=faux), (0, "ambiance=aube\ngrand-texte=oui\nauto=non"))
 
     def test_echec_du_bureau(self):
         code, texte = self.lancer("appliquer", "nuit", faux=FauxKde(panne=True))
@@ -690,7 +792,7 @@ class LigneDeCommande(unittest.TestCase):
     def test_arguments_invalides(self):
         import contextlib
         import io
-        for argv in (["bidule"], ["appliquer"], ["appliquer", "disco"], ["grand-texte", "peut-être"], []):
+        for argv in (["bidule"], ["appliquer"], ["appliquer", "disco"], ["grand-texte", "peut-être"], ["auto"], ["auto", "parfois"], []):
             with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as erreur:
                 A.main(argv, run=FauxKde())
             self.assertEqual(erreur.exception.code, 2, argv)
@@ -792,6 +894,32 @@ class PageDuCentre(unittest.TestCase):
         page.cartes["contraste"].bouton.click()
         self.assertEqual(self.faux.couleurs(), "BinixXContraste")
         self.assertFalse(page.cartes["contraste"].bouton.isEnabled())
+        page.close()
+
+    def test_aube_le_jour_nuit_le_soir(self):
+        page = self.ouvrir()
+        self.assertEqual(page.auto.bouton.text(), "Activer")
+        page.auto.bouton.click()
+        self.assertEqual(self.faux.valeurs[AUTO], "true")
+        self.assertEqual(page.auto.bouton.text(), "Désactiver")
+        self.assertIn("en ce moment : Aube", page.etat.text())
+        # l'allure du moment peut être gardée : c'est couper la bascule
+        self.assertEqual(page.cartes["aube"].bouton.text(), "Garder celle-ci")
+        self.assertTrue(page.cartes["aube"].bouton.isEnabled())
+        page.cartes["aube"].bouton.click()
+        self.assertEqual(self.faux.valeurs[AUTO], "false")
+        self.assertEqual(page.auto.bouton.text(), "Activer")
+        self.assertEqual(page.cartes["aube"].bouton.text(), "En place")
+        self.assertIn("coupé", page.etat.text())
+        page.close()
+
+    def test_la_page_dit_que_la_bascule_est_active(self):
+        self.faux.valeurs[AUTO] = "true"
+        page = self.ouvrir()
+        self.assertIn("Aube le jour, Nuit le soir", page.etat.text())
+        page.auto.bouton.click()
+        self.assertEqual(self.faux.valeurs[AUTO], "false")
+        self.assertIn("reste en « Aube »", page.etat.text())
         page.close()
 
     def test_grand_texte_s_active_et_se_desactive(self):

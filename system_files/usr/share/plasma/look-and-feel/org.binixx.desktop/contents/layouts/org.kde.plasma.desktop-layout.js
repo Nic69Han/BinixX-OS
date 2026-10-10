@@ -16,10 +16,12 @@ panel.floating = true
 // arrondie à un nombre pair car le réglage de taille n'affiche que des valeurs paires
 panel.height = 2 * Math.ceil(gridUnit * 2.5 / 2)
 
-// Menu de démarrage (Kickoff), ouvert aussi par la touche Windows, avec le logo BinixX OS
+// Menu de démarrage (Kickoff), ouvert aussi par la touche Windows, avec le logo BinixX OS.
+// « Toutes les applications » et les catégories en grille d'icônes, comme le menu Démarrer de Windows 11 (les favoris le sont déjà).
 var kickoff = panel.addWidget("org.kde.plasma.kickoff")
 kickoff.currentConfigGroup = ["General"]
 kickoff.writeConfig("icon", "binixx")
+kickoff.writeConfig("applicationsDisplay", 0)
 
 // Barre des tâches à icônes, avec les applications épinglées.
 // Pas de sélecteur de bureaux virtuels : il déroute les utilisateurs venant de Windows.

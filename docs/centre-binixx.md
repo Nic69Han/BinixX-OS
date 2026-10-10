@@ -262,6 +262,19 @@ d'origine » remet tout.
 | **Nuit** | Le thème sombre de BinixX OS (couleurs `BinixXSombre`), même style en sombre. Icônes de Breeze à dossiers jaunes (`binixx-os`, `binixx-os-dark`), qui s'assombrissent ou s'éclaircissent avec les couleurs. |
 | **Contraste élevé** | Noir, blanc et jaune (couleurs `BinixXContraste`, `usr/share/color-schemes/`) : texte blanc sur fond noir, sélection et focus en jaune, barre de titre jaune pour la fenêtre active. Style Breeze (thème global `org.binixx.contraste.desktop`), qui suit les couleurs à la lettre. |
 
+« **Aube le jour, Nuit le soir** » est un interrupteur, **activé d'office** : le bureau passe tout seul en Nuit au coucher du soleil et
+revient en Aube au lever (comme le mode « Automatique » de macOS). C'est la bascule de Plasma 6.5 et plus (module
+`lookandfeelautoswitcher` de kded) : heures du lever et du coucher du soleil d'après la position (celles de « Couleur de nuit ») ;
+**6 h et 18 h** quand la position est inconnue ; le changement se fait quand l'ordinateur n'est pas utilisé pendant quelques secondes,
+jamais au milieu d'un geste. L'image la règle dans `/etc/xdg/kdeglobals` (`AutomaticLookAndFeel=true`, paire
+`DefaultLightLookAndFeel=org.binixx.desktop` / `DefaultDarkLookAndFeel=org.binixx.dark.desktop`).
+
+- **Choisir une allure à la main la coupe** (Aube, Nuit ou Contraste élevé, ici ou par `binixx-ambiance appliquer`) : sinon Plasma
+  remettrait Aube ou Nuit au prochain lever ou coucher du soleil, et un contraste élevé serait perdu le soir. Le message le dit ; avec la
+  bascule active, l'allure du moment se « garde » d'un clic.
+- **L'activer** repose la paire Aube / Nuit (un autre thème a pu y être mis dans Configuration du système), prévient Plasma tout de suite
+  (`kwriteconfig6 --notify`) et attend jusqu'à 10 secondes que l'ambiance de l'heure soit en place pour la dire.
+
 « **Grand texte** » est un interrupteur à part, qui se combine avec n'importe quelle allure : texte à 130 % (la logique de « Taille du
 texte », ci-dessus) et pointeur de souris plus gros (36 au lieu de 24).
 
@@ -275,9 +288,9 @@ texte », ci-dessus) et pointeur de souris plus gros (36 au lieu de 24).
 - **Sans écran** (ssh, test VM) : les outils `plasma-apply-*` démarrent une application Qt et s'arrêtent sans écran ; l'outil
   leur donne alors la plateforme `offscreen` (ils écrivent les réglages et préviennent les applications par D-Bus). Avec un
   écran, rien ne change.
-- **Aube au départ** : tant qu'on n'a rien choisi, le schéma de couleurs n'est pas dans `kdeglobals` mais dans
+- **Au départ** : tant qu'on n'a rien choisi, le schéma de couleurs n'est pas dans `kdeglobals` mais dans
   `~/.config/kdedefaults/kdeglobals` (le thème global de BinixX OS) : la page le lit aussi, et annonce donc « Aube » sur une
-  installation neuve.
+  installation neuve, ou « Nuit » si elle est ouverte le soir (la bascule l'a posée).
 - **On vérifie** : après chaque pose, `kdeglobals` est relu. L'outil ne dit « c'est en place » que si le schéma voulu y est vraiment ;
   un outil qui répond « réussi » sans rien écrire (constaté pour `plasma-apply-cursortheme --size`) ne suffit pas : pour le pointeur,
   l'écriture directe de `cursorSize` dans `kcminputrc` prend alors le relais (effet à la prochaine ouverture de session). Pour les
@@ -293,11 +306,14 @@ texte », ci-dessus) et pointeur de souris plus gros (36 au lieu de 24).
   texte). « Désactiver » les remet ; si le texte a été réglé à la main sur une autre taille entre-temps (« Taille du texte »), il est
   laissé tel quel et seul le pointeur est remis.
 - **Pas de réglage fin des couleurs ici** : la page renvoie vers Configuration du système (« Couleurs, icônes et pointeur »).
-- **En ligne de commande** : `binixx-ambiance liste | etat | appliquer aube|nuit|contraste | grand-texte oui|non`.
-- **Tests** : `tests/image/centre/test_ambiances.py` (schéma, outils de Plasma et leurs secours, Grand texte, ligne de commande, page) ;
-  la CI vérifie les outils (`83-ambiances.sh`) ; le test VM pose les trois ambiances dans la vraie session, relit `kdeglobals`
-  (nom du schéma **et** couleurs copiées), active Grand texte, puis vérifie après le redémarrage de la mise à jour que Contraste
-  élevé et Grand texte ont survécu avant de tout remettre.
+- **En ligne de commande** : `binixx-ambiance liste | etat | appliquer aube|nuit|contraste | auto oui|non | grand-texte oui|non`
+  (`etat` dit aussi `auto=oui` ou `auto=non`).
+- **Tests** : `tests/image/centre/test_ambiances.py` (schéma, outils de Plasma et leurs secours, bascule automatique, Grand texte,
+  ligne de commande, page) ; la CI vérifie les outils, la bascule activée d'office et le module de Plasma (`83-ambiances.sh`) ; le test
+  VM vérifie que la bascule tourne sur un compte neuf (module chargé dans kded, thème Kvantum d'accord avec l'ambiance de l'heure),
+  pose les trois ambiances dans la vraie session, relit `kdeglobals` (nom du schéma **et** couleurs copiées), active Grand texte,
+  vérifie après le redémarrage de la mise à jour que Contraste élevé et Grand texte ont survécu, puis remet la bascule et contrôle que
+  l'ambiance de l'heure revient.
 
 ## Sous le capot
 

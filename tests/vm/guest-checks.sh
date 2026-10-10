@@ -210,6 +210,9 @@ kickoff = [s for s in cfg.sections() if s.startswith(prefix) and s.count("][") =
 icon = cfg.get(kickoff[0] + "][Configuration][General", "icon", fallback="")
 if icon != "binixx":
     sys.exit(f"icône du bouton Démarrer : '{icon}' (attendu : binixx)")
+grille = cfg.get(kickoff[0] + "][Configuration][General", "applicationsDisplay", fallback="")
+if grille != "0":
+    sys.exit(f"menu de démarrage : applicationsDisplay='{grille}' (attendu : 0, « Toutes les applications » en grille)")
 print("panneau en haut : " + ", ".join(applets))
 PYEOF
     )"; then

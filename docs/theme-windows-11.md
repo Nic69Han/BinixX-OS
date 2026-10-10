@@ -147,16 +147,15 @@ de l'écran, gemme bleue, fond « Le marcheur de l'aube ». La modernisation s'i
 | Barre de titre épurée : l'icône, le titre, trois boutons | Windows 11, macOS, GNOME | **Fait** : plus de bouton « sur tous les bureaux » ni « aide » |
 | L'accessibilité comme exigence de départ | tendances 2026 ; Plasma 6.6 et 6.7 | **Fait** : contraste élevé opaque partout |
 | Sélections et surlignages arrondis | Plasma 6.7 (Breeze), Windows 11 | déjà là : Kvantum Win11OS arrondit les sélections |
-| Menu Démarrer d'une seule page, applications en grille ou par catégories, taille réglable | Windows 11 (refonte 2025, puis 26H2 en test) | à décider (voir plus bas) |
-| Bascule clair / sombre automatique selon l'heure | Plasma 6.5, macOS, iOS | à décider (voir plus bas) |
+| Menu Démarrer : applications en grille ou par catégories | Windows 11 (refonte 2025, puis 26H2 en test) | **Fait** : « Toutes les applications » et les catégories en grille d'icônes (comptes neufs) |
+| Bascule clair / sombre automatique selon l'heure | Plasma 6.5, macOS, iOS | **Fait** : « Aube le jour, Nuit le soir », activé d'office, réglable dans Ambiances ([centre-binixx.md](centre-binixx.md#ambiances--lallure-du-bureau-en-un-clic)) |
 
 Pistes suivantes, chacune à voir en capture avant de la livrer :
 
-- **Bascule automatique Aube → Nuit** au coucher du soleil (Plasma 6.5 sait le faire ; la paire Aube / Nuit est déjà déclarée) : très
-  moderne, mais un bureau qui change de couleur tout seul peut surprendre ; à proposer plutôt qu'à imposer.
-- **Menu Démarrer** : « Toutes les applications » en grille (réglage de Kickoff), comme Windows 11. En liste, Kickoff affiche sous chaque
-  nom ce que fait l'application (« Okular — Visionneuse de documents ») : utile tant que les noms des applications de KDE ne parlent pas
-  d'eux-mêmes. Un menu plus proche de celui de Windows 11 (épinglées + recommandées) serait un composant tiers à maintenir.
+- **Menu Démarrer** : la grille (choisie par le propriétaire) n'affiche que le nom des applications ; la recherche du menu, elle, montre
+  toujours ce que fait chacune (« Okular — Visionneuse de documents »). Un menu plus proche de celui de Windows 11 (épinglées +
+  recommandées) serait un composant tiers à maintenir. Un compte déjà créé garde sa liste : clic droit sur le bouton Démarrer →
+  Configurer → « Afficher les applications : en grille ».
 - **Icônes** : les icônes Fluent de Microsoft (licence MIT,
   [fluentui-system-icons](https://github.com/microsoft/fluentui-system-icons)) en thème partiel qui hérite de BinixX OS ; leurs pictogrammes
   d'interface sont libres de réutilisation, contrairement aux icônes d'applications de Microsoft.
