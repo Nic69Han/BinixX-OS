@@ -46,5 +46,9 @@ bienvenus.
 - `build.yml` construit les deux images (matrice) ; une pull request ne construit que l'image standard.
   Un échec de la variante NVIDIA ne bloque pas l'image standard.
 - `test-vm.yml` teste et promeut chaque image séparément ; à la main, l'entrée `variant` choisit l'image.
-- `build_files/modules.d/80-variante.sh` : vérifie la présence des pilotes et marque l'image.
+- `build_files/modules.d/80-variante.sh` : vérifie la présence des pilotes et marque l'image. Il fait aussi
+  dépendre `nvidia-persistenced` et `nvidia-cdi-refresh` du pilote chargé (`ConditionPathExists=/sys/module/nvidia`) :
+  sans pilote (clé Secure Boot pas encore enrôlée, pas de carte NVIDIA), ils échouaient en boucle et leurs
+  « [FAILED] » s'affichaient entre l'écran de démarrage et l'écran de connexion. Le test VM, où le pilote ne se charge
+  pas, vérifie qu'ils sont écartés sans échec.
 - Pas d'ISO NVIDIA : on installe BinixX OS, puis `bootc switch` (voir ci-dessus).
