@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gui SYSTEM "kpartgui.dtd">
+<!--
+  Explorateur BinixX : Dolphin épuré, une seule ligne de boutons (docs/explorateur.md).
+
+  Ce fichier ne contient que la barre d'outils et les propriétés des actions. Sa version (1) est volontairement plus basse que
+  celle de Dolphin : au premier lancement, KDE garde la version de Dolphin pour les menus et y reprend cette barre, si bien
+  qu'une mise à jour de Dolphin n'est jamais écrasée par ce fichier.
+
+  Une ligne : revenir, avancer, dossier parent, barre d'adresse, recherche, affichage (taille des icônes, liste, détails), menu.
+  Couper, Copier, Coller, Renommer, Supprimer et Nouveau restent à portée : clic droit, Ctrl + X / C / V, F2, Suppr.
+  Un nom d'action que Dolphin ne connaît pas est simplement ignoré.
+-->
+<gui name="dolphin" version="1">
+    <ToolBar noMerge="1" name="mainToolBar">
+        <text context="@title:menu">Main Toolbar</text>
+        <Action name="go_back" />
+        <Action name="go_forward" />
+        <Action name="go_up" />
+        <Action name="url_navigators" />
+        <Action name="toggle_search" />
+        <Action name="view_settings" />
+        <Action name="hamburger_menu" />
+    </ToolBar>
+    <ActionProperties scheme="Default">
+        <Action priority="0" name="go_back" />
+        <Action priority="0" name="go_forward" />
+        <Action priority="0" name="go_up" />
+        <Action priority="0" name="toggle_search" />
+        <Action priority="0" name="view_settings" />
+    </ActionProperties>
+</gui>

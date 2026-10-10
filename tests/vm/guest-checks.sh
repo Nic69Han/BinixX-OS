@@ -5,6 +5,7 @@
 #   after-update    après `bootc switch` vers l'image de mise à jour et redémarrage
 #   after-rollback  après `bootc rollback` et redémarrage
 #   after-auto-rollback  après une mise à jour défectueuse, retour arrière automatique de greenboot
+#   explorateur     juste après base : les vérifications qui ouvrent une fenêtre (Dolphin), avant la capture d'écran de run-vm-test.sh
 #   theme-aube, theme-nuit, theme-contraste, theme-fin   style Windows 11 : une ambiance posée puis Dolphin ouvert pour la capture d'écran
 
 set -uo pipefail
@@ -238,7 +239,7 @@ PYEOF
 }
 
 # Vérifications par fonctionnalité : un fichier par chantier dans checks.d/ (ordre alphabétique).
-# Il définit une fonction et l'inscrit à une phase : register_check <base|after-update|after-rollback> <fonction>
+# Il définit une fonction et l'inscrit à une phase : register_check <base|after-update|after-rollback|explorateur> <fonction>
 declare -A PHASE_CHECKS=()
 register_check() { PHASE_CHECKS[$1]+=" $2"; }
 run_module_checks() { # run_module_checks <phase>
@@ -284,6 +285,9 @@ after-rollback)
 after-auto-rollback)
     check_system_state
     run_module_checks after-auto-rollback
+    ;;
+explorateur)
+    run_module_checks explorateur
     ;;
 theme-aube | theme-nuit | theme-contraste | theme-fin)
     # Captures du style Windows 11 : une phase par ambiance, lancées par run-vm-test.sh (checks.d/82-theme-windows-11.sh)

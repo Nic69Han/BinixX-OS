@@ -57,7 +57,7 @@ En ligne de commande : `binixx-migrer analyser|copier|favoris|sources` (voir `bi
 | --- | --- |
 | Menu Démarrer, touche Windows | Logo BinixX OS en haut à gauche, touche Windows (même comportement, recherche comprise) |
 | Barre des tâches, épingler une application | Même principe, mais la barre est **en haut** de l'écran : clic droit sur l'icône → « Épingler au gestionnaire de tâches ». Elle se déplace en bas par clic droit → « Modifier le tableau de bord » |
-| Explorateur de fichiers | Dolphin (Windows + E) |
+| Explorateur de fichiers | Dolphin (Windows + E), épuré : une ligne de boutons, grandes icônes ; Couper, Copier, Coller, Renommer par clic droit ou Ctrl + X / C / V, F2 ([explorateur.md](explorateur.md)) |
 | Word, Excel, PowerPoint | OnlyOffice (ouvre et enregistre directement les .docx, .xlsx, .pptx). Avec un abonnement Microsoft 365 : « Word (web) », « Excel (web) », « PowerPoint (web) » dans le menu |
 | Clic droit → Nouveau → Document Word, Classeur Excel, Présentation PowerPoint | Clic droit dans un dossier → **Créer nouveau** → « Document texte », « Classeur », « Présentation » : un fichier .docx, .xlsx ou .pptx vierge (A4, Calibri 11, français), qui s'ouvre dans OnlyOffice |
 | Outlook (nouvel Outlook), OneDrive en ligne | « Outlook (web) » et « Microsoft 365 (web) » dans le menu, ou Thunderbird pour le courriel |
