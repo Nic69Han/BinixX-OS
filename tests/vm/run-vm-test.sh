@@ -409,7 +409,13 @@ ssh_vm 'sudo sed -i "s/ console=ttyS[^ ]*//g" /boot/loader/entries/*.conf && sud
 REBOOT_GRACE=100 reboot_vm
 screenshot connexion
 screens_status=0
-python3 "${TEST_DIR}/ecran_demarrage.py" verifier "${LOGS}/ecran-redemarrage-${REBOOTS}.log.csv" || screens_status=$?
+# Variante NVIDIA (pilotes présents dans le système de la VM) : initramfs plus lourd, les lignes du micrologiciel restent plus longtemps
+lignes_tolerees=()
+if ssh_vm 'modinfo -n nvidia >/dev/null 2>&1'; then
+    lignes_tolerees=(--lignes-tolerees "$(python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); import ecran_demarrage as e; print(e.LIGNES_TOLEREES_AVANT_NVIDIA)' "${TEST_DIR}")")
+    log "Pilotes NVIDIA dans le système : lignes du micrologiciel tolérées sur ${lignes_tolerees[1]} captures"
+fi
+python3 "${TEST_DIR}/ecran_demarrage.py" verifier "${LOGS}/ecran-redemarrage-${REBOOTS}.log.csv" "${lignes_tolerees[@]}" || screens_status=$?
 ssh_vm 'echo "-- sessions ouvertes :" && loginctl list-sessions --no-legend; echo "-- processus du gestionnaire de connexion :" && ps -eo user,comm | grep -iE "plasmalogin|greeter" | sort | uniq -c' || true
 # Connexion automatique rétablie pour la suite : les vérifications attendent la session de l'utilisateur de test
 ssh_vm 'printf "[Autologin]\nUser=testeur\nSession=plasma\n" | sudo tee /etc/plasmalogin.conf.d/90-binixx-test.conf >/dev/null'

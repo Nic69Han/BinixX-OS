@@ -215,6 +215,15 @@ class VerifierTest(unittest.TestCase):
         erreurs, _ = ecran.verifier(captures(("LIGNES", ecran.LIGNES_TOLEREES_AVANT + 1), ("DEMARRAGE", 8), ("CLAIR", 3)))
         self.assertTrue(any("quelques lignes de texte sont restées" in e for e in erreurs))
 
+    def test_la_variante_nvidia_a_sa_propre_limite(self):
+        """Son initramfs est plus lourd : les lignes du micrologiciel restent plus longtemps ; la limite de binixx ne change pas."""
+        mesure = captures(("LIGNES", 13), ("DEMARRAGE", 8), ("CLAIR", 3))
+        self.assertTrue(any("quelques lignes de texte sont restées 13" in e for e in ecran.verifier(mesure)[0]))
+        self.assertEqual(ecran.verifier(mesure, lignes_tolerees=ecran.LIGNES_TOLEREES_AVANT_NVIDIA)[0], [])
+        trop = captures(("LIGNES", ecran.LIGNES_TOLEREES_AVANT_NVIDIA + 1), ("DEMARRAGE", 8), ("CLAIR", 3))
+        self.assertTrue(ecran.verifier(trop, lignes_tolerees=ecran.LIGNES_TOLEREES_AVANT_NVIDIA)[0])
+        self.assertEqual(ecran.LIGNES_TOLEREES_AVANT, 12)
+
     def test_des_lignes_apres_l_ecran_de_demarrage_sont_refusees(self):
         erreurs, _ = ecran.verifier(captures(("DEMARRAGE", 8), ("LIGNES", 2), ("CLAIR", 3)))
         self.assertTrue(any("réapparu" in e for e in erreurs))

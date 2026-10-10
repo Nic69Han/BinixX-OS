@@ -48,6 +48,10 @@ PART_TEXTE = 0.05
 PART_ECRAN_DE_TEXTE = 0.03
 # Captures de « quelques lignes » tolérées avant l'écran de démarrage : le micrologiciel les laisse à l'écran jusqu'à ce que le noyau prenne la main, plus longtemps en machine virtuelle
 LIGNES_TOLEREES_AVANT = 12
+# Variante NVIDIA : son initramfs, avec les pilotes NVIDIA, est bien plus lourd à charger ; les deux lignes du micrologiciel de la VM restent
+# donc plus longtemps (mesuré : 4 captures pour binixx, 12 puis 13 pour binixx-nvidia). Un vrai PC affiche le logo de son constructeur
+# pendant ce temps. run-vm-test.sh passe cette limite (--lignes-tolerees) quand le système de la VM a les pilotes NVIDIA.
+LIGNES_TOLEREES_AVANT_NVIDIA = 20
 # Captures de texte de console tolérées avant l'écran de démarrage (arrêt, micrologiciel, menu GRUB : au plus quelques secondes)
 TEXTE_TOLERE_AVANT = 3
 
@@ -272,7 +276,7 @@ def derniere_serie(codes, code):
     return (0, fin) if fin is not None else None
 
 
-def verifier(captures, exiger_connexion=True):
+def verifier(captures, exiger_connexion=True, lignes_tolerees=LIGNES_TOLEREES_AVANT):
     """(erreurs, informations) : le démarrage ressemble-t-il à celui de Windows ?
 
     La surveillance commence avant l'arrêt : l'écran de démarrage de l'arrêt vient donc d'abord. Celui du démarrage est la dernière série
@@ -303,13 +307,13 @@ def verifier(captures, exiger_connexion=True):
     texte_avant = avant.count("TEXTE")
     lignes_avant = avant.count("LIGNES")
     infos.append(f"captures d'un écran de texte avant l'écran de démarrage : {texte_avant} (toléré : {TEXTE_TOLERE_AVANT})")
-    infos.append(f"captures de quelques lignes de texte avant l'écran de démarrage : {lignes_avant} (toléré : {LIGNES_TOLEREES_AVANT})")
+    infos.append(f"captures de quelques lignes de texte avant l'écran de démarrage : {lignes_avant} (toléré : {lignes_tolerees})")
     if texte_avant > TEXTE_TOLERE_AVANT:
         erreurs.append(f"un écran de texte de console s'est affiché sur {texte_avant} captures avant l'écran de démarrage "
                        f"(toléré : {TEXTE_TOLERE_AVANT})")
-    if lignes_avant > LIGNES_TOLEREES_AVANT:
+    if lignes_avant > lignes_tolerees:
         erreurs.append(f"quelques lignes de texte sont restées {lignes_avant} captures avant l'écran de démarrage "
-                       f"(toléré : {LIGNES_TOLEREES_AVANT})")
+                       f"(toléré : {lignes_tolerees})")
     if exiger_connexion:
         derniere = codes[-1]
         infos.append(f"dernière capture : {derniere}")
@@ -328,7 +332,10 @@ def main(argv):
         surveiller(argv[2], argv[3], argv[4], int(argv[5]) if len(argv) > 5 else 1800)
         return 0
     if len(argv) >= 3 and argv[1] == "verifier":
-        erreurs, infos = verifier(lire_tableau(argv[2]), "--sans-connexion" not in argv)
+        tolerees = LIGNES_TOLEREES_AVANT
+        if "--lignes-tolerees" in argv:
+            tolerees = int(argv[argv.index("--lignes-tolerees") + 1])
+        erreurs, infos = verifier(lire_tableau(argv[2]), "--sans-connexion" not in argv, tolerees)
         for info in infos:
             print(f"  info      {info}")
         for erreur in erreurs:
