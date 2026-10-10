@@ -1,0 +1,13 @@
+[Unit]
+Description=BinixX OS : thème Kvantum d'accord avec les couleurs du bureau
+Documentation=https://github.com/Nic69Han/BinixX-OS/blob/main/docs/theme-windows-11.md
+# Les couleurs peuvent changer plusieurs fois de suite (thème global : une dizaine d'écritures) : aucune limite de démarrages,
+# sans quoi systemd cesserait de lancer le service et le thème ne suivrait plus
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/binixx/binixx-ambiance kvantum
+
+[Install]
+WantedBy=default.target

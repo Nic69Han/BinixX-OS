@@ -72,6 +72,12 @@ SECURITY=(
     mokutil
 )
 
+# Style Windows 11 des applications : Kvantum dessine les boutons, cases et barres de défilement
+# (thèmes Win11OS-light et Win11OS-dark de usr/share/Kvantum, docs/theme-windows-11.md)
+APPEARANCE=(
+    kvantum
+)
+
 # Administration à la souris : Cockpit, console web de Fedora (domaine Active Directory, mises à
 # jour et retour arrière, pare-feu, disques, services, journaux), et pare-feu dans
 # Configuration du système (plasma-firewall)
@@ -122,6 +128,7 @@ dnf5 -y install \
     "${SCANNING[@]}" \
     "${VIDEOCONF[@]}" \
     "${SECURITY[@]}" \
+    "${APPEARANCE[@]}" \
     "${LANGUAGE[@]}" \
     "${CLOUD[@]}" \
     "${VPN[@]}" \
@@ -140,6 +147,9 @@ cp -a --update=none "${LNF_DIR}/org.kde.breeze.desktop/." "${LNF_DIR}/org.binixx
 # Thème global sombre org.binixx.dark.desktop : même disposition, reste copié de Brise sombre
 cp -a "${LNF_DIR}/org.binixx.desktop/contents/layouts" "${LNF_DIR}/org.binixx.dark.desktop/contents/"
 cp -a --update=none "${LNF_DIR}/org.kde.breezedark.desktop/." "${LNF_DIR}/org.binixx.dark.desktop/"
+# Thème global contraste élevé org.binixx.contraste.desktop (style Breeze, sans Kvantum) : même disposition, reste copié de Brise sombre
+cp -a "${LNF_DIR}/org.binixx.desktop/contents/layouts" "${LNF_DIR}/org.binixx.contraste.desktop/contents/"
+cp -a --update=none "${LNF_DIR}/org.kde.breezedark.desktop/." "${LNF_DIR}/org.binixx.contraste.desktop/"
 
 # Couleurs BinixX OS clair et sombre : celles de Brise, avec le bleu BinixX OS comme couleur d'accent
 # (sélection, survol, focus, liens), comme les couleurs d'accent de Zorin OS 18. Générées
@@ -173,6 +183,19 @@ for source, (scheme, name, colors) in SCHEMES.items():
     print(f"{scheme}.colors : {replaced} couleurs d'accent BinixX OS")
 PYEOF
 
+# Icônes BinixX OS (clair et sombre) : celles de Breeze, avec des dossiers jaunes comme ceux de Windows au lieu de dossiers à la couleur
+# d'accent (bleue). Générées depuis le Breeze de l'image : voir build_files/icones-dossiers-jaunes.py (échoue si le dessin des dossiers
+# de Breeze a changé). Les thèmes globaux les posent (Icons Theme dans look-and-feel/*/contents/defaults).
+python3 /ctx/icones-dossiers-jaunes.py
+
+# Variantes des thèmes (build_files/variantes-themes.py, qui échoue si un réglage ou un fond attendu a disparu des thèmes d'origine, laissés
+# inchangés à côté) : les thèmes de Win11OS KDE sont translucides et comptent sur le flou de KWin ; sans flou on lit les fenêtres à travers
+# le menu de démarrage.
+# - BinixX-Win11-light et -dark (Aube, Nuit) : barre des tâches, menu et bulles en verre dépoli quand le flou est là, opaques sinon ;
+#   fenêtres des applications (Kvantum) opaques ;
+# - BinixX-contraste (Contraste élevé) : Breeze opaque dans tous les cas.
+python3 /ctx/variantes-themes.py
+
 # Thème global par défaut pour tous les utilisateurs.
 # Fedora le définit dans kde-settings (priorité plus basse que /etc/xdg) : on corrige les deux.
 kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key LookAndFeelPackage org.binixx.desktop
@@ -192,6 +215,11 @@ kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key DefaultDarkLookAndFee
 #   kde-snap-overlay (usr/share/kwin/scripts/), qui s'appuie sur l'ancrage natif de KWin.
 kwriteconfig6 --file /etc/xdg/kwinrc --group Windows --key Placement Centered
 kwriteconfig6 --file /etc/xdg/kwinrc --group Plugins --key kde-snap-overlayEnabled true
+# Barre de titre épurée, comme Windows 11 et les bureaux récents : l'icône de l'application à gauche, réduire, agrandir et fermer à droite.
+# KWin met par défaut « sur tous les bureaux » à gauche (trois points dans le thème Win11OS) et « aide » à droite ; le thème global ne
+# pose pas ces clés (plasma-apply-lookandfeel les ignore), d'où ce réglage du système.
+kwriteconfig6 --file /etc/xdg/kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft M
+kwriteconfig6 --file /etc/xdg/kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight IAX
 
 # Pavé numérique activé à l'ouverture de session, comme sous Windows (0 = activé)
 kwriteconfig6 --file /etc/xdg/kcminputrc --group Keyboard --key NumLock 0
@@ -322,6 +350,9 @@ systemctl enable plasma-setup.service
 # Centre d'administration (Cockpit), joignable seulement depuis le PC lui-même
 # (usr/lib/systemd/system/cockpit.socket.d/50-binixx-localhost.conf)
 systemctl enable cockpit.socket
+# Thème Kvantum d'accord avec les couleurs du bureau, pour chaque utilisateur : à l'ouverture de session et chaque fois que ses
+# couleurs changent (usr/lib/systemd/user/binixx-kvantum.{path,service})
+systemctl --global enable binixx-kvantum.service binixx-kvantum.path
 
 ### 7. Sécurité
 # Pare-feu : zone binixx par défaut (usr/lib/firewalld/zones/binixx.xml) au lieu de

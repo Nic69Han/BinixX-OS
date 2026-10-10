@@ -5,6 +5,7 @@
 #   after-update    après `bootc switch` vers l'image de mise à jour et redémarrage
 #   after-rollback  après `bootc rollback` et redémarrage
 #   after-auto-rollback  après une mise à jour défectueuse, retour arrière automatique de greenboot
+#   theme-aube, theme-nuit, theme-contraste, theme-fin   style Windows 11 : une ambiance posée puis Dolphin ouvert pour la capture d'écran
 
 set -uo pipefail
 
@@ -283,6 +284,10 @@ after-rollback)
 after-auto-rollback)
     check_system_state
     run_module_checks after-auto-rollback
+    ;;
+theme-aube | theme-nuit | theme-contraste | theme-fin)
+    # Captures du style Windows 11 : une phase par ambiance, lancées par run-vm-test.sh (checks.d/82-theme-windows-11.sh)
+    run_module_checks "${PHASE}"
     ;;
 *)
     echo "phase inconnue : ${PHASE}" >&2

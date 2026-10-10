@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Ambiances du bureau : binixx-ambiance liste | etat | appliquer aube|nuit|contraste | grand-texte oui|non."""
+"""Ambiances du bureau : binixx-ambiance liste | etat | appliquer aube|nuit|contraste | grand-texte oui|non | kvantum."""
 
 import sys
 
