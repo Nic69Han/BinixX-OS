@@ -264,8 +264,9 @@ d'origine » remet tout.
 
 « **Aube le jour, Nuit le soir** » est un interrupteur, **activé d'office** : le bureau passe tout seul en Nuit au coucher du soleil et
 revient en Aube au lever (comme le mode « Automatique » de macOS). C'est la bascule de Plasma 6.5 et plus (module
-`lookandfeelautoswitcher` de kded) : heures du lever et du coucher du soleil d'après la position (celles de « Couleur de nuit ») ;
-**6 h et 18 h** quand la position est inconnue ; le changement se fait quand l'ordinateur n'est pas utilisé pendant quelques secondes,
+`lookandfeelautoswitcher` de kded) : heures du lever et du coucher du soleil **là où le service de localisation (geoclue) place
+l'ordinateur**, celles de « Couleur de nuit », et non d'après le fuseau horaire ; **6 h et 18 h** quand la position est inconnue (ou
+fixées à la main dans Configuration du système → Couleur de nuit) ; le changement se fait quand l'ordinateur n'est pas utilisé pendant quelques secondes,
 jamais au milieu d'un geste. L'image la règle dans `/etc/xdg/kdeglobals` (`AutomaticLookAndFeel=true`, paire
 `DefaultLightLookAndFeel=org.binixx.desktop` / `DefaultDarkLookAndFeel=org.binixx.dark.desktop`).
 
