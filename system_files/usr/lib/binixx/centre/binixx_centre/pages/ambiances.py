@@ -1,4 +1,5 @@
-"""Ambiances : Aube, Nuit, Contraste élevé en un clic, et l'interrupteur « Grand texte ». Page ouverte depuis Paramètres.
+"""Ambiances : Aube, Nuit, Contraste élevé en un clic, la bascule « Aube le jour, Nuit le soir » et l'interrupteur « Grand texte ».
+Page ouverte depuis Paramètres.
 
 La logique (outils de Plasma, vérification dans kdeglobals) est dans ambiances.py ; ici, seulement l'écran."""
 
@@ -99,6 +100,12 @@ class Page(QWidget):
             carte.apercu = apercu
             self.cartes[ambiance.cle] = carte
             page.addWidget(carte)
+        self.auto = widgets.carte(
+            "Aube le jour, Nuit le soir", "Le bureau passe tout seul en Nuit au coucher du soleil et revient en Aube au lever, "
+                                          "quand vous ne vous en servez pas pendant quelques secondes. Choisir une allure "
+                                          "ci-dessus coupe la bascule.",
+            "Activer", self.basculer_auto, icone="clock", couleurs=ACCENT)
+        page.addWidget(self.auto)
         page.addWidget(widgets.discret(
             "Le fond d'écran suit : clair avec Aube, sombre avec Nuit et Contraste élevé."))
 
@@ -125,24 +132,30 @@ class Page(QWidget):
     def occupe(self, message):
         """Un instant : message affiché et boutons grisés pendant que Plasma change le bureau."""
         self.etat.setText(message)
-        for carte in list(self.cartes.values()) + [self.grand]:
+        for carte in list(self.cartes.values()) + [self.auto, self.grand]:
             carte.bouton.setEnabled(False)
         QApplication.processEvents()
 
     def actualiser(self, message=None):
         courante = ambiances.ambiance_actuelle()
+        auto = ambiances.bascule_auto_active()
         for cle, carte in self.cartes.items():
             actif = courante is not None and courante.cle == cle
-            carte.bouton.setText("En place" if actif else "Choisir")
-            carte.bouton.setEnabled(not actif)
+            # Avec la bascule, l'allure du moment peut être choisie quand même : c'est la garder (et couper la bascule)
+            carte.bouton.setText(("Garder celle-ci" if auto else "En place") if actif else "Choisir")
+            carte.bouton.setEnabled(not actif or auto)
             carte.apercu.actif = actif
             carte.apercu.update()
+        self.auto.bouton.setText("Désactiver" if auto else "Activer")
+        self.auto.bouton.setEnabled(True)
         grand = ambiances.grand_texte_actif()
         self.grand.bouton.setText("Désactiver" if grand else "Activer")
         self.grand.bouton.setEnabled(True)
         if message is None:
             message = (f"Ambiance en place : {courante.titre}." if courante is not None
                        else "Le bureau utilise des couleurs personnalisées : choisissez une ambiance pour les remplacer.")
+            if auto:
+                message += " Elle change toute seule : Aube le jour, Nuit le soir."
             if grand:
                 message += " « Grand texte » est activé."
         self.etat.setText(message)
@@ -152,6 +165,17 @@ class Page(QWidget):
         QGuiApplication.setOverrideCursor(Qt.WaitCursor)
         try:
             _, message = ambiances.appliquer(cle)
+        finally:
+            QGuiApplication.restoreOverrideCursor()
+        self.actualiser(message)
+
+    def basculer_auto(self):
+        activer = not ambiances.bascule_auto_active()
+        self.occupe("Un instant, l'ambiance de l'heure se met en place…" if activer else "Un instant…")
+        QGuiApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            action = ambiances.activer_bascule_auto if activer else ambiances.desactiver_bascule_auto
+            _, message = action()
         finally:
             QGuiApplication.restoreOverrideCursor()
         self.actualiser(message)

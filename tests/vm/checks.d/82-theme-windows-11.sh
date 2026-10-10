@@ -27,7 +27,27 @@ theme_kvantum_egal() { [[ "$(theme_kvantum)" == "$1" ]]; }
 check_theme_base() {
     section "Style Windows 11 (compte neuf, thème Kvantum qui suit les couleurs)"
     local theme
-    check "thème Kvantum du compte de l'installation (copié de /etc/skel) : BinixX-Win11-light" test "$(theme_kvantum)" = BinixX-Win11-light
+    # Bascule automatique (Aube le jour, Nuit le soir) active d'office : selon l'heure de la VM, le compte neuf est en Aube ou en Nuit, et
+    # le thème Kvantum (BinixX-Win11-light de /etc/skel au départ) suit
+    local couleurs attendu modules
+    couleurs="$(theme_reglage kdeglobals General ColorScheme)"
+    echo "            info : heure de la VM $(date '+%H:%M %Z'), couleurs '${couleurs}', thème global '$(theme_reglage kdeglobals KDE LookAndFeelPackage)'"
+    theme_egal "bascule automatique Aube / Nuit (AutomaticLookAndFeel)" "$(theme_reglage kdeglobals KDE AutomaticLookAndFeel)" true
+    theme_egal "thème du jour de la bascule" "$(theme_reglage kdeglobals KDE DefaultLightLookAndFeel)" org.binixx.desktop
+    theme_egal "thème du soir de la bascule" "$(theme_reglage kdeglobals KDE DefaultDarkLookAndFeel)" org.binixx.dark.desktop
+    if modules="$(theme_session busctl --user call org.kde.kded6 /kded org.kde.kded6 loadedModules 2>&1)"; then
+        if [[ "${modules}" == *'"lookandfeelautoswitcher"'* ]]; then
+            pass "le module de bascule de Plasma (lookandfeelautoswitcher) tourne dans kded"
+        else
+            fail "lookandfeelautoswitcher absent des modules de kded : ${modules:0:300}"
+        fi
+    else
+        warn "modules de kded illisibles : ${modules:0:200}"
+    fi
+    attendu=BinixX-Win11-light
+    [[ "${couleurs}" == BinixXSombre ]] && attendu=BinixX-Win11-dark
+    wait_for 30 theme_kvantum_egal "${attendu}" || true
+    check "thème Kvantum du compte neuf, d'accord avec l'ambiance de l'heure (${couleurs:-BinixXClair}) : ${attendu}" test "$(theme_kvantum)" = "${attendu}"
     check "le style Qt 6 « kvantum » est installé" test -s /usr/lib64/qt6/plugins/styles/libkvantum.so
     check "kdedefaults : style des applications kvantum (posé par le thème global)" grep -qx 'widgetStyle=kvantum' "${TEST_HOME}/.config/kdedefaults/kdeglobals"
     for fichier in plasmarc kwinrc; do
@@ -130,5 +150,23 @@ check_theme_fin() {
     theme_egal "le bureau est revenu à Aube, couleurs" "$(theme_reglage kdeglobals General ColorScheme)" BinixXClair
     wait_for 30 theme_kvantum_egal BinixX-Win11-light || true
     theme_egal "thème Kvantum" "$(theme_kvantum)" BinixX-Win11-light
+    theme_egal "choisir une ambiance a coupé la bascule automatique" "$(theme_reglage kdeglobals KDE AutomaticLookAndFeel)" false
+
+    # Puis le réglage d'origine : Aube le jour, Nuit le soir. Plasma pose aussitôt l'ambiance de l'heure, le thème Kvantum suit
+    section "Aube le jour, Nuit le soir (bascule automatique)"
+    local couleurs attendu
+    if out="$(theme_session /usr/libexec/binixx/binixx-ambiance auto oui 2>&1)"; then pass "binixx-ambiance auto oui : ${out}"; else fail "auto oui : ${out:0:300}"; fi
+    theme_egal "bascule automatique" "$(theme_reglage kdeglobals KDE AutomaticLookAndFeel)" true
+    couleurs="$(theme_reglage kdeglobals General ColorScheme)"
+    echo "            info : heure de la VM $(date '+%H:%M %Z'), ambiance posée : '${couleurs}'"
+    if [[ "${couleurs}" == BinixXClair || "${couleurs}" == BinixXSombre ]]; then
+        pass "l'ambiance de l'heure est en place : ${couleurs}"
+    else
+        fail "après « auto oui », couleurs '${couleurs}' (BinixXClair ou BinixXSombre attendu)"
+    fi
+    attendu=BinixX-Win11-light
+    [[ "${couleurs}" == BinixXSombre ]] && attendu=BinixX-Win11-dark
+    wait_for 30 theme_kvantum_egal "${attendu}" || true
+    theme_egal "thème Kvantum d'accord avec l'ambiance de l'heure" "$(theme_kvantum)" "${attendu}"
 }
 register_check theme-fin check_theme_fin

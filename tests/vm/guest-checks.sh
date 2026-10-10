@@ -211,6 +211,9 @@ kickoff = [s for s in cfg.sections() if s.startswith(prefix) and s.count("][") =
 icon = cfg.get(kickoff[0] + "][Configuration][General", "icon", fallback="")
 if icon != "binixx":
     sys.exit(f"icône du bouton Démarrer : '{icon}' (attendu : binixx)")
+grille = cfg.get(kickoff[0] + "][Configuration][General", "applicationsDisplay", fallback="")
+if grille != "0":
+    sys.exit(f"menu de démarrage : applicationsDisplay='{grille}' (attendu : 0, « Toutes les applications » en grille)")
 print("panneau en haut : " + ", ".join(applets))
 PYEOF
     )"; then
@@ -218,8 +221,21 @@ PYEOF
     else
         fail "disposition du panneau"
     fi
-    check "thème global appliqué (kdedefaults)" grep -qx 'org.binixx.desktop' "${TEST_HOME}/.config/kdedefaults/package"
-    check "couleurs BinixX OS clair appliquées" grep -q '^ColorScheme=BinixXClair' "${TEST_HOME}/.config/kdedefaults/kdeglobals"
+    # Aube le jour, Nuit le soir (bascule automatique de Plasma) : un compte neuf a l'un ou l'autre selon l'heure à l'endroit où le
+    # service de localisation place la machine (pour la VM, celui du serveur de test, pas son fuseau horaire), avec ses couleurs
+    local paquet
+    paquet="$(cat "${TEST_HOME}/.config/kdedefaults/package" 2>/dev/null)"
+    case "${paquet}" in
+    org.binixx.desktop)
+        pass "thème global appliqué (kdedefaults) : Aube"
+        check "couleurs BinixX OS clair appliquées" grep -q '^ColorScheme=BinixXClair' "${TEST_HOME}/.config/kdedefaults/kdeglobals"
+        ;;
+    org.binixx.dark.desktop)
+        pass "thème global appliqué (kdedefaults) : Nuit (posé par la bascule automatique, c'est la nuit pour le service de localisation)"
+        check "couleurs BinixX OS sombre appliquées" grep -q '^ColorScheme=BinixXSombre' "${TEST_HOME}/.config/kdedefaults/kdeglobals"
+        ;;
+    *) fail "thème global (kdedefaults/package) : '${paquet}' (org.binixx.desktop ou org.binixx.dark.desktop attendu)" ;;
+    esac
     # Plasma n'écrit « floating » que s'il diffère de son réglage par défaut (flottant)
     local shellrc="${TEST_HOME}/.config/plasmashellrc"
     if [[ ! -f "${shellrc}" ]]; then
