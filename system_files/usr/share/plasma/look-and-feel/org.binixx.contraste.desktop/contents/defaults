@@ -9,8 +9,9 @@ ColorScheme=BinixXContraste
 [kdeglobals][Icons]
 Theme=breeze-dark
 
+# Breeze toujours opaque (build_files/variantes-themes.py) : rien ne transparaît derrière le texte, flou ou pas
 [plasmarc][Theme]
-name=default
+name=BinixX-contraste
 
 [Wallpaper]
 Image=BinixX

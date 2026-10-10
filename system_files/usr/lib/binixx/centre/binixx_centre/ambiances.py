@@ -32,7 +32,7 @@ POINTEUR_NORMAL = 24          # la taille de KDE quand rien n'est écrit
 TEXTE_GRAND = 130
 THEME_CURSEUR = "Breeze_Light"      # le pointeur blanc de Windows ; « breeze_cursors » est le noir
 # Thème Kvantum de chaque schéma de couleurs (le contraste élevé garde le style Breeze, qui suit toutes les couleurs à la lettre).
-# BinixX-Win11-* : les thèmes de Win11OS KDE rendus opaques à la construction (build_files/win11os-opaque.py), posés par défaut.
+# BinixX-Win11-* : les thèmes Kvantum de Win11OS KDE rendus opaques à la construction (build_files/variantes-themes.py), posés par défaut.
 # Win11OS-* : les thèmes d'origine, translucides, qu'on peut choisir à la main dans Kvantum Manager sur un PC qui sait flouter : on les suit
 # aussi (un thème clair sous des couleurs sombres serait illisible), sans jamais les remplacer par les opaques.
 KVANTUM_PAR_COULEURS = {"BinixXClair": "BinixX-Win11-light", "BinixXSombre": "BinixX-Win11-dark"}

@@ -188,10 +188,13 @@ PYEOF
 # de Breeze a changé). Les thèmes globaux les posent (Icons Theme dans look-and-feel/*/contents/defaults).
 python3 /ctx/icones-dossiers-jaunes.py
 
-# Style Windows 11 en variantes opaques (BinixX-Win11-light et -dark, Kvantum et thème Plasma) : les thèmes de Win11OS KDE sont translucides et
-# comptent sur le flou de KWin ; sans flou on lit les fenêtres à travers le menu de démarrage. Voir build_files/win11os-opaque.py (échoue si les
-# réglages attendus ont disparu des thèmes d'origine, laissés inchangés à côté).
-python3 /ctx/win11os-opaque.py
+# Variantes des thèmes (build_files/variantes-themes.py, qui échoue si un réglage ou un fond attendu a disparu des thèmes d'origine, laissés
+# inchangés à côté) : les thèmes de Win11OS KDE sont translucides et comptent sur le flou de KWin ; sans flou on lit les fenêtres à travers
+# le menu de démarrage.
+# - BinixX-Win11-light et -dark (Aube, Nuit) : barre des tâches, menu et bulles en verre dépoli quand le flou est là, opaques sinon ;
+#   fenêtres des applications (Kvantum) opaques ;
+# - BinixX-contraste (Contraste élevé) : Breeze opaque dans tous les cas.
+python3 /ctx/variantes-themes.py
 
 # Thème global par défaut pour tous les utilisateurs.
 # Fedora le définit dans kde-settings (priorité plus basse que /etc/xdg) : on corrige les deux.
@@ -212,6 +215,11 @@ kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key DefaultDarkLookAndFee
 #   kde-snap-overlay (usr/share/kwin/scripts/), qui s'appuie sur l'ancrage natif de KWin.
 kwriteconfig6 --file /etc/xdg/kwinrc --group Windows --key Placement Centered
 kwriteconfig6 --file /etc/xdg/kwinrc --group Plugins --key kde-snap-overlayEnabled true
+# Barre de titre épurée, comme Windows 11 et les bureaux récents : l'icône de l'application à gauche, réduire, agrandir et fermer à droite.
+# KWin met par défaut « sur tous les bureaux » à gauche (trois points dans le thème Win11OS) et « aide » à droite ; le thème global ne
+# pose pas ces clés (plasma-apply-lookandfeel les ignore), d'où ce réglage du système.
+kwriteconfig6 --file /etc/xdg/kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft M
+kwriteconfig6 --file /etc/xdg/kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight IAX
 
 # Pavé numérique activé à l'ouverture de session, comme sous Windows (0 = activé)
 kwriteconfig6 --file /etc/xdg/kcminputrc --group Keyboard --key NumLock 0

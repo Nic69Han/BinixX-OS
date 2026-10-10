@@ -1,5 +1,6 @@
 # shellcheck shell=bash
-# Style Windows 11 (Win11OS KDE, variantes opaques BinixX-Win11-*) : Aube, Nuit et Contraste élevé posés pour de vrai dans la session de l'utilisateur de test.
+# Style Windows 11 (Win11OS KDE, variantes BinixX-Win11-* : Kvantum opaque, Plasma en verre adaptatif) : Aube, Nuit et Contraste élevé
+# (BinixX-contraste, Breeze opaque) posés pour de vrai dans la session de l'utilisateur de test.
 #  - phase base : un compte neuf a reçu le thème Kvantum clair de /etc/skel, la surveillance de kdeglobals tourne, et le thème Kvantum
 #    suit un changement de couleurs sans que rien d'autre ne le demande ;
 #  - phases theme-aube, theme-nuit et theme-contraste (lancées par run-vm-test.sh après la mise à jour, qui photographie l'écran
@@ -94,7 +95,10 @@ theme_scene() {
     lu="$(theme_reglage plasmarc Theme name)"
     theme_egal "thème Plasma" "${lu:-default}" "${plasma}"
     theme_egal "thème d'icônes (dossiers jaunes sauf en contraste élevé)" "$(theme_reglage kdeglobals Icons Theme)" "${icones}"
-    echo "            info : boutons des fenêtres : gauche '$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnLeft)', droite '$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnRight)'"
+    theme_egal "barre de titre, à gauche (icône de l'application)" "$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnLeft)" M
+    theme_egal "barre de titre, à droite (réduire, agrandir, fermer)" "$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnRight)" IAX
+    # Sans flou (cette machine virtuelle), Plasma prend les fonds opaques ; le verre dépoli ne se voit que sur un PC où le flou est actif
+    echo "            info : effet de flou de KWin chargé : $(theme_session busctl --user call org.kde.KWin /Effects org.kde.kwin.Effects isEffectLoaded s blur 2>&1 | head -n 1)"
     if [[ -n "${kvantum}" ]]; then theme_egal "thème Kvantum" "$(theme_kvantum)" "${kvantum}"; fi
     uid="$(id -u "${TEST_USER}")"
     socket="$(find "/run/user/${uid}" -maxdepth 1 -name 'wayland-[0-9]*' ! -name '*.lock' -printf '%f\n' | sort | head -n 1)"
@@ -114,7 +118,7 @@ theme_scene() {
 }
 check_theme_aube() { theme_scene aube BinixXClair kvantum __aurorae__svg__Win11OS-light BinixX-Win11-light BinixX-Win11-light binixx-os; }
 check_theme_nuit() { theme_scene nuit BinixXSombre kvantum __aurorae__svg__Win11OS-dark BinixX-Win11-dark BinixX-Win11-dark binixx-os-dark; }
-check_theme_contraste() { theme_scene contraste BinixXContraste Breeze Breeze default "" breeze-dark; }
+check_theme_contraste() { theme_scene contraste BinixXContraste Breeze Breeze BinixX-contraste "" breeze-dark; }
 register_check theme-aube check_theme_aube
 register_check theme-nuit check_theme_nuit
 register_check theme-contraste check_theme_contraste

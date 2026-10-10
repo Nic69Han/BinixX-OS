@@ -258,7 +258,7 @@ d'origine » remet tout.
 
 | Ambiance | Ce qui change |
 |---|---|
-| **Aube** | Le thème clair de BinixX OS (couleurs `BinixXClair`), au style Windows 11 : fenêtres, boutons et barre des tâches du projet Win11OS KDE (variantes opaques), dossiers jaunes ([theme-windows-11.md](theme-windows-11.md)). |
+| **Aube** | Le thème clair de BinixX OS (couleurs `BinixXClair`), au style Windows 11 : fenêtres, boutons et barre des tâches du projet Win11OS KDE (barre et menu en verre dépoli quand le flou est là, opaques sinon), dossiers jaunes ([theme-windows-11.md](theme-windows-11.md)). |
 | **Nuit** | Le thème sombre de BinixX OS (couleurs `BinixXSombre`), même style en sombre. Icônes de Breeze à dossiers jaunes (`binixx-os`, `binixx-os-dark`), qui s'assombrissent ou s'éclaircissent avec les couleurs. |
 | **Contraste élevé** | Noir, blanc et jaune (couleurs `BinixXContraste`, `usr/share/color-schemes/`) : texte blanc sur fond noir, sélection et focus en jaune, barre de titre jaune pour la fenêtre active. Style Breeze (thème global `org.binixx.contraste.desktop`), qui suit les couleurs à la lettre. |
 

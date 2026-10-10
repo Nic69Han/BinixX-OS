@@ -15,30 +15,37 @@ for variante in light dark; do
         "cd /usr/share/plasma/desktoptheme/${nom} && test -s metadata.desktop && test -s widgets/panel-background.svg && test -s widgets/tasks.svgz && test -s dialogs/background.svgz && test -s translucent/widgets/panel-background.svg"
 done
 
-# Variantes opaques (build_files/win11os-opaque.py) : posées par défaut, parce que les thèmes d'origine comptent sur le flou de KWin et deviennent
-# illisibles sans lui. Les thèmes d'origine restent installés, inchangés.
-# Plasma lit les fonds (menu de démarrage, barre des tâches, bulles) dans « solid » sans composition, dans « translucent » avec le flou de KWin, et
-# dans « dialogs » et « widgets » avec composition mais sans flou (machine virtuelle, vieux PC) : ce dernier cas, translucide dans l'original,
-# avait laissé voir les fenêtres du dessous à travers le menu dans le test VM. Les trois doivent mener à « solid », et aucun fichier « .svgz »
-# d'origine ne doit cacher un fond « .svg » opaque (Plasma cherche « .svgz » d'abord).
-plasma_fonds_opaques() ( # plasma_fonds_opaques light|dark
+# Variantes (build_files/variantes-themes.py), posées par défaut. Les thèmes d'origine restent installés, inchangés.
+# Plasma lit les fonds (menu de démarrage, barre des tâches, bulles) dans « translucent » quand le flou de KWin est actif, dans « dialogs » et
+# « widgets » sinon (machine virtuelle, vieux PC : translucides dans l'original, ils avaient laissé voir les fenêtres du dessous à travers le
+# menu dans le test VM), et dans « solid » quand un élément demande un fond plein. Sans flou, les variantes doivent donc mener aux fonds de
+# « solid », sans qu'un « .svgz » d'origine cache un « .svg » opaque (Plasma cherche « .svgz » d'abord) ; avec le flou, au verre d'origine
+# (Aube, Nuit) ou encore à « solid » (contraste élevé).
+
+# fond_reel <dossier d'un thème> <fond> : chemin réel (liens suivis) du seul fichier « fond.svg » ou « fond.svgz » ; échoue s'il n'y en a pas
+# ou s'il y en a deux
+fond_reel() {
+    local f existants=()
+    for f in "$1/$2.svg" "$1/$2.svgz"; do
+        if [[ -e "${f}" ]]; then existants+=("${f}"); fi
+    done
+    [[ ${#existants[@]} -eq 1 ]] && readlink -f "${existants[0]}"
+}
+
+plasma_fonds() ( # plasma_fonds <thème d'origine> <variante> <dossier lu avec le flou : translucent ou solid>
     set -e
     racine=/usr/share/plasma/desktoptheme
-    amont="${racine}/Win11OS-$1"
-    aval="${racine}/BinixX-Win11-$1"
+    amont="${racine}/$1"
+    aval="${racine}/$2"
     test "$(readlink -f "${aval}/solid")" = "${amont}/solid"
-    test "$(readlink -f "${aval}/translucent")" = "${amont}/solid"
-    for fond in dialogs/background widgets/background widgets/panel-background; do
-        test -s "${aval}/solid/${fond}.svg"
-        test -s "${aval}/translucent/${fond}.svg"
-        test -s "${aval}/${fond}.svg"
-        test "$(readlink -f "${aval}/${fond}.svg")" = "${amont}/solid/${fond}.svg"
-        test ! -e "${aval}/${fond}.svgz"
+    test "$(readlink -f "${aval}/translucent")" = "${amont}/$3"
+    for fond in dialogs/background widgets/background widgets/panel-background widgets/tooltip; do
+        reel="$(fond_reel "${aval}" "${fond}")"
+        [[ "${reel}" == "${amont}/solid/${fond}".svg* ]]
+        fond_reel "${aval}/translucent" "${fond}" >/dev/null
     done
-    test "$(readlink -f "${aval}/widgets/tooltip.svgz")" = "${amont}/solid/widgets/tooltip.svgz"
     # le reste du thème est celui d'origine
     test "$(readlink -f "${aval}/widgets/tasks.svgz")" = "${amont}/widgets/tasks.svgz"
-    test -s "${aval}/widgets/button.svg"
 )
 
 for variante in light dark; do
@@ -50,8 +57,16 @@ for variante in light dark; do
         "grep -qx 'translucent_windows=true' /usr/share/Kvantum/${amont}/${amont}.kvconfig"
     check "${aval} : thème Plasma sans la section Wallpaper du thème d'origine, nommé ${aval}" bash -c \
         "d=/usr/share/plasma/desktoptheme/${aval}; grep -qx 'Name=${aval}' \${d}/metadata.desktop && grep -qx 'X-KDE-PluginInfo-Name=${aval}' \${d}/metadata.desktop && ! grep -q 'Wallpaper' \${d}/metadata.desktop"
-    check "${aval} : thème Plasma, les trois chemins que Plasma lit (solid, translucent, et dialogs/widgets sans flou) mènent aux fonds opaques de ${amont}/solid" plasma_fonds_opaques "${variante}"
+    check "${aval} : thème Plasma en verre adaptatif (verre dépoli de ${amont} avec le flou, fonds opaques de solid sans)" plasma_fonds "${amont}" "${aval}" translucent
 done
+
+check "BinixX-contraste : thème Plasma du contraste élevé, Breeze opaque avec ou sans flou" plasma_fonds default BinixX-contraste solid
+check "BinixX-contraste : nommé BinixX-contraste, sans la section Wallpaper de Breeze" bash -c \
+    "d=/usr/share/plasma/desktoptheme/BinixX-contraste; python3 -c 'import json, sys; m = json.load(open(sys.argv[1]))[\"KPlugin\"]; sys.exit(m[\"Id\"] != \"BinixX-contraste\")' \${d}/metadata.json && ! grep -q Wallpaper \${d}/plasmarc"
+
+# Barre de titre épurée : l'icône de l'application à gauche (pas « sur tous les bureaux »), réduire, agrandir et fermer à droite (pas « aide »)
+check "barre de titre : icône de l'application à gauche, réduire, agrandir et fermer à droite (/etc/xdg/kwinrc)" bash -c \
+    "test \"\$(kreadconfig6 --file /etc/xdg/kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft)\" = M && test \"\$(kreadconfig6 --file /etc/xdg/kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight)\" = IAX"
 
 # Licence : ces fichiers sont du projet Win11OS KDE, sous GNU GPL v3, copiés sans modification ; le texte de la licence, les auteurs et
 # la source (adresse et version exacte) accompagnent l'image.
@@ -80,8 +95,8 @@ style_theme_global() ( # style_theme_global thème variante couleurs icônes
 )
 check "Aube : Kvantum et thème Plasma BinixX-Win11-light (opaques), fenêtres Win11OS-light, couleurs BinixXClair" style_theme_global org.binixx.desktop light BinixXClair binixx-os
 check "Nuit : Kvantum et thème Plasma BinixX-Win11-dark (opaques), fenêtres Win11OS-dark, couleurs BinixXSombre" style_theme_global org.binixx.dark.desktop dark BinixXSombre binixx-os-dark
-check "Contraste élevé : style Breeze, décoration Breeze, thème Plasma d'origine (pas de style Windows 11)" bash -c \
-    "f=${LNF}/org.binixx.contraste.desktop/contents/defaults; grep -qx 'widgetStyle=Breeze' \${f} && grep -qx 'ColorScheme=BinixXContraste' \${f} && grep -qx 'library=org.kde.breeze' \${f} && grep -qx 'name=default' \${f} && ! grep -v '^#' \${f} | grep -qi 'kvantum\|aurorae\|Win11'"
+check "Contraste élevé : style Breeze, décoration Breeze, thème Plasma Breeze opaque (pas de style Windows 11)" bash -c \
+    "f=${LNF}/org.binixx.contraste.desktop/contents/defaults; grep -qx 'widgetStyle=Breeze' \${f} && grep -qx 'ColorScheme=BinixXContraste' \${f} && grep -qx 'library=org.kde.breeze' \${f} && grep -qx 'name=BinixX-contraste' \${f} && ! grep -v '^#' \${f} | grep -qi 'kvantum\|aurorae\|Win11'"
 # Dossiers jaunes : les icônes de BinixX OS sont celles de Breeze, avec le corps des dossiers en jaune au lieu de la couleur d'accent (bleue).
 # Générées à la construction depuis Breeze (build_files/icones-dossiers-jaunes.py).
 check "icônes BinixX OS (clair) : hérite de Breeze, dossiers de 32 à 96 pixels en jaune, couleurs du bureau figées (plus d'identifiant « current-color-scheme »)" bash -c \
