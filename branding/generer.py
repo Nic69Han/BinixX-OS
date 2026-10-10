@@ -322,6 +322,9 @@ def main():
     body, h = lockup_vertical(wm, 120, 4, 140, GEM_DARK, WHITE)
     mark_h = math.ceil(h) + 8
     renderer.png(svg_doc(240, mark_h, body), 240, mark_h, plymouth / "watermark.png", transparent=True)
+    # La roue de chargement (throbber-0001.png à 0030.png) : calculée par roue_demarrage.py, sans Chromium
+    import roue_demarrage
+    roue_demarrage.ecrire_roue(plymouth)
 
     # 4. Fond d'écran BinixX OS « Le marcheur de l'aube » (clair et sombre) : calculé par fond_ecran.py, sans Chromium
     import fond_ecran

@@ -65,6 +65,28 @@ La valeur `binixx_menu` est écrite dans l'environnement de GRUB : `sudo grub2-e
 Le script ne touche jamais à un `user.cfg` qui n'est pas le sien (sans la ligne de marque en tête). Pour garder le menu visible :
 `sudo systemctl disable --now binixx-menu-grub.service && sudo rm /boot/grub2/user.cfg`.
 
+## L'indicateur de chargement
+
+Sous le logo, une roue tourne : elle montre que l'ordinateur travaille, pour que personne ne le croie planté.
+
+- **Avant** : la roue du thème « spinner » de Fedora (blanche, 24 pixels de diamètre, 30 images). Le test VM l'a mesurée : elle était
+  bien là (environ 90 pixels clairs sur chaque capture de l'écran de démarrage) et elle tournait (environ 200 pixels changent d'une
+  capture à l'autre), à l'arrêt comme au démarrage. Mais elle est petite sur un écran moderne, et sur les quatre démarrages dont
+  le journal donne les mesures, deux montraient des captures successives identiques pendant 2 à 3 secondes, au début du chargement :
+  la roue semblait figée. La cause n'est pas établie ; rien n'a été mesuré sur un vrai PC.
+- **Maintenant** : une roue BinixX OS de 64 pixels, aux couleurs de la gemme (un arc bleu clair qui s'efface, sur un anneau discret),
+  30 images, un tour par seconde, comme celle de Fedora. Elle est calculée par `branding/roue_demarrage.py` (aucune image tierce) ;
+  `branding/generer.py` l'appelle et les images sont dans `system_files/usr/share/plymouth/themes/binixx/throbber-*.png`. Le build ne
+  copie plus celles de Fedora : une image de plus ou de moins dans l'animation la ferait sauter.
+- **Mesuré avec la nouvelle roue** (test VM de la branche) : visible sur chaque capture de l'écran de démarrage (environ 325 pixels
+  clairs, contre 90 avec celle de Fedora) et en mouvement entre toutes les paires de captures (environ 750 pixels changent d'une capture
+  à l'autre, contre 200) ; dans cette série, aucun arrêt, alors que deux démarrages sur quatre en avaient avec l'ancienne roue.
+  Une seule série : on ne sait pas si les arrêts d'avant viennent de la roue, de la machine virtuelle ou du hasard.
+- **Vérifié** : par le test de l'image (au moins 12 images PNG de même taille, numérotées sans trou), par `tests/demarrage/test_roue.py`
+  (les images du dépôt sont exactement celles que le script dessine, un tour complet revient à la première image) et par le test VM
+  (étape 3b) : la roue doit être visible sur au moins la moitié des captures de l'écran de démarrage et bouger sur au moins une paire de
+  captures. Le journal donne sa forme (vignette) et, pour chaque capture, le nombre de pixels qui ont changé : on y lit les arrêts.
+
 ## Voir les messages quand il le faut
 
 - **Une fois** : Échap pendant l'écran de démarrage ; ou, au menu GRUB (Échap pendant l'attente), touche `e`, retirer `quiet splash` de
@@ -111,3 +133,6 @@ logo disparaît quand même, et l'écran noir dure autant (7 captures au lieu de
   Plasma dessine sans carte graphique (rendu logiciel). Sur un vrai PC ce temps sera plus court, mais il n'est pas mesuré : le test
   VM le relève à chaque version (« écran noir le plus long »).
 - Le menu GRUB reste visible une seconde au premier démarrage, et après un démarrage en échec.
+- **Écrans noirs sans indicateur** : avant l'écran de démarrage (micrologiciel, GRUB, chargement du noyau ; sur un vrai PC le logo du
+  constructeur remplit ce moment) et entre l'écran de démarrage et la connexion (environ 8 secondes dans la VM). Aucune roue n'y
+  est affichée : Plymouth n'est pas encore lancé (avant) ou déjà fermé (après).

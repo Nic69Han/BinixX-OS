@@ -12,7 +12,8 @@ en caractères que l'on lit dans le journal.
 « surveiller » prend une capture par seconde (QMP, format PPM) jusqu'à ce que FICHIER_ARRET existe ou que la durée soit écoulée,
 et écrit une ligne de journal quand l'écran change de nature (avec la vignette), plus un fichier FICHIER_LOG.csv à une ligne par
 capture. « verifier » lit ce fichier et dit si le démarrage ressemble à celui de Windows : l'écran de démarrage apparaît, aucun
-texte de console n'est visible une fois qu'il est là (et presque aucun avant), l'écran de connexion finit par s'afficher."""
+texte de console n'est visible une fois qu'il est là (et presque aucun avant), l'indicateur de chargement (la roue qui tourne sous le
+logo) est visible et bouge, l'écran de connexion finit par s'afficher."""
 
 import json
 import os
@@ -50,6 +51,17 @@ PART_ECRAN_DE_TEXTE = 0.03
 LIGNES_TOLEREES_AVANT = 12
 # Captures de texte de console tolérées avant l'écran de démarrage (arrêt, micrologiciel, menu GRUB : au plus quelques secondes)
 TEXTE_TOLERE_AVANT = 3
+# L'indicateur de chargement (roue qui tourne) est l'animation du thème Plymouth, sous le logo : on regarde un carré de pixels autour de son
+# centre. INDICATEUR_X et INDICATEUR_Y sont les réglages HorizontalAlignment et VerticalAlignment de binixx.plymouth (part de l'écran).
+INDICATEUR_X, INDICATEUR_Y = 0.5, 0.72
+INDICATEUR_DEMI_COTE = 64
+# Luminance à partir de laquelle un pixel de la zone appartient à l'indicateur (le fond de démarrage est à 20 environ)
+INDICATEUR_PIXEL_CLAIR = 110
+# Pixels clairs en dessous desquels l'indicateur n'est pas visible ; pixels qui changent entre deux captures pour dire qu'il bouge
+INDICATEUR_MIN = 12
+MOUVEMENT_MIN = 6
+# Écart de luminance qui compte comme « ce pixel a changé »
+ECART_DE_LUMINANCE = 40
 
 
 def lire_ppm(donnees):
@@ -148,6 +160,49 @@ def vignette(largeur, hauteur, pixels):
     return sortie
 
 
+def zone_indicateur(largeur, hauteur, demi_cote=INDICATEUR_DEMI_COTE):
+    """(x0, y0, x1, y1) du carré autour du centre de l'indicateur de chargement, borné à l'image."""
+    cx, cy = int(largeur * INDICATEUR_X), int(hauteur * INDICATEUR_Y)
+    return max(cx - demi_cote, 0), max(cy - demi_cote, 0), min(cx + demi_cote, largeur), min(cy + demi_cote, hauteur)
+
+
+def luminances_de_la_zone(largeur, hauteur, pixels, demi_cote=INDICATEUR_DEMI_COTE):
+    """(largeur de la zone, octets de luminance, ligne par ligne) du carré de l'indicateur."""
+    x0, y0, x1, y1 = zone_indicateur(largeur, hauteur, demi_cote)
+    zone = bytearray()
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            i = (y * largeur + x) * 3
+            zone.append(luminance(pixels[i], pixels[i + 1], pixels[i + 2]))
+    return x1 - x0, bytes(zone)
+
+
+def pixels_clairs(zone):
+    """Combien de pixels de la zone sont assez clairs pour être l'indicateur."""
+    return sum(1 for lum in zone if lum >= INDICATEUR_PIXEL_CLAIR)
+
+
+def pixels_changes(zone, precedente):
+    """Combien de pixels ont changé de luminance entre deux captures de la même zone ; -1 si on ne peut pas comparer."""
+    if precedente is None or len(precedente) != len(zone):
+        return -1
+    return sum(1 for a, b in zip(zone, precedente) if abs(a - b) >= ECART_DE_LUMINANCE)
+
+
+def vignette_de_la_zone(largeur_zone, zone, pas_x=2, pas_y=4):
+    """La zone de l'indicateur en caractères (un caractère = pas_x x pas_y pixels) : on y voit la forme de la roue."""
+    hauteur_zone = len(zone) // largeur_zone if largeur_zone else 0
+    lignes = []
+    for y in range(0, hauteur_zone, pas_y):
+        texte = ""
+        for x in range(0, largeur_zone, pas_x):
+            maximum = max(zone[yy * largeur_zone + xx] for yy in range(y, min(y + pas_y, hauteur_zone))
+                          for xx in range(x, min(x + pas_x, largeur_zone)))
+            texte += RAMPE[min(maximum * len(RAMPE) // 256, len(RAMPE) - 1)]
+        lignes.append(texte.rstrip())
+    return lignes
+
+
 def examiner(donnees_ppm):
     """(largeur, hauteur, octets, mesures, nature) d'une capture."""
     largeur, hauteur, pixels = lire_ppm(donnees_ppm)
@@ -222,9 +277,10 @@ def surveiller(socket_qmp, fichier_log, fichier_arret, duree_max=1800):
     """Une capture par seconde jusqu'à l'arrêt demandé ; la vignette à chaque changement de nature, au plus 25 fois."""
     debut = time.monotonic()
     derniere, vignettes, lectures, derniere_lecture = None, 0, 0, -1
+    zone_precedente, vues_de_l_indicateur = None, 0
     temporaire = os.path.join(tempfile.gettempdir(), f"ecran-demarrage-{os.getpid()}.ppm")
     with open(fichier_log, "w", encoding="utf-8") as log, open(fichier_log + ".csv", "w", encoding="utf-8") as tableau:
-        tableau.write("seconde;nature;noir;fond;clair;luminance\n")
+        tableau.write("seconde;nature;noir;fond;clair;luminance;indicateur;mouvement\n")
         while not os.path.exists(fichier_arret) and time.monotonic() - debut < duree_max:
             if capture_qmp(socket_qmp, temporaire):
                 try:
@@ -238,8 +294,19 @@ def surveiller(socket_qmp, fichier_log, fichier_arret, duree_max=1800):
                         if texte:
                             log.write(f"t={seconde:>3} s  texte lu en haut de l'écran : {texte[:300]}\n")
                             log.flush()
+                    clairs, mouvement = 0, -1
+                    if nature == DEMARRAGE:
+                        largeur_zone, zone = luminances_de_la_zone(largeur, hauteur, pixels)
+                        clairs = pixels_clairs(zone)
+                        mouvement = pixels_changes(zone, zone_precedente if derniere == DEMARRAGE else None)
+                        zone_precedente = zone
+                        if vues_de_l_indicateur < 3:
+                            vues_de_l_indicateur += 1
+                            log.write(f"t={seconde:>3} s  indicateur de chargement : {clairs} pixel(s) clair(s), "
+                                      f"{mouvement if mouvement >= 0 else 'pas de capture précédente'} pixel(s) changé(s)\n")
+                            log.write("\n".join("    |" + ligne for ligne in vignette_de_la_zone(largeur_zone, zone)) + "\n")
                     tableau.write(f"{seconde};{CODES[nature]};{mesures['noir']:.3f};{mesures['fond']:.3f};"
-                                  f"{mesures['clair']:.3f};{mesures['luminance']:.0f}\n")
+                                  f"{mesures['clair']:.3f};{mesures['luminance']:.0f};{clairs};{mouvement}\n")
                     tableau.flush()
                     montrer = nature != derniere and vignettes < 25
                     if montrer or seconde % 20 == 0:
@@ -255,10 +322,17 @@ def surveiller(socket_qmp, fichier_log, fichier_arret, duree_max=1800):
 
 
 def lire_tableau(chemin):
-    """[(seconde, code de nature)] d'un fichier .csv écrit par « surveiller »."""
+    """[(seconde, code de nature, pixels clairs de l'indicateur, pixels qui ont changé)] d'un fichier .csv écrit par « surveiller »
+    (les deux derniers manquent dans un fichier plus ancien)."""
     with open(chemin, encoding="utf-8") as fichier:
         lignes = fichier.read().splitlines()[1:]
-    return [(int(ligne.split(";")[0]), ligne.split(";")[1]) for ligne in lignes if ligne.count(";") >= 5]
+    resultat = []
+    for ligne in lignes:
+        champs = ligne.split(";")
+        if len(champs) < 6:
+            continue
+        resultat.append((int(champs[0]), champs[1]) + ((int(champs[6]), int(champs[7])) if len(champs) >= 8 else ()))
+    return resultat
 
 
 def derniere_serie(codes, code):
@@ -278,7 +352,7 @@ def verifier(captures, exiger_connexion=True):
     La surveillance commence avant l'arrêt : l'écran de démarrage de l'arrêt vient donc d'abord. Celui du démarrage est la dernière série
     de captures « écran de démarrage » ; avant elle (arrêt, micrologiciel, noyau) on tolère très peu de texte, après elle aucun."""
     erreurs, infos = [], []
-    codes = [code for _, code in captures]
+    codes = [capture[1] for capture in captures]
     if not codes:
         return ["aucune capture d'écran pendant le démarrage"], infos
     serie = derniere_serie(codes, "DEMARRAGE")
@@ -300,6 +374,26 @@ def verifier(captures, exiger_connexion=True):
             noir = noir + 1 if code == "NOIR" else 0
             plus_long = max(plus_long, noir)
         infos.append(f"écran noir le plus long après l'écran de démarrage : {plus_long} capture(s)")
+        mesures_indicateur = [capture[2:] for capture in captures[debut:fin]]
+        if mesures_indicateur and all(len(mesure) == 2 for mesure in mesures_indicateur):
+            visibles = sum(1 for clairs, _ in mesures_indicateur if clairs >= INDICATEUR_MIN)
+            comparees = [mouvement for _, mouvement in mesures_indicateur if mouvement >= 0]
+            bougent = sum(1 for mouvement in comparees if mouvement >= MOUVEMENT_MIN)
+            infos.append(f"indicateur de chargement : visible sur {visibles} capture(s) sur {duree}, en mouvement entre "
+                         f"{bougent} paire(s) de captures sur {len(comparees)}")
+            infos.append("indicateur de chargement, pixels changés d'une capture à l'autre (-1 : rien à comparer) : "
+                         + " ".join(str(mouvement) for _, mouvement in mesures_indicateur))
+            immobile, serie_immobile = 0, 0
+            for mouvement in comparees:
+                serie_immobile = serie_immobile + 1 if mouvement < MOUVEMENT_MIN else 0
+                immobile = max(immobile, serie_immobile)
+            infos.append(f"indicateur de chargement : immobile pendant {immobile} comparaison(s) de suite au plus")
+            if duree >= 3 and visibles * 2 < duree:
+                erreurs.append(f"l'écran de démarrage n'a pas d'indicateur de chargement visible (visible sur {visibles} capture(s) "
+                               f"sur {duree}) : on peut croire que l'ordinateur est figé")
+            elif len(comparees) >= 3 and bougent == 0:
+                erreurs.append(f"l'indicateur de chargement ne bouge pas ({len(comparees)} paires de captures comparées) : "
+                               f"on peut croire que l'ordinateur est figé")
     texte_avant = avant.count("TEXTE")
     lignes_avant = avant.count("LIGNES")
     infos.append(f"captures d'un écran de texte avant l'écran de démarrage : {texte_avant} (toléré : {TEXTE_TOLERE_AVANT})")
