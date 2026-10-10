@@ -1,0 +1,17 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Projet BinixX OS"
+            }
+        ],
+        "Category": "",
+        "Description": "Contraste élevé BinixX OS : texte blanc sur fond noir, sélection en jaune, style Breeze",
+        "Id": "org.binixx.contraste.desktop",
+        "License": "GPLv2+",
+        "Name": "BinixX OS contraste élevé",
+        "Website": "https://github.com/Nic69Han/BinixX-OS"
+    },
+    "X-Plasma-APIVersion": "2"
+}

@@ -32,6 +32,7 @@ Légende : ✅ vérifié · 🟡 attendu, à vérifier · ⚠️ partiel ou avec
 | Microsoft Teams | Web app (Chromium) | 🟡 | Version web de Teams : quelques fonctions du client Windows manquent |
 | Zoom | Web app (Chromium) | 🟡 | Client web Zoom : fonctions avancées (arrière-plans virtuels…) limitées |
 | Slack | Web app (Chromium) | 🟡 | |
+| ArtCraft (création d'images et de vidéos par IA) | Web app (Chromium), menu Graphisme | 🟡 | Compte gratuit ArtCraft à créer ; les générations passent par ses serveurs. Pas de version Linux officielle : [artcraft.md](artcraft.md) |
 | Partage d'écran (Wayland) | PipeWire + portail KDE | 🟡 | Une fenêtre KDE demande quel écran ou quelle fenêtre partager |
 | Stockage Nextcloud | Client Nextcloud | 🟡 | |
 | OneDrive | Client libre `onedrive` (assistant « OneDrive » du menu) | 🟡 | Synchronisation complète dans ~/OneDrive : pas de « fichiers à la demande » |

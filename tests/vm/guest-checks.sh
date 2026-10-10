@@ -6,6 +6,7 @@
 #   after-rollback  après `bootc rollback` et redémarrage
 #   after-auto-rollback  après une mise à jour défectueuse, retour arrière automatique de greenboot
 #   explorateur     juste après base : les vérifications qui ouvrent une fenêtre (Dolphin), avant la capture d'écran de run-vm-test.sh
+#   theme-aube, theme-nuit, theme-contraste, theme-fin   style Windows 11 : une ambiance posée puis Dolphin ouvert pour la capture d'écran
 
 set -uo pipefail
 
@@ -287,6 +288,10 @@ after-auto-rollback)
     ;;
 explorateur)
     run_module_checks explorateur
+    ;;
+theme-aube | theme-nuit | theme-contraste | theme-fin)
+    # Captures du style Windows 11 : une phase par ambiance, lancées par run-vm-test.sh (checks.d/82-theme-windows-11.sh)
+    run_module_checks "${PHASE}"
     ;;
 *)
     echo "phase inconnue : ${PHASE}" >&2

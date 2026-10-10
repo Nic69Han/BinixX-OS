@@ -12,9 +12,16 @@ fail() {
     failures=$((failures + 1))
 }
 check() { # check "description" commande...
-    local desc="$1"
+    local desc="$1" etat
     shift
-    if "$@" >/dev/null 2>&1; then pass "${desc}"; else fail "${desc}"; fi
+    # « set -e » compte dans la commande (une fonction qui l'active échoue dès sa première commande en échec) : bash l'ignorerait sous « if »,
+    # d'où ce code de retour lu à part
+    (
+        set -e
+        "$@"
+    ) >/dev/null 2>&1
+    etat=$?
+    if [[ "${etat}" -eq 0 ]]; then pass "${desc}"; else fail "${desc}"; fi
 }
 section() { printf '\n== %s\n' "$*"; }
 
@@ -166,9 +173,15 @@ done
 check "pas de Firefox en double dans la liste Flatpak" bash -c "! grep -qx org.mozilla.firefox '${LIST}'"
 
 section "Web apps"
-for webapp in teams zoom slack outlook word excel powerpoint microsoft365; do
+for webapp in teams zoom slack outlook word excel powerpoint microsoft365 artcraft; do
     check "lanceur ${webapp} valide" desktop-file-validate "/usr/share/applications/binixx-webapp-${webapp}.desktop"
 done
+# ArtCraft (images et vidéos par IA) : le service web officiel, dans une fenêtre dédiée, rangé avec les applications graphiques. Aucune version
+# native dans l'image : ses auteurs ne publient que Windows et macOS, et leur licence ne prévoit pas la redistribution (docs/artcraft.md)
+check "lanceur ArtCraft : ouvre app.getartcraft.com par binixx-webapp, dans la catégorie Graphics" bash -c \
+    "grep -qx 'Exec=/usr/libexec/binixx/binixx-webapp https://app.getartcraft.com/' /usr/share/applications/binixx-webapp-artcraft.desktop && grep -qx 'Categories=Graphics;2DGraphics;' /usr/share/applications/binixx-webapp-artcraft.desktop"
+check "ArtCraft : pas de programme natif ni de paquet dans l'image" bash -c \
+    "! command -v artcraft && ! rpm -q artcraft && ! ls /usr/bin/*artcraft* /opt/*rtcraft* /usr/lib/*rtcraft* 2>/dev/null | grep -q ."
 check "lanceur de web apps exécutable" test -x /usr/libexec/binixx/binixx-webapp
 
 section "OneDrive, vidéo, entreprise"

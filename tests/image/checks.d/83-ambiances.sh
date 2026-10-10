@@ -3,8 +3,8 @@ section "Ambiances (Aube, Nuit, Contraste élevé, Grand texte)"
 check "outil binixx-ambiance exécutable" test -x /usr/libexec/binixx/binixx-ambiance
 check "schéma de couleurs « contraste élevé » installé" test -s /usr/share/color-schemes/BinixXContraste.colors
 check "le schéma se déclare BinixXContraste" grep -qx 'ColorScheme=BinixXContraste' /usr/share/color-schemes/BinixXContraste.colors
-for theme in org.binixx.desktop org.binixx.dark.desktop; do
-    check "thème global ${theme} présent (Aube et Nuit s'appuient dessus)" test -s "/usr/share/plasma/look-and-feel/${theme}/metadata.json"
+for theme in org.binixx.desktop org.binixx.dark.desktop org.binixx.contraste.desktop; do
+    check "thème global ${theme} présent (Aube, Nuit et Contraste élevé s'appuient dessus)" test -s "/usr/share/plasma/look-and-feel/${theme}/metadata.json"
 done
 for schema in BinixXClair BinixXSombre; do
     check "schéma de couleurs ${schema} présent" test -s "/usr/share/color-schemes/${schema}.colors"

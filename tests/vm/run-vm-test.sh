@@ -151,6 +151,29 @@ screenshot() { # screenshot <nom> : capture de l'écran de la VM, sans jamais fa
     fi
 }
 
+# Style Windows 11 : Aube, Nuit et Contraste élevé posés dans la session, chacun photographié avec Dolphin ouvert (theme-aube.png…), puis
+# avec le menu de démarrage ouvert par la touche Windows (theme-aube-menu.png… : sans clavier dans la VM, la capture montre alors le
+# même écran que la précédente). Vient après la mise à jour : le contrôle des ambiances laisse le bureau en « Contraste élevé » et en
+# « Grand texte » jusque-là. Les vérifications sont dans tests/vm/checks.d/82-theme-windows-11.sh.
+theme_etape() {
+    log "Style Windows 11 : Aube, Nuit, Contraste élevé (captures d'écran)"
+    local phase theme_status=0
+    for phase in theme-aube theme-nuit theme-contraste; do
+        guest_checks "${phase}" || theme_status=$?
+        screenshot "${phase}"
+        qmp send-key '{"keys": [{"type": "qcode", "data": "meta_l"}]}' || true
+        sleep 5
+        screenshot "${phase}-menu"
+        qmp send-key '{"keys": [{"type": "qcode", "data": "esc"}]}' || true
+        # SIGKILL et non SIGTERM : Dolphin enverrait SIGTERM à ses processus de vignettes (kioworker), qui plantent à l'arrêt (course dans
+        # KIO) ; DrKonqi pose alors trois icônes de rapport de plantage dans la zone de notification, visibles sur les captures suivantes
+        ssh_vm 'pkill -KILL -x dolphin; pkill -KILL -x kioworker; true' || true
+        sleep 2
+    done
+    guest_checks theme-fin || theme_status=$?
+    [[ ${theme_status} -eq 0 ]] || die "style Windows 11 (voir « Style Windows 11 » plus haut)"
+}
+
 # Surveillance de l'écran pendant un démarrage ou un redémarrage : ecran_demarrage.py prend une capture par seconde et décrit ce
 # qu'elle montre (texte de console, menu GRUB, écran de démarrage, bureau) dans ${LOGS}/ecran-<nom>.log, repris dans le journal.
 WATCH_PID=""
@@ -370,7 +393,9 @@ explorateur_etape() {
     local explorateur_status=0
     guest_checks explorateur || explorateur_status=$?
     screenshot explorateur
-    ssh_vm 'pkill -x dolphin || true' || true
+    # SIGKILL, comme dans theme_etape : avec SIGTERM, les processus de vignettes de Dolphin plantent à l'arrêt et DrKonqi pose des
+    # icônes de rapport de plantage dans la zone de notification, visibles sur les captures du style Windows 11 qui suivent
+    ssh_vm 'pkill -KILL -x dolphin; pkill -KILL -x kioworker; true' || true
     [[ ${explorateur_status} -eq 0 ]] || die "explorateur de fichiers (voir « Explorateur BinixX » plus haut)"
 }
 
@@ -391,7 +416,10 @@ ssh_vm 'printf "[Autologin]\nUser=testeur\nSession=plasma\n" | sudo tee /etc/pla
 [[ ${screens_status} -eq 0 ]] || die "le démarrage ne ressemble pas à celui de Windows (voir « Écran pendant le démarrage » plus haut)"
 reboot_vm
 
-[[ ${RUN_UPDATE} -eq 1 ]] || explorateur_etape
+if [[ ${RUN_UPDATE} -ne 1 ]]; then
+    explorateur_etape
+    theme_etape
+fi
 
 ### 4. Mise à jour puis retour arrière ----------------------------------------------
 
@@ -414,6 +442,7 @@ EOF
     reboot_vm
     guest_checks after-update || die "vérifications après la mise à jour"
     explorateur_etape
+    theme_etape
 
     log "Retour arrière vers la version précédente"
     ssh_vm sudo bootc rollback </dev/null 2>&1 | tee "${LOGS}/bootc-rollback.log" ||
