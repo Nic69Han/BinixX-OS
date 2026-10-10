@@ -165,7 +165,9 @@ theme_etape() {
         sleep 5
         screenshot "${phase}-menu"
         qmp send-key '{"keys": [{"type": "qcode", "data": "esc"}]}' || true
-        ssh_vm 'pkill -x dolphin || true' || true
+        # SIGKILL et non SIGTERM : Dolphin enverrait SIGTERM à ses processus de vignettes (kioworker), qui plantent à l'arrêt (course dans
+        # KIO) ; DrKonqi pose alors trois icônes de rapport de plantage dans la zone de notification, visibles sur les captures suivantes
+        ssh_vm 'pkill -KILL -x dolphin; pkill -KILL -x kioworker; true' || true
         sleep 2
     done
     guest_checks theme-fin || theme_status=$?
