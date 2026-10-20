@@ -51,6 +51,8 @@ run lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
 
 section "Mémoire et processeur"
 run free -h
+run swapon --show
+if [[ -x /usr/libexec/binixx/binixx-memoire ]]; then /usr/libexec/binixx/binixx-memoire --top 10; fi
 if command -v lscpu >/dev/null 2>&1; then lscpu | grep -E 'Model name|^CPU\(s\)'; fi
 
 section "Réseau (état seulement)"

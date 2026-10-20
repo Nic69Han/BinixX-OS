@@ -1,0 +1,94 @@
+#!/usr/bin/python3
+"""Relevé de la mémoire vive : mémoire utilisée et disponible, mémoire d'échange (zram), puis les applications qui en prennent le plus.
+
+La mémoire d'un processus est comptée en PSS (/proc/<pid>/smaps_rollup) : une bibliothèque partagée par dix processus compte pour un
+dixième dans chacun, et la somme correspond à ce qui est vraiment occupé. Ne modifie rien ; n'affiche que le nom court des processus
+(jamais leurs arguments ni leurs fichiers). Sans droits d'administrateur, seuls les processus de l'utilisateur sont lisibles.
+
+    binixx-memoire                  résumé et 10 plus gros groupes de processus (même nom)
+    binixx-memoire --top 15         15 lignes
+    binixx-memoire --processus      un processus par ligne au lieu des groupes
+    binixx-memoire --valeurs        résumé seul, en clé=valeur (Mo), pour les scripts et les tests
+"""
+import argparse
+import os
+import sys
+
+
+def meminfo(racine="/proc"):
+    """Valeurs de /proc/meminfo en Ko."""
+    valeurs = {}
+    with open(os.path.join(racine, "meminfo"), encoding="utf-8") as fichier:
+        for ligne in fichier:
+            cle, _, reste = ligne.partition(":")
+            morceaux = reste.split()
+            if morceaux and morceaux[0].isdigit():
+                valeurs[cle] = int(morceaux[0])
+    return valeurs
+
+
+def resume(racine="/proc"):
+    """Totaux en Mo : total, utilisé (total moins disponible), disponible, échange utilisé."""
+    m = meminfo(racine)
+    total, dispo = m.get("MemTotal", 0), m.get("MemAvailable", 0)
+    echange = m.get("SwapTotal", 0) - m.get("SwapFree", 0)
+    return {"total": total // 1024, "utilise": (total - dispo) // 1024, "disponible": dispo // 1024,
+            "echange_total": m.get("SwapTotal", 0) // 1024, "echange_utilise": echange // 1024}
+
+
+def processus(racine="/proc"):
+    """[(PSS en Ko, nom court)] des processus lisibles."""
+    trouves = []
+    for entree in os.listdir(racine):
+        if not entree.isdigit():
+            continue
+        dossier = os.path.join(racine, entree)
+        try:
+            with open(os.path.join(dossier, "smaps_rollup"), encoding="utf-8") as fichier:
+                pss = next((int(l.split()[1]) for l in fichier if l.startswith("Pss:")), None)
+            with open(os.path.join(dossier, "comm"), encoding="utf-8") as fichier:
+                nom = fichier.read().strip() or "?"
+        except (OSError, ValueError, IndexError):
+            continue  # processus terminé entre-temps, ou pas à nous
+        if pss:  # 0 ou absent : fil du noyau
+            trouves.append((pss, nom))
+    return trouves
+
+
+def groupes(liste):
+    """[(PSS cumulé en Ko, nom, nombre de processus)] par nom, du plus gros au plus petit."""
+    cumul = {}
+    for pss, nom in liste:
+        somme, nombre = cumul.get(nom, (0, 0))
+        cumul[nom] = (somme + pss, nombre + 1)
+    return sorted(((s, nom, n) for nom, (s, n) in cumul.items()), reverse=True)
+
+
+def main(arguments=None):
+    analyse = argparse.ArgumentParser(description="Relevé de la mémoire vive")
+    analyse.add_argument("--top", type=int, default=10)
+    analyse.add_argument("--processus", action="store_true")
+    analyse.add_argument("--valeurs", action="store_true")
+    analyse.add_argument("--racine", default="/proc", help=argparse.SUPPRESS)  # tests
+    options = analyse.parse_args(arguments)
+    r = resume(options.racine)
+    if options.valeurs:
+        for cle, valeur in r.items():
+            print(f"{cle}={valeur}")
+        return 0
+    print(f"Mémoire vive : {r['utilise']} Mo utilisés sur {r['total']} Mo ({r['disponible']} Mo disponibles)")
+    print(f"Mémoire d'échange (zram) : {r['echange_utilise']} Mo utilisés sur {r['echange_total']} Mo")
+    liste = processus(options.racine)
+    if options.processus:
+        lignes = [(pss, nom, 1) for pss, nom in sorted(liste, reverse=True)]
+        print(f"Les {options.top} processus qui prennent le plus de mémoire :")
+    else:
+        lignes = groupes(liste)
+        print(f"Les {options.top} applications qui prennent le plus de mémoire (processus du même nom réunis) :")
+    for pss, nom, nombre in lignes[:options.top]:
+        print(f"{pss / 1024:8.1f} Mo  {nom}" + (f" (×{nombre})" if nombre > 1 else ""))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
