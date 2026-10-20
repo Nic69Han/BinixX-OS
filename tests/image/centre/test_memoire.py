@@ -5,6 +5,7 @@ python3 -m unittest discover tests/image/centre
 
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -74,6 +75,29 @@ class Memoire(unittest.TestCase):
         fini = lancer("--valeurs")
         self.assertEqual(fini.returncode, 0, fini.stderr)
         self.assertIn("disponible=", fini.stdout)
+
+
+class AccueilDejaVu(unittest.TestCase):
+    """binixx-centre --premier-demarrage, accueil déjà vu : sortie avant de charger Qt (pas de PySide6, ni de Centre à importer)."""
+
+    def lancer(self, marqueur):
+        config = tempfile.mkdtemp()
+        if marqueur:
+            os.makedirs(os.path.join(config, "binixx"))
+            open(os.path.join(config, "binixx", "accueil-vu"), "w", encoding="utf-8").close()
+        env = {**os.environ, "XDG_CONFIG_HOME": config, "PYTHONPATH": "", "QT_QPA_PLATFORM": "offscreen"}
+        return subprocess.run([sys.executable, "-X", "importtime", os.path.join(LIBEXEC, "binixx-centre"), "--premier-demarrage"],
+                              capture_output=True, text=True, timeout=60, env=env, check=False)
+
+    def test_sort_sans_importer_qt(self):
+        fini = self.lancer(marqueur=True)
+        self.assertEqual(fini.returncode, 0, fini.stderr[-500:])
+        self.assertNotIn("PySide6", fini.stderr)
+        self.assertNotIn("binixx_centre", fini.stderr)
+
+    def test_premiere_fois_le_centre_est_charge(self):
+        fini = self.lancer(marqueur=False)
+        self.assertIn("binixx_centre", fini.stderr)
 
 
 if __name__ == "__main__":
