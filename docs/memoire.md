@@ -34,13 +34,11 @@ Non lancés au repos, donc rien à gagner : mcelog, smartd, cups-browsed, Packag
 | Notificateur de Discover et KDE Connect plus lancés avec la session | `build_files/modules.d/88-memoire.sh` (Hidden=true) | 25 à 40 Mo chacun ; les mises à jour sont automatiques et visibles dans le Centre. Réactivables par compte (Démarrage automatique). |
 | Accueil déjà vu : le Centre ne se charge plus à chaque connexion | `usr/libexec/binixx/binixx-centre` | Une seconde et une centaine de Mo en moins à chaque ouverture de session. |
 | Installation des applications au premier démarrage : `MemoryHigh=512M`, `CPUWeight=20` | `binixx-flatpak-install.service.d/50-binixx-memoire.conf` | Le bureau garde la priorité pendant les téléchargements. |
+| Clavier virtuel (`plasma-keyboard`, environ 140 Mo) seulement avec un écran tactile | `binixx_centre/clavier_virtuel.py`, lancé à chaque session (`etc/xdg/autostart/binixx-clavier-virtuel.desktop`) | Sans écran tactile (udev : `ID_INPUT_TOUCHSCREEN=1`), `[Wayland] InputMethod` vide dans le kwinrc du compte et KWin arrête le clavier ; avec un écran tactile, le clavier coupé par BinixX OS revient. Un choix fait par l'utilisateur dans Configuration du système → Clavier virtuel n'est jamais touché. |
 | Firefox : onglets déchargés quand la mémoire manque, 2 pages gardées pour Précédent, pas de préchargement | `build_files/modules.d/88-memoire.sh` | Valeurs par défaut, modifiables dans about:config. |
 
 Gardés exprès : tuned et tuned-ppd (profils d'énergie de Plasma : économie, équilibré, performances), ModemManager (13 Mo, clés et
 cartes 4G), firewalld (pare-feu), xwaylandvideobridge (partage d'écran des applications X11 en visioconférence).
-
-À décider : le clavier virtuel `plasma-keyboard` (142 Mo) ne sert qu'aux écrans tactiles ; le couper partout priverait les tablettes
-et PC tactiles de clavier à l'écran.
 
 À ne pas faire, et pourquoi : earlyoom (fait double emploi avec systemd-oomd de Fedora), zswap en plus du zram (double compression),
 KSM (canal entre machines virtuelles), `mitigations=off` (sécurité), un noyau plus récent que celui de Fedora (pilotes NVIDIA signés

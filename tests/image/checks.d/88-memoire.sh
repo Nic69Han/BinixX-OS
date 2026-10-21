@@ -14,3 +14,6 @@ for autostart in org.kde.discover.notifier.desktop org.kde.kdeconnect.daemon.des
     [[ -f "/etc/xdg/autostart/${autostart}" ]] || continue
     check "${autostart} : plus lancé avec la session" grep -qx 'Hidden=true' "/etc/xdg/autostart/${autostart}"
 done
+check "clavier virtuel seulement avec un écran tactile : lancé à chaque session" bash -c \
+    'grep -qx "Exec=/usr/libexec/binixx/binixx-clavier-virtuel" /etc/xdg/autostart/binixx-clavier-virtuel.desktop && test -x /usr/libexec/binixx/binixx-clavier-virtuel'
+check "plasma-keyboard présent (gardé pour les écrans tactiles)" rpm -q plasma-keyboard
