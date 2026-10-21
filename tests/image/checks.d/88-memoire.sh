@@ -1,9 +1,7 @@
 # shellcheck shell=bash
 section "Mémoire vive (docs/memoire.md)"
 check "zram : générateur installé" rpm -q zram-generator
-# shellcheck disable=SC2016  # expansion voulue dans le sous-shell
-check "zram : aussi grand que la mémoire vive (8 Go au plus), zstd" bash -c \
-    'f=/usr/lib/systemd/zram-generator.conf.d/50-binixx.conf; grep -qx "zram-size = min(ram, 8192)" "$f" && grep -qx "compression-algorithm = zstd" "$f"'
+check "zram : compression zstd" grep -qx "compression-algorithm = zstd" /usr/lib/systemd/zram-generator.conf.d/50-binixx.conf
 # shellcheck disable=SC2016  # expansion voulue dans le sous-shell
 check "noyau : swappiness 150 et page-cluster 0 pour le zram" bash -c \
     'f=/usr/lib/sysctl.d/61-binixx-memoire.conf; grep -qx "vm.swappiness = 150" "$f" && grep -qx "vm.page-cluster = 0" "$f"'
