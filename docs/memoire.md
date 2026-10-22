@@ -24,6 +24,11 @@ tuned + tuned-ppd 51 Mo, notificateur de Discover 17 Mo, kdeconnectd 15 Mo. Déj
 mémoire vive, systemd-oomd actif (session et services surveillés), pages énormes en `madvise`, MGLRU actif, `/tmp` en mémoire.
 Non lancés au repos, donc rien à gagner : mcelog, smartd, cups-browsed, PackageKit, Akonadi.
 
+Après les réglages ci-dessous (test VM 39689272546, même VM) : **1146 Mo utilisés**, soit **111 Mo de moins** (−9 %) ; le clavier
+virtuel et le notificateur de Discover ne tournent plus. KDE Connect est encore démarré à la demande par D-Bus (16 Mo) malgré son
+démarrage automatique masqué. Le gain est surtout dans la marge : zram en zstd et `vm.swappiness` jouent quand la mémoire se remplit,
+ce que ce relevé au repos ne montre pas.
+
 ## Ce qui est fait
 
 | Réglage | Fichier | Pourquoi |
