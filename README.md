@@ -66,15 +66,19 @@ Do not disable security controls or interrupt an update unless the relevant inst
 
 ## Documentation
 
-- [Move from Windows](docs/migration-windows.md)
-- [Welcome Center and applications](docs/centre-binixx.md)
-- [Windows-style desktop theme](docs/theme-windows-11.md)
-- [Visual identity](docs/identite-visuelle.md)
-- [Boot experience](docs/demarrage.md)
-- [NVIDIA graphics](docs/nvidia.md)
-- [Security](docs/securite.md)
+**English user documentation is now available:** [Open the English documentation index](docs/en/README.md).
 
-The documentation is currently maintained in French. Some pages may not yet be available in English.
+- [Installation and first steps](docs/en/INSTALLATION.md)
+- [Moving from Windows](docs/en/WINDOWS-MIGRATION.md)
+- [Desktop and applications](docs/en/DESKTOP-AND-APPS.md)
+- [Updates and recovery](docs/en/UPDATES-AND-RECOVERY.md)
+- [Hardware compatibility](docs/en/HARDWARE-COMPATIBILITY.md)
+- [NVIDIA graphics](docs/en/NVIDIA.md)
+- [Security and privacy](docs/en/SECURITY-AND-PRIVACY.md)
+- [Troubleshooting](docs/en/TROUBLESHOOTING.md)
+
+The original technical documentation is still maintained in French; some detailed implementation notes may not yet have an English equivalent.
+
 
 ## Getting help
 
