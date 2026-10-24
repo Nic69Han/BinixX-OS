@@ -79,6 +79,15 @@ Do not disable security controls or interrupt an update unless the relevant inst
 
 The original technical documentation is still maintained in French; some detailed implementation notes may not yet have an English equivalent.
 
+French documentation:
+- [Move from Windows](docs/migration-windows.md)
+- [Welcome Center and applications](docs/centre-binixx.md)
+- [Windows-style desktop theme](docs/theme-windows-11.md)
+- [Visual identity](docs/identite-visuelle.md)
+- [Boot experience](docs/demarrage.md)
+- [NVIDIA graphics](docs/nvidia.md)
+- [Security](docs/securite.md)
+
 
 ## Getting help
 
