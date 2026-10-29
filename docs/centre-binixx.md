@@ -187,7 +187,7 @@ qui montre **dans une seule liste**, groupée par catégorie :
 | **Réglages** | L'index de Paramètres, avec les mots de Windows : « wifi », « imprimante », « bitlocker », « panneau de configuration ». | ...ouvre le réglage (module KDE, page du Centre, application). |
 | **Logiciels Windows** | Le catalogue « Mon logiciel Windows » : « word » montre OnlyOffice Documents, « gestionnaire des tâches » le Moniteur système. | ...ouvre le logiciel s'il est déjà là, sinon le catalogue sur la bonne recherche. |
 | **Aide** | Les cas d'« Obtenir de l'aide » (« mon imprimante n'imprime pas », « le PC est lent »). | ...ouvre la page d'aide. |
-| **Fichiers** | Les fichiers indexés par Baloo (`baloosearch6`), qui arrivent **après** les autres, sans bloquer la frappe. | ...ouvre le fichier avec son application. |
+| **Fichiers** | Les fichiers indexés par Baloo (`baloosearch6`, par leur nom : le contenu n'est pas indexé, voir [memoire.md](memoire.md)), qui arrivent **après** les autres, sans bloquer la frappe. | ...ouvre le fichier avec son application. |
 
 - **Ordre** : chaque catégorie est rangée par son meilleur résultat, et le premier résultat de la liste est déjà sélectionné :
   on tape « imprimante » puis Entrée. La note d'un résultat est d'autant plus haute que la requête ressemble à son nom

@@ -85,3 +85,20 @@ mesurer_memoire() {
     fi
 }
 register_check memoire mesurer_memoire
+
+# Clavier virtuel seulement avec un écran tactile (binixx_centre/clavier_virtuel.py) : la VM n'en a pas, il doit être coupé
+check_clavier_virtuel() {
+    section "Clavier virtuel (pas d'écran tactile dans la VM)"
+    local tactile=0 peripherique
+    for peripherique in /sys/class/input/event*; do
+        udevadm info --query=property --path "${peripherique}" 2>/dev/null | grep -qx 'ID_INPUT_TOUCHSCREEN=1' && tactile=1
+    done
+    if [[ ${tactile} -eq 1 ]]; then
+        warn "la VM a un écran tactile : coupure du clavier virtuel non vérifiée"
+        return
+    fi
+    check "marqueur posé à l'ouverture de session" wait_for 120 test -e "${TEST_HOME}/.config/binixx/clavier-virtuel-coupe"
+    check "réglage InputMethod vide dans le kwinrc du compte" grep -qx 'InputMethod=' "${TEST_HOME}/.config/kwinrc"
+    check "plasma-keyboard ne tourne pas" wait_for 60 bash -c "! pgrep -u '${TEST_USER}' -x plasma-keyboard"
+}
+register_check memoire check_clavier_virtuel

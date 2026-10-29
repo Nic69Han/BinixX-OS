@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Clavier virtuel BinixX OS
+Comment=Coupe le clavier virtuel sur les PC sans écran tactile (mémoire vive), le rétablit avec un écran tactile
+Exec=/usr/libexec/binixx/binixx-clavier-virtuel
+OnlyShowIn=KDE;
+NoDisplay=true
+X-KDE-autostart-phase=1
