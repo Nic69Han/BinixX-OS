@@ -20,7 +20,7 @@ Dans l'image :
 | --- | --- |
 | `/usr/share/icons/hicolor/scalable/apps/binixx.svg` | Icône `binixx` : bouton Démarrer, « À propos », `LOGO` de `os-release` |
 | `/usr/share/wallpapers/BinixX/` | Fond d'écran « Le marcheur de l'aube » (bureau, verrouillage, connexion), version claire et sombre, en 1080p et 4K |
-| `/usr/share/plymouth/themes/binixx/` | Écran de démarrage |
+| `/usr/share/plymouth/themes/binixx/` | Écran de démarrage : logo et roue de chargement (`branding/roue_demarrage.py`) |
 
 Sur l'ISO, `disk_config/personnaliser-iso.sh` :
 
