@@ -45,6 +45,13 @@ ce que ce relevé au repos ne montre pas.
 Gardés exprès : tuned et tuned-ppd (profils d'énergie de Plasma : économie, équilibré, performances), ModemManager (13 Mo, clés et
 cartes 4G), firewalld (pare-feu), xwaylandvideobridge (partage d'écran des applications X11 en visioconférence).
 
+## Profil léger
+
+Pour un PC de 4 Go ou moins : Centre BinixX → Paramètres → Thèmes → carte « PC léger » (ou `binixx-leger activer`). Coupe le flou, la
+transparence et les animations du bureau ; la page le conseille quand le PC a 4,5 Go de mémoire vive ou moins. Il se retire d'un clic
+et ne touche à aucun choix de l'utilisateur. La page propose aussi LibreOffice, plus léger qu'OnlyOffice. Détails : docs/centre-binixx.md.
+Le test VM le pose et le retire (phase `memoire`) et imprime un deuxième relevé `RELEVÉ MÉMOIRE (profil léger)` pour comparer.
+
 À ne pas faire, et pourquoi : earlyoom (fait double emploi avec systemd-oomd de Fedora), zswap en plus du zram (double compression),
 KSM (canal entre machines virtuelles), `mitigations=off` (sécurité), un noyau plus récent que celui de Fedora (pilotes NVIDIA signés
 pour le noyau de Fedora).

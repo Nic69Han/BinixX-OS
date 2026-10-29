@@ -31,7 +31,7 @@ Bluetooth et appareils	Lecture automatique	lecture automatique;clé usb;disque e
 Réseau et Internet	Wi-Fi, Ethernet et VPN	wifi;wi-fi;réseau;internet;ethernet;câble;vpn;connexion;mot de passe wifi;hotspot;partage de connexion	Se connecter à un réseau, ajouter un VPN d'entreprise.	wifi	kcm	kcm_networkmanagement
 Réseau et Internet	Pare-feu	pare-feu;firewall;ports;connexions entrantes;défender	Quelles connexions peuvent entrer dans ce PC.	shield	kcm	kcm_firewall
 Personnalisation	Arrière-plan	arrière-plan;fond d'écran;image de bureau;papier peint;diaporama	Choisir le fond d'écran.	image	kcm	kcm_wallpaper
-Personnalisation	Thèmes : clair ou sombre	thème;thèmes;clair;sombre;mode sombre;mode clair;apparence;ambiance;ambiances;aube;nuit;binixx sombre	Aube, Nuit ou Contraste élevé en un clic, et un interrupteur « Grand texte ».	sun	page	ambiances
+Personnalisation	Thèmes : clair ou sombre	thème;thèmes;clair;sombre;mode sombre;mode clair;apparence;ambiance;ambiances;aube;nuit;binixx sombre;léger;pc léger;lent;animations;flou;vieux pc	Aube, Nuit ou Contraste élevé en un clic, un interrupteur « Grand texte » et le profil léger pour un PC juste en mémoire.	sun	page	ambiances
 Personnalisation	Couleurs	couleurs;couleur d'accentuation;contraste;couleur des fenêtres	Couleur d'accentuation et schéma de couleurs.	droplet	kcm	kcm_colors
 Personnalisation	Polices	polices;police;taille du texte;texte plus grand;caractères	Polices et taille du texte.	type	kcm	kcm_fonts
 Personnalisation	Icônes et pointeur	icônes;curseur;pointeur de souris;taille du pointeur;icônes du bureau	Thème des icônes et forme du pointeur.	pointer	kcm	kcm_icons

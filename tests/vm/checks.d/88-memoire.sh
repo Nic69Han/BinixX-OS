@@ -102,3 +102,34 @@ check_clavier_virtuel() {
     check "plasma-keyboard ne tourne pas" wait_for 60 bash -c "! pgrep -u '${TEST_USER}' -x plasma-keyboard"
 }
 register_check memoire check_clavier_virtuel
+
+# Profil léger (binixx_centre/leger.py) : posé et retiré dans la session du compte de test, avec un deuxième relevé de mémoire pour
+# comparer à celui de la session au repos (information : le flou de KWin est déjà coupé dans la VM, sans accélération 3D)
+verifier_profil_leger() {
+    section "Profil léger"
+    local uid
+    uid="$(id -u "${TEST_USER}")"
+    # shellcheck disable=SC2329  # appelée dans les sous-shells de check, via declare -f
+    leger() {
+        runuser -u "${TEST_USER}" -- env XDG_RUNTIME_DIR="/run/user/${uid}" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${uid}/bus" \
+            /usr/libexec/binixx/binixx-leger "$@"
+    }
+    reglage() { # reglage <fichier> <groupe> <clé>
+        runuser -u "${TEST_USER}" -- kreadconfig6 --file "$1" --group "$2" --key "$3"
+    }
+    check "profil léger désactivé au départ" bash -c "$(declare -f leger); uid=${uid}; TEST_USER=${TEST_USER}; leger etat | grep -qx leger=non"
+    check "profil léger activé" leger activer
+    check "profil léger : état « oui »" bash -c "$(declare -f leger); uid=${uid}; TEST_USER=${TEST_USER}; leger etat | grep -qx leger=oui"
+    check "profil léger : flou de KWin coupé" test "$(reglage kwinrc Plugins blurEnabled)" = false
+    check "profil léger : animations coupées" test "$(reglage kdeglobals KDE AnimationDurationFactor)" = 0
+    sleep 20
+    local valeurs
+    valeurs="$(/usr/libexec/binixx/binixx-memoire --valeurs)"
+    printf '  RELEVÉ MÉMOIRE (profil léger) utilise=%s disponible=%s echange=%s (Mo)\n' "$(sed -n 's/^utilise=//p' <<<"${valeurs}")" \
+        "$(sed -n 's/^disponible=//p' <<<"${valeurs}")" "$(sed -n 's/^echange_utilise=//p' <<<"${valeurs}")"
+    check "profil léger retiré" leger desactiver
+    check "profil léger : état « non »" bash -c "$(declare -f leger); uid=${uid}; TEST_USER=${TEST_USER}; leger etat | grep -qx leger=non"
+    check "profil léger : flou de KWin rétabli" test "$(reglage kwinrc Plugins blurEnabled)" != false
+    check "profil léger : animations rétablies" test "$(reglage kdeglobals KDE AnimationDurationFactor)" != 0
+}
+register_check memoire verifier_profil_leger
