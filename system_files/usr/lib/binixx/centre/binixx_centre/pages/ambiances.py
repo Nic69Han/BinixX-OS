@@ -7,7 +7,7 @@ from PySide6.QtCore import QRectF, QSize, Qt
 from PySide6.QtGui import QColor, QGuiApplication, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget
 
-from .. import ambiances, theme, widgets
+from .. import ambiances, leger, theme, widgets
 
 ORDER = 17
 KEY = "ambiances"
@@ -116,6 +116,19 @@ class Page(QWidget):
             "Activer", self.basculer_grand_texte, icone="type", couleurs=ACCENT)
         page.addWidget(self.grand)
 
+        page.addWidget(widgets.section("PC léger", ACCENT))
+        conseille = leger.conseille()
+        self.leger = widgets.carte(
+            "Profil léger", "Coupe le flou et les animations du bureau : il demande moins de mémoire et de puissance à dessiner. "
+                            "Les couleurs, les icônes et la disposition ne changent pas ; un autre clic remet les effets.",
+            "Activer", self.basculer_leger, icone="battery", couleurs=ACCENT,
+            avant="Conseillé pour ce PC : sa mémoire vive est limitée" if conseille else None)
+        page.addWidget(self.leger)
+        page.addWidget(widgets.carte(
+            "Une suite bureautique plus légère", "LibreOffice demande moins de mémoire qu'OnlyOffice, livré avec BinixX OS. "
+                                                  "Il lit et écrit aussi les fichiers Word, Excel et PowerPoint.",
+            "Voir LibreOffice", self.voir_libreoffice, icone="file-text", couleurs=ACCENT))
+
         page.addWidget(widgets.section("Aller plus loin", ACCENT))
         page.addWidget(widgets.carte(
             "Couleurs, icônes et pointeur", "Choisir un schéma de couleurs, une couleur d'accentuation, un autre thème "
@@ -151,6 +164,8 @@ class Page(QWidget):
         grand = ambiances.grand_texte_actif()
         self.grand.bouton.setText("Désactiver" if grand else "Activer")
         self.grand.bouton.setEnabled(True)
+        self.leger.bouton.setText("Désactiver" if leger.actif() else "Activer")
+        self.leger.bouton.setEnabled(True)
         if message is None:
             message = (f"Ambiance en place : {courante.titre}." if courante is not None
                        else "Le bureau utilise des couleurs personnalisées : choisissez une ambiance pour les remplacer.")
@@ -158,6 +173,8 @@ class Page(QWidget):
                 message += " Elle change toute seule : Aube le jour, Nuit le soir."
             if grand:
                 message += " « Grand texte » est activé."
+            if leger.actif():
+                message += " Le profil léger est activé."
         self.etat.setText(message)
 
     def choisir(self, cle):
@@ -190,6 +207,22 @@ class Page(QWidget):
         finally:
             QGuiApplication.restoreOverrideCursor()
         self.actualiser(message)
+
+    def basculer_leger(self):
+        activer = not leger.actif()
+        self.occupe("Un instant…")
+        QGuiApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            _, message = (leger.activer if activer else leger.desactiver)()
+        finally:
+            QGuiApplication.restoreOverrideCursor()
+        self.actualiser(message)
+
+    def voir_libreoffice(self):
+        self.centre.show_page("catalogue")
+        champ = getattr(getattr(self.centre, "widgets", {}).get("catalogue"), "recherche", None)
+        if champ is not None:
+            champ.setText("libreoffice")
 
 
 def build(centre):

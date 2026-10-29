@@ -22,7 +22,7 @@ os.environ["HOME"] = _MAISON.name
 os.environ.pop("XDG_CONFIG_HOME", None)
 
 from binixx_centre import ambiances as A  # noqa: E402
-from binixx_centre import icones, taille_texte as T  # noqa: E402
+from binixx_centre import icones, leger as L, taille_texte as T  # noqa: E402
 
 try:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -836,14 +836,15 @@ class PageDuCentre(unittest.TestCase):
         self.faux = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXClair"})
         self.pages = []
         self.centre = type("Centre", (), {"show_page": lambda s, cle: self.pages.append(cle)})()
-        self.anciens = (A.MARQUEUR, T.MARQUEUR, A.launch.run)
+        self.anciens = (A.MARQUEUR, T.MARQUEUR, L.MARQUEUR, A.launch.run)
         A.MARQUEUR = os.path.join(self.dossier, "g.json")
         T.MARQUEUR = os.path.join(self.dossier, "t.json")
+        L.MARQUEUR = os.path.join(self.dossier, "l.json")
         A.launch.run = self.faux
         self.addCleanup(self.restaurer)
 
     def restaurer(self):
-        A.MARQUEUR, T.MARQUEUR, A.launch.run = self.anciens
+        A.MARQUEUR, T.MARQUEUR, L.MARQUEUR, A.launch.run = self.anciens
 
     def ouvrir(self):
         page = self.module.build(self.centre)
@@ -950,6 +951,40 @@ class PageDuCentre(unittest.TestCase):
         self.assertIn("ne répond pas", page.etat.text())
         self.assertTrue(page.cartes["nuit"].bouton.isEnabled())
         self.assertTrue(page.grand.bouton.isEnabled())
+        page.close()
+
+    def test_profil_leger_s_active_et_se_desactive(self):
+        page = self.ouvrir()
+        self.assertEqual(page.leger.bouton.text(), "Activer")
+        page.leger.bouton.click()
+        self.assertEqual(self.faux.valeurs[("kwinrc", "Plugins", "blurEnabled")], "false")
+        self.assertEqual(self.faux.valeurs[("kdeglobals", "KDE", "AnimationDurationFactor")], "0")
+        self.assertEqual(page.leger.bouton.text(), "Désactiver")
+        self.assertTrue(page.leger.bouton.isEnabled())
+        page.leger.bouton.click()
+        self.assertEqual(page.leger.bouton.text(), "Activer")
+        self.assertNotIn(("kwinrc", "Plugins", "blurEnabled"), self.faux.valeurs)
+        self.assertIn("retrouvé ses effets", page.etat.text())
+        page.close()
+
+    def test_la_carte_du_profil_leger_depend_de_la_memoire(self):
+        from PySide6.QtWidgets import QLabel
+        anciens = L.conseille
+        self.addCleanup(setattr, L, "conseille", anciens)
+        for conseil in (True, False):
+            L.conseille = lambda conseil=conseil: conseil
+            page = self.ouvrir()
+            textes = [etiquette.text() for etiquette in page.leger.findChildren(QLabel)]
+            self.assertEqual(any("Conseillé pour ce PC" in t for t in textes), conseil)
+            page.close()
+
+    def test_libreoffice_ouvre_le_catalogue_avec_la_recherche(self):
+        champ = type("Champ", (), {"texte": None, "setText": lambda s, t: setattr(s, "texte", t)})()
+        self.centre.widgets = {"catalogue": type("Catalogue", (), {"recherche": champ})()}
+        page = self.ouvrir()
+        page.voir_libreoffice()
+        self.assertEqual(self.pages[-1], "catalogue")
+        self.assertEqual(champ.texte, "libreoffice")
         page.close()
 
     def test_retour_aux_parametres(self):

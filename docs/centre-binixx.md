@@ -307,9 +307,16 @@ texte », ci-dessus) et pointeur de souris plus gros (36 au lieu de 24).
   texte). « Désactiver » les remet ; si le texte a été réglé à la main sur une autre taille entre-temps (« Taille du texte »), il est
   laissé tel quel et seul le pointeur est remis.
 - **Pas de réglage fin des couleurs ici** : la page renvoie vers Configuration du système (« Couleurs, icônes et pointeur »).
+- **Profil léger** (carte « PC léger » de la page, outil `binixx-leger etat | conseil | activer | desactiver`) : coupe le flou et la
+  transparence de KWin, le contraste de KWin, les animations de Plasma (`AnimationDurationFactor=0`) et les effets d'ouverture, de
+  menus qui glissent et de réduction des fenêtres. Les thèmes Aube et Nuit retombent sur leurs fonds pleins (docs/theme-windows-11.md) ;
+  couleurs, icônes et disposition ne changent pas. Les réglages d'origine sont gardés dans `~/.config/binixx/profil-leger.json` :
+  « Désactiver » les remet, sauf ceux que l'utilisateur a changés à la main depuis. La page affiche « Conseillé pour ce PC » quand il a
+  4,5 Go de mémoire vive ou moins (`binixx-leger conseil`), et propose LibreOffice (page « Mon logiciel Windows », recherche
+  « libreoffice ») comme suite bureautique moins gourmande qu'OnlyOffice. Logique dans `binixx_centre/leger.py`, sans Qt.
 - **En ligne de commande** : `binixx-ambiance liste | etat | appliquer aube|nuit|contraste | auto oui|non | grand-texte oui|non`
   (`etat` dit aussi `auto=oui` ou `auto=non`).
-- **Tests** : `tests/image/centre/test_ambiances.py` (schéma, outils de Plasma et leurs secours, bascule automatique, Grand texte,
+- **Tests** : `tests/image/centre/test_leger.py` (profil léger sur un faux kreadconfig6 / kwriteconfig6) et `tests/image/centre/test_ambiances.py` (schéma, outils de Plasma et leurs secours, bascule automatique, Grand texte,
   ligne de commande, page) ; la CI vérifie les outils, la bascule activée d'office et le module de Plasma (`83-ambiances.sh`) ; le test
   VM vérifie que la bascule tourne sur un compte neuf (module chargé dans kded, thème Kvantum d'accord avec l'ambiance de l'heure),
   pose les trois ambiances dans la vraie session, relit `kdeglobals` (nom du schéma **et** couleurs copiées), active Grand texte,

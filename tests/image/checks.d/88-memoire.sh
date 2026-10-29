@@ -17,3 +17,4 @@ done
 check "clavier virtuel seulement avec un écran tactile : lancé à chaque session" bash -c \
     'grep -qx "Exec=/usr/libexec/binixx/binixx-clavier-virtuel" /etc/xdg/autostart/binixx-clavier-virtuel.desktop && test -x /usr/libexec/binixx/binixx-clavier-virtuel'
 check "plasma-keyboard présent (gardé pour les écrans tactiles)" rpm -q plasma-keyboard
+check "profil léger : outil exécutable" /usr/libexec/binixx/binixx-leger conseil
