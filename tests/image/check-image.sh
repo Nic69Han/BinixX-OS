@@ -222,6 +222,7 @@ for unit in binixx-flatpak-install.service binixx-pdf-printer.service plasma-set
 done
 check "script d'installation Flatpak exécutable" test -x /usr/libexec/binixx/binixx-flatpak-install
 check "script de création de l'imprimante PDF exécutable" test -x /usr/libexec/binixx/binixx-pdf-printer
+check "relevé de la mémoire vive exécutable" /usr/libexec/binixx/binixx-memoire --valeurs
 check "syntaxe des unités systemd BinixX OS" \
     systemd-analyze verify --man=no --recursive-errors=no \
     /usr/lib/systemd/system/binixx-flatpak-install.service /usr/lib/systemd/system/binixx-pdf-printer.service

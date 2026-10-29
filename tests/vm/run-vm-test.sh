@@ -421,6 +421,9 @@ ssh_vm 'echo "-- sessions ouvertes :" && loginctl list-sessions --no-legend; ech
 ssh_vm 'printf "[Autologin]\nUser=testeur\nSession=plasma\n" | sudo tee /etc/plasmalogin.conf.d/90-binixx-test.conf >/dev/null'
 [[ ${screens_status} -eq 0 ]] || die "le démarrage ne ressemble pas à celui de Windows (voir « Écran pendant le démarrage » plus haut)"
 reboot_vm
+# Mémoire vive de la session au repos, avant toute autre fenêtre : chiffre de référence (checks.d/88-memoire.sh, docs/memoire.md)
+log "Mémoire vive de la session au repos"
+guest_checks memoire || die "mémoire de la session au repos (voir « Mémoire de la session au repos » plus haut)"
 
 if [[ ${RUN_UPDATE} -ne 1 ]]; then
     explorateur_etape
