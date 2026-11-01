@@ -16,6 +16,8 @@ Les variantes s'appuient sur ce choix :
   - BinixX-Win11-light et BinixX-Win11-dark (thème Plasma d'Aube et de Nuit) : **verre adaptatif**. Avec le flou, le verre dépoli
     d'origine de Win11OS KDE (« translucent ») ; sans flou, les fonds pleins de « solid » à la place de ceux, translucides, de
     « dialogs/ » et « widgets/ ». Chaque PC a donc le plus beau rendu qu'il sait afficher lisiblement.
+    La barre des tâches (une pilule), les menus et fenêtres de Plasma et les bulles d'aide y ont le « verre fumé » de BinixX OS
+    (build_files/verre_plasma.py) : fumé dans « translucent/ », le même dessin opaque dans « dialogs/ » et « widgets/ ».
   - BinixX-Win11-light et BinixX-Win11-dark (thème Kvantum, fenêtres des applications) : **opaques**. Kvantum ne sait pas si le flou est
     là : ses réglages de transparence et de flou sont coupés, le dessin (fichier .svg) est le même. Comme le « Mica » de Windows 11, les
     fenêtres des applications restent pleines ; le verre est pour la barre des tâches, le menu et les bulles.
@@ -33,6 +35,9 @@ import os
 import re
 import shutil
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import verre_plasma  # (fonds « verre fumé » de BinixX OS, à côté de ce fichier)
 
 VARIANTES = ("light", "dark")
 CONTRASTE = ("default", "BinixX-contraste")
@@ -107,6 +112,37 @@ def opaques_a_la_place(source, cible, amont, dossier):
         os.symlink(os.path.join("..", "..", amont, "solid", dossier, nom), os.path.join(cible, dossier, nom))
 
 
+def ecrire(chemin, texte):
+    """Remplace ce qui est à « chemin » (un lien vers le thème d'origine, le plus souvent) par un fichier, et tout autre fichier de même
+    radical (un « .svgz » cacherait le « .svg »)."""
+    dossier, nom = os.path.split(chemin)
+    os.makedirs(dossier, exist_ok=True)
+    for existant in os.listdir(dossier):
+        if radical(existant) == radical(nom):
+            os.remove(os.path.join(dossier, existant))
+    with open(chemin, "w", encoding="utf-8") as fichier:
+        fichier.write(texte)
+
+
+def poser_verre(racine, amont, aval, teinte):
+    """Fonds « verre fumé » de BinixX OS (build_files/verre_plasma.py) dans la variante : verre dans « translucent/ » (lu avec le flou),
+    le même dessin opaque dans « dialogs/ » et « widgets/ » (lu sans flou). Le reste de « translucent/ » mène au thème d'origine."""
+    source = os.path.join(racine, "plasma", "desktoptheme", amont, "translucent")
+    cible = os.path.join(racine, "plasma", "desktoptheme", aval)
+    translucent = os.path.join(cible, "translucent")
+    os.remove(translucent)  # lien vers le « translucent » d'origine : devient un vrai dossier
+    for dossier in sorted(os.listdir(source)):
+        os.makedirs(os.path.join(translucent, dossier))
+        for nom in sorted(os.listdir(os.path.join(source, dossier))):
+            os.symlink(os.path.join("..", "..", "..", amont, "translucent", dossier, nom), os.path.join(translucent, dossier, nom))
+    matieres = verre_plasma.MATIERES[teinte]
+    for fond, forme in verre_plasma.FONDS.items():
+        if not os.path.isdir(os.path.join(cible, os.path.dirname(fond))):
+            raise SystemExit(f"{aval} : dossier « {os.path.dirname(fond)} » introuvable pour le fond « {fond} »")
+        ecrire(os.path.join(translucent, fond + ".svg"), verre_plasma.svg(forme, matieres["verre"]))
+        ecrire(os.path.join(cible, fond + ".svg"), verre_plasma.svg(forme, matieres["opaque"]))
+
+
 def plasma_variante(racine, amont, aval, verre, metadonnees):
     """Thème Plasma « aval » fait de liens vers « amont ». Sans flou : les fonds de « solid ». Avec le flou : le verre d'origine
     (« translucent ») si verre est vrai, « solid » sinon. metadonnees(nom de fichier, texte) donne les métadonnées de la variante."""
@@ -153,6 +189,8 @@ def fabriquer(racine="/usr/share"):
                 return plasma_metadata_desktop(texte, amont, aval)
             raise SystemExit(f"{amont}/{nom} : fichier inattendu dans le thème d'origine, à revoir")
         plasma_variante(racine, amont, aval, True, metadonnees_win11)
+        # Puis le verre fumé de BinixX OS : barre des tâches en pilule, menus et bulles (fumé avec le flou, même dessin opaque sans)
+        poser_verre(racine, amont, aval, variante)
 
     # Contraste élevé : Breeze, opaque dans tous les cas
     amont, aval = CONTRASTE
@@ -170,5 +208,5 @@ def fabriquer(racine="/usr/share"):
 if __name__ == "__main__":
     dossier = sys.argv[1] if len(sys.argv) > 1 else "/usr/share"
     fabriquer(dossier)
-    print("BinixX-Win11-light, BinixX-Win11-dark : Kvantum opaque, Plasma en verre adaptatif (verre avec le flou, opaque sans) ; "
+    print("BinixX-Win11-light, BinixX-Win11-dark : Kvantum opaque, Plasma en verre fumé adaptatif (verre avec le flou, opaque sans) ; "
           "BinixX-contraste : Breeze toujours opaque")

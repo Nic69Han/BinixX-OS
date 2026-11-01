@@ -1,6 +1,6 @@
 // Disposition par défaut du bureau BinixX OS, appliquée à la première ouverture de session
-// (thèmes BinixX OS et BinixX OS sombre). Une barre des tâches en haut de l'écran, sur toute la
-// largeur, avec de gauche à droite le menu de démarrage, les applications épinglées et
+// (thèmes BinixX OS et BinixX OS sombre). Une barre des tâches en haut de l'écran, en pilule
+// centrée, avec de gauche à droite le menu de démarrage, les applications épinglées et
 // ouvertes, la zone de notification, l'horloge et le bouton « Afficher le bureau ».
 //
 // Adapté du modèle upstream org.kde.plasma.desktop.defaultPanel (plasma-desktop, GPL-2.0-or-later).
@@ -11,6 +11,10 @@ panel.location = "top"
 // Barre flottante aux coins arrondis, comme Zorin OS 18 et Windows 11 : détachée du bord,
 // elle s'y colle d'elle-même quand une fenêtre est agrandie
 panel.floating = true
+// Pilule « verre fumé » : la barre prend la largeur de son contenu, centrée, au lieu de toute la
+// largeur de l'écran (fond dessiné par le thème Plasma, build_files/verre_plasma.py)
+panel.lengthMode = "fit"
+panel.alignment = "center"
 
 // Même hauteur que le panneau Plasma par défaut (≈ 46 px à l'échelle 100 %),
 // arrondie à un nombre pair car le réglage de taille n'affiche que des valeurs paires

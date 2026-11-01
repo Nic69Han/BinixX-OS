@@ -94,6 +94,8 @@ check "barre des tâches en haut de l'écran" \
     grep -q 'panel.location = "top"' "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
 check "barre des tâches flottante" \
     grep -q 'panel.floating = true' "${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js"
+check "barre des tâches en pilule centrée (largeur du contenu)" bash -c \
+    "grep -qx 'panel.lengthMode = \"fit\"' '${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js' && grep -qx 'panel.alignment = \"center\"' '${LNF}/contents/layouts/org.kde.plasma.desktop-layout.js'"
 placement="$(kreadconfig6 --file /etc/xdg/kwinrc --group Windows --key Placement)"
 if [[ "${placement}" == Centered ]]; then pass "nouvelles fenêtres centrées"; else fail "placement des fenêtres : '${placement}'"; fi
 SNAP=/usr/share/kwin/scripts/kde-snap-overlay

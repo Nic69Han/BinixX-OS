@@ -48,6 +48,35 @@ plasma_fonds() ( # plasma_fonds <thème d'origine> <variante> <dossier lu avec l
     test "$(readlink -f "${aval}/widgets/tasks.svgz")" = "${amont}/widgets/tasks.svgz"
 )
 
+# Verre fumé de BinixX OS (build_files/verre_plasma.py) dans Aube et Nuit : barre des tâches, menus et bulles dessinés par BinixX OS, en
+# verre dans « translucent » (lu avec le flou) et du même dessin opaque dans « dialogs » et « widgets » (lus sans flou), sans « .svgz »
+# d'origine qui les cacherait. Le reste vient du thème d'origine.
+plasma_verre() ( # plasma_verre <thème d'origine> <variante>
+    set -e
+    racine=/usr/share/plasma/desktoptheme
+    amont="${racine}/$1"
+    aval="${racine}/$2"
+    test "$(readlink -f "${aval}/solid")" = "${amont}/solid"
+    test -d "${aval}/translucent" && test ! -L "${aval}/translucent"
+    for fond in dialogs/background widgets/panel-background widgets/tooltip; do
+        for dossier in "${aval}" "${aval}/translucent"; do
+            reel="$(fond_reel "${dossier}" "${fond}")"
+            test "${reel}" = "${dossier}/${fond}.svg" && test ! -L "${reel}"
+            grep -q 'build_files/verre_plasma.py' "${reel}"
+            for morceau in topleft top topright left center right bottomleft bottom bottomright hint-top-margin shadow-topleft shadow-hint-top-margin; do
+                grep -q "id=\"${morceau}\"" "${reel}"
+            done
+        done
+        # opaque sans flou, translucide avec
+        grep -q '<rect id="center"[^>]*fill-opacity="1"' "${aval}/${fond}.svg"
+        grep -q '<rect id="center"[^>]*fill-opacity="0\.' "${aval}/translucent/${fond}.svg"
+    done
+    # les autres fonds : ceux d'origine (opaques de « solid » sans flou, verre d'origine avec)
+    [[ "$(fond_reel "${aval}" widgets/background)" == "${amont}/solid/widgets/background".svg* ]]
+    [[ "$(fond_reel "${aval}/translucent" widgets/background)" == "${amont}/translucent/widgets/background".svg* ]]
+    test "$(readlink -f "${aval}/widgets/tasks.svgz")" = "${amont}/widgets/tasks.svgz"
+)
+
 for variante in light dark; do
     amont="Win11OS-${variante}"
     aval="BinixX-Win11-${variante}"
@@ -57,7 +86,7 @@ for variante in light dark; do
         "grep -qx 'translucent_windows=true' /usr/share/Kvantum/${amont}/${amont}.kvconfig"
     check "${aval} : thème Plasma sans la section Wallpaper du thème d'origine, nommé ${aval}" bash -c \
         "d=/usr/share/plasma/desktoptheme/${aval}; grep -qx 'Name=${aval}' \${d}/metadata.desktop && grep -qx 'X-KDE-PluginInfo-Name=${aval}' \${d}/metadata.desktop && ! grep -q 'Wallpaper' \${d}/metadata.desktop"
-    check "${aval} : thème Plasma en verre adaptatif (verre dépoli de ${amont} avec le flou, fonds opaques de solid sans)" plasma_fonds "${amont}" "${aval}" translucent
+    check "${aval} : thème Plasma en verre fumé adaptatif (barre, menus et bulles de BinixX OS : verre avec le flou, opaques sans)" plasma_verre "${amont}" "${aval}"
 done
 
 check "BinixX-contraste : thème Plasma du contraste élevé, Breeze opaque avec ou sans flou" plasma_fonds default BinixX-contraste solid

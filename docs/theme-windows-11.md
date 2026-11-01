@@ -11,7 +11,7 @@ boutons, cases et barres de défilement plats, barre des tâches et menus de Pla
 | --- | --- | --- |
 | Barre de titre des fenêtres (angles arrondis, réduire, agrandir, fermer) | Win11OS KDE, thème Aurorae `Win11OS-light` / `Win11OS-dark` | `/usr/share/aurorae/themes/` |
 | Boutons, cases, barres de défilement, onglets des applications | Win11OS KDE, thème Kvantum, en **variante opaque** `BinixX-Win11-light` / `BinixX-Win11-dark` | `/usr/share/Kvantum/` (paquet Fedora `kvantum`) |
-| Barre des tâches, menu de démarrage, bulles, icônes de la zone de notification | Win11OS KDE, thème Plasma, en **verre adaptatif** `BinixX-Win11-light` / `BinixX-Win11-dark` (verre dépoli avec le flou, opaque sans) | `/usr/share/plasma/desktoptheme/` |
+| Barre des tâches, menu de démarrage, bulles, icônes de la zone de notification | Win11OS KDE, thème Plasma, en **verre fumé adaptatif** `BinixX-Win11-light` / `BinixX-Win11-dark` (barre en pilule, menus et bulles dessinés par BinixX OS : fumés avec le flou, opaques sans) | `/usr/share/plasma/desktoptheme/` |
 | **Dossiers jaunes** (et les dossiers Documents, Images, Musique… en jaune aussi) | BinixX OS, à partir des icônes de Breeze | thèmes d'icônes `binixx-os` et `binixx-os-dark` (`/usr/share/icons/`) |
 | Couleurs (accent bleu BinixX OS, texte, sélection) | BinixX OS | `BinixXClair`, `BinixXSombre` |
 | Fond d'écran « Le marcheur de l'aube », disposition du panneau, logo du bouton Démarrer | BinixX OS | inchangés |
@@ -88,6 +88,30 @@ laissés intacts :
 - **Le test VM ne peut pas montrer le verre** : la machine virtuelle n'a pas d'accélération graphique, le flou n'y est pas actif (le
   journal du test le dit : « effet de flou de KWin chargé »). Les captures montrent donc le cas opaque ; le cas « verre » est vérifié par
   le test de l'image (les liens mènent au verre d'origine) et se voit sur un vrai PC.
+
+## Verre fumé
+
+Le style « verre fumé » (validé sur maquette, d'après « Glassy Sidebar V5 ») habille **tout ce qui appartient au système** : la barre des
+tâches, le menu de démarrage, la zone de notification, le calendrier, les notifications et les bulles d'aide. Les fenêtres des
+applications gardent un contenu opaque (lisibilité, comme le « Mica » de Windows 11).
+
+- **Barre des tâches en pilule** : flottante en haut de l'écran, centrée, de la largeur de son contenu (disposition du thème global :
+  `panel.lengthMode = "fit"`, `panel.alignment = "center"`), coins de 20 px. Quand une fenêtre agrandie la touche, Plasma la colle au
+  bord, comme avant.
+- **Fonds dessinés par BinixX OS** (`build_files/verre_plasma.py`, appelé par `variantes-themes.py`) pour `widgets/panel-background`
+  (barre), `dialogs/background` (menu, calendrier, notifications…) et `widgets/tooltip` (bulles) : neuf morceaux (coins arrondis, bords,
+  centre), un liseré d'un pixel sur le bord, une ombre douce, des marges intérieures.
+- **Deux matières, la même forme** :
+
+| Ambiance | Avec le flou de KWin (`translucent/`) | Sans flou (`dialogs/`, `widgets/`) |
+| --- | --- | --- |
+| Nuit | verre fumé `#181822` à 52 %, liseré blanc à 10 % | `#1D1F2A` plein |
+| Aube | verre dépoli blanc à 66 %, liseré noir à 8 % | `#F5F6FA` plein |
+
+  L'accent reste le **bleu BinixX** (`#2F5BFF`, couleurs `BinixXClair` / `BinixXSombre`) pour la sélection, le survol et le focus.
+- Le reste du thème Plasma (boutons, onglets, barres de défilement, fonds des widgets du bureau) reste celui de Win11OS KDE. Le contraste
+  élevé n'a pas de verre (Breeze opaque).
+- **Étapes suivantes** : les barres de titre et panneaux latéraux des fenêtres dans le même esprit, puis le Centre BinixX.
 
 ## Comment ça se règle
 
@@ -170,9 +194,16 @@ Sources : [Liquid Glass (Wikipédia)](https://en.wikipedia.org/wiki/Liquid_Glass
 
 ## Tests
 
+- **Générateur** (`tests/themes/test_verre_plasma.py`, lancé par la CI) : chaque fond a ses neuf morceaux, ses marges et son ombre aux
+  bonnes tailles ; verre translucide, version sans flou opaque ; `variantes-themes.py` sur une copie des thèmes du dépôt pose bien le
+  verre dans Aube et Nuit, pas dans le contraste élevé.
+- **VM** (`tests/vm/guest-checks.sh`) : la barre est flottante, en pilule centrée (`panelLengthMode=1`, `alignment=132` dans
+  `plasmashellrc`). Les captures montrent la version sans flou (la VM n'a pas d'accélération graphique).
+
 - **Image** (`tests/image/checks.d/82-theme-windows-11.sh`) : `kvantum` installé et son style Qt 6 présent ; les trois thèmes de chaque
-  variante (Aurorae, Kvantum, Plasma) complets ; les variantes (huit réglages Kvantum à `false` ; thème Plasma d'Aube et de Nuit : `translucent` qui mène au verre d'origine,
-  `dialogs/` et `widgets/` aux fonds de `solid`, sans `.svgz` d'origine qui les cache, pas de section Wallpaper ; `BinixX-contraste` : les
+  variante (Aurorae, Kvantum, Plasma) complets ; les variantes (huit réglages Kvantum à `false` ; thème Plasma d'Aube et de Nuit : barre, menus et bulles en verre fumé de
+  BinixX OS, fumés dans un vrai dossier `translucent/` et opaques dans `dialogs/` et `widgets/`, sans `.svgz` d'origine qui les cache, le
+  reste menant au thème d'origine, pas de section Wallpaper ; disposition en pilule centrée ; `BinixX-contraste` : les
   trois chemins mènent à `solid`) ; barre de titre (`/etc/xdg/kwinrc`) et les thèmes d'origine restés translucides ; licence, auteurs et source ; fonds d'écran et écran de connexion du projet absents ;
   chaque thème global pose des noms qui existent vraiment ; Contraste élevé n'utilise ni Kvantum ni Aurorae ; thème Kvantum de
   `/etc/skel` ; service et surveillance activés ; `binixx-ambiance kvantum` suit les couleurs sans remplacer un autre thème choisi.
