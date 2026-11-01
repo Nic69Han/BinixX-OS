@@ -9,7 +9,7 @@ boutons, cases et barres de défilement plats, barre des tâches et menus de Pla
 
 | Élément | D'où il vient | Où il est dans l'image |
 | --- | --- | --- |
-| Barre de titre des fenêtres (angles arrondis, réduire, agrandir, fermer) | Win11OS KDE, thème Aurorae `Win11OS-light` / `Win11OS-dark` | `/usr/share/aurorae/themes/` |
+| Barre de titre des fenêtres (angles arrondis, réduire, agrandir, fermer) | Win11OS KDE en **verre fumé** : thème Aurorae `BinixX-Verre-light` / `BinixX-Verre-dark` (fond recoloré, flouté par KWin) | `/usr/share/aurorae/themes/` |
 | Boutons, cases, barres de défilement, onglets des applications | Win11OS KDE, thème Kvantum, en **variante opaque** `BinixX-Win11-light` / `BinixX-Win11-dark` | `/usr/share/Kvantum/` (paquet Fedora `kvantum`) |
 | Barre des tâches, menu de démarrage, bulles, icônes de la zone de notification | Win11OS KDE, thème Plasma, en **verre fumé adaptatif** `BinixX-Win11-light` / `BinixX-Win11-dark` (barre en pilule, menus et bulles dessinés par BinixX OS : fumés avec le flou, opaques sans) | `/usr/share/plasma/desktoptheme/` |
 | **Dossiers jaunes** (et les dossiers Documents, Images, Musique… en jaune aussi) | BinixX OS, à partir des icônes de Breeze | thèmes d'icônes `binixx-os` et `binixx-os-dark` (`/usr/share/icons/`) |
@@ -111,7 +111,18 @@ applications gardent un contenu opaque (lisibilité, comme le « Mica » de Wind
   L'accent reste le **bleu BinixX** (`#2F5BFF`, couleurs `BinixXClair` / `BinixXSombre`) pour la sélection, le survol et le focus.
 - Le reste du thème Plasma (boutons, onglets, barres de défilement, fonds des widgets du bureau) reste celui de Win11OS KDE. Le contraste
   élevé n'a pas de verre (Breeze opaque).
-- **Étapes suivantes** : les barres de titre et panneaux latéraux des fenêtres dans le même esprit, puis le Centre BinixX.
+- **Fenêtres** (étape 2) :
+  - **barre de titre** : la décoration de Win11OS KDE recolorée en verre fumé (`#181822` à 82 % en Nuit, blanc à 84 % en Aube), avec
+    un **masque de flou** (`mask-*` dans `decoration.svg`) qu'Aurorae passe à KWin : la barre de titre et le cadre sont floutés, pas
+    l'ombre (`build_files/verre_fenetres.py`, thèmes `BinixX-Verre-light` / `-dark`). L'opacité reste lisible sans flou (la
+    décoration d'origine, à 65 %, laissait lire les fenêtres du dessous) ;
+  - **barre d'outils et panneaux latéraux** (Kvantum) : le thème `BinixX-Win11-*-verre` (fenêtres translucides et floutées, mais la liste
+    des fichiers de Dolphin et PCManFM opaque) est posé **seulement quand le flou de KWin est actif** ; sinon, l'opaque
+    `BinixX-Win11-*`. `binixx-ambiance kvantum` le décide (`isEffectLoaded blur` sur le bus de KWin) à l'ouverture de session
+    (`/etc/xdg/autostart/binixx-verre-fenetres.desktop`, après KWin), à chaque changement de couleurs, et quand on active ou coupe le
+    profil léger depuis le Centre. Kvantum ne change qu'au prochain lancement d'une application. Un thème choisi à la main (Kvantum
+    Manager, Win11OS d'origine) n'est jamais remplacé.
+- **Étape suivante** : le Centre BinixX dans ce style.
 
 ## Comment ça se règle
 
@@ -197,6 +208,9 @@ Sources : [Liquid Glass (Wikipédia)](https://en.wikipedia.org/wiki/Liquid_Glass
 - **Générateur** (`tests/themes/test_verre_plasma.py`, lancé par la CI) : chaque fond a ses neuf morceaux, ses marges et son ombre aux
   bonnes tailles ; verre translucide, version sans flou opaque ; `variantes-themes.py` sur une copie des thèmes du dépôt pose bien le
   verre dans Aube et Nuit, pas dans le contraste élevé.
+- **Fenêtres** (`tests/themes/test_verre_fenetres.py`) : fond recoloré, masque de flou sans l'ombre (côtés droits en miroir compris),
+  ids uniques, construction arrêtée si le dessin d'origine change ; Kvantum « verre » (fenêtres floutées, liste opaque).
+  `tests/image/centre/test_ambiances.py` : verre avec le flou, opaque sans ou si KWin ne répond pas, Win11OS choisi à la main respecté.
 - **VM** (`tests/vm/guest-checks.sh`) : la barre est flottante, en pilule centrée (`panelLengthMode=1`, `alignment=132` dans
   `plasmashellrc`). Les captures montrent la version sans flou (la VM n'a pas d'accélération graphique).
 

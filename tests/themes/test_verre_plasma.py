@@ -108,6 +108,7 @@ class Pose(unittest.TestCase):
         self.dossier = tempfile.mkdtemp()
         share = os.path.join(RACINE, "system_files", "usr", "share")
         shutil.copytree(os.path.join(share, "Kvantum"), os.path.join(self.dossier, "Kvantum"), symlinks=True)
+        shutil.copytree(os.path.join(share, "aurorae"), os.path.join(self.dossier, "aurorae"), symlinks=True)
         themes = os.path.join(self.dossier, "plasma", "desktoptheme")
         for variante in ("light", "dark"):
             shutil.copytree(os.path.join(share, "plasma", "desktoptheme", f"Win11OS-{variante}"),
@@ -152,6 +153,24 @@ class Pose(unittest.TestCase):
             self.assertEqual(os.path.realpath(os.path.join(aval, "solid")), os.path.realpath(os.path.join(amont, "solid")))
             self.assertEqual(os.path.realpath(os.path.join(aval, "widgets", "tasks.svgz")),
                              os.path.realpath(os.path.join(amont, "widgets", "tasks.svgz")))
+
+    def test_fenetres_en_verre(self):
+        for variante in ("light", "dark"):
+            with self.subTest(variante=variante):
+                kvantum = os.path.join(self.dossier, "Kvantum", f"BinixX-Win11-{variante}-verre", f"BinixX-Win11-{variante}-verre.kvconfig")
+                with open(kvantum, encoding="utf-8") as fichier:
+                    texte = fichier.read()
+                for cle in ("translucent_windows", "blurring", "popup_blurring"):
+                    self.assertRegex(texte, rf"(?m)^{cle}=true$")
+                for cle in ("transparent_dolphin_view", "transparent_pcmanfm_view"):
+                    self.assertRegex(texte, rf"(?m)^{cle}=false$")
+                aurorae = os.path.join(self.dossier, "aurorae", "themes", f"BinixX-Verre-{variante}")
+                self.assertTrue(os.path.isfile(os.path.join(aurorae, f"BinixX-Verre-{variante}rc")))
+                self.assertFalse(os.path.islink(os.path.join(aurorae, "decoration.svg")))
+                self.assertTrue(os.path.islink(os.path.join(aurorae, "close.svg")))
+                self.assertTrue(os.path.exists(os.path.join(aurorae, "close.svg")))
+                with open(os.path.join(aurorae, "metadata.desktop"), encoding="utf-8") as fichier:
+                    self.assertIn(f"X-KDE-PluginInfo-Name=BinixX-Verre-{variante}", fichier.read())
 
     def test_contraste_sans_verre(self):
         contraste = os.path.join(self.themes, "BinixX-contraste")

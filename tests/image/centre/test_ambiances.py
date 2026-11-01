@@ -40,10 +40,12 @@ THEMES = {"org.binixx.desktop": "BinixXClair", "org.binixx.dark.desktop": "Binix
 
 class FauxKde:
     """Un faux bureau : kreadconfig6 / kwriteconfig6 sur une table {(fichier, groupe, clé) : valeur}, et les outils de Plasma
-    (plasma-apply-lookandfeel, plasma-apply-colorscheme, plasma-apply-cursortheme) qui écrivent comme les vrais."""
+    (plasma-apply-lookandfeel, plasma-apply-colorscheme, plasma-apply-cursortheme) qui écrivent comme les vrais, et KWin qui dit si
+    son effet de flou tourne (busctl)."""
 
     def __init__(self, valeurs=None, absents=(), panne=False, curseur_bloque=False, exige_offscreen=False,
-                 sans_effet=()):
+                 sans_effet=(), flou=False):
+        self.flou = flou
         self.valeurs = dict(valeurs or {})
         self.commandes = []
         self.environnements = []
@@ -63,6 +65,8 @@ class FauxKde:
             return 127, "commande introuvable"
         if self.panne:
             return 1, ""
+        if nom == "busctl":
+            return 0, ("b true" if self.flou and argv[-1] == "blur" else "b false") + "\n"
         if nom == "kreadconfig6":
             cle = self.cle(argv)
             return 0, self.valeurs.get(cle, "") + "\n"
@@ -246,7 +250,7 @@ class Allure(unittest.TestCase):
         self.assertTrue(reussi)
         self.assertEqual(message, "L'ambiance « Aube » est en place.")
         self.assertEqual(faux.couleurs(), "BinixXClair")
-        outils = [c for c in faux.commandes if c[0] != "kreadconfig6"]          # les lectures (bascule, couleurs) mises à part
+        outils = [c for c in faux.commandes if c[0] not in ("kreadconfig6", "busctl")]  # les lectures (bascule, couleurs, flou) à part
         self.assertEqual(outils[0], ["plasma-apply-lookandfeel", "--apply", "org.binixx.desktop"])
         self.assertEqual(outils[1], ["plasma-apply-colorscheme", "BinixXClair"])
 
@@ -316,7 +320,7 @@ class Allure(unittest.TestCase):
         for argv in faux.commandes:
             self.assertIsInstance(argv, list)
             self.assertTrue(all(isinstance(x, str) for x in argv))
-            self.assertIn(argv[0], {"kreadconfig6", "kwriteconfig6", "plasma-apply-lookandfeel",
+            self.assertIn(argv[0], {"kreadconfig6", "kwriteconfig6", "busctl", "plasma-apply-lookandfeel",
                                     "plasma-apply-colorscheme", "plasma-apply-cursortheme"})
         for chemin in ("/tmp/binixx-test-m1.json", "/tmp/binixx-test-t1.json"):
             if os.path.exists(chemin):
@@ -473,6 +477,36 @@ class StyleKvantum(unittest.TestCase):
         self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-dark")          # pas le BinixX-Win11-dark opaque
         self.assertTrue(A.synchroniser_kvantum("BinixXClair", None, self.fichier)[0])
         self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-light")
+
+    def test_avec_le_flou_les_fenetres_passent_au_verre_et_sans_reviennent_a_l_opaque(self):
+        self.assertEqual(A.KVANTUM_VERRE_PAR_COULEURS,
+                         {"BinixXClair": "BinixX-Win11-light-verre", "BinixXSombre": "BinixX-Win11-dark-verre"})
+        self.ecrire("[General]\ntheme=BinixX-Win11-dark\n")
+        flou = FauxKde({("kdeglobals", "General", "ColorScheme"): "BinixXSombre"}, flou=True)
+        self.assertTrue(A.synchroniser_kvantum(None, flou, self.fichier)[0])
+        self.assertEqual(A.theme_kvantum(self.fichier), "BinixX-Win11-dark-verre")
+        self.assertIn(["busctl", "--user", "call", "org.kde.KWin", "/Effects", "org.kde.kwin.Effects", "isEffectLoaded", "s", "blur"],
+                      flou.commandes)
+        # changement de couleurs : le verre suit dans sa teinte
+        self.assertTrue(A.synchroniser_kvantum("BinixXClair", flou, self.fichier)[0])
+        self.assertEqual(A.theme_kvantum(self.fichier), "BinixX-Win11-light-verre")
+        # plus de flou (profil léger, pilote graphique de secours) : retour à l'opaque, lisible
+        self.assertTrue(A.synchroniser_kvantum("BinixXClair", FauxKde(), self.fichier)[0])
+        self.assertEqual(A.theme_kvantum(self.fichier), "BinixX-Win11-light")
+
+    def test_kwin_muet_les_fenetres_restent_opaques(self):
+        self.assertFalse(A.flou_actif(FauxKde(absents={"busctl"})))
+        self.assertFalse(A.flou_actif(FauxKde(panne=True)))
+        self.assertTrue(A.flou_actif(FauxKde(flou=True)))
+        self.ecrire("[General]\ntheme=BinixX-Win11-dark-verre\n")
+        self.assertTrue(A.synchroniser_kvantum("BinixXSombre", FauxKde(absents={"busctl"}), self.fichier)[0])
+        self.assertEqual(A.theme_kvantum(self.fichier), "BinixX-Win11-dark")
+
+    def test_un_theme_win11os_choisi_a_la_main_n_est_pas_remplace_par_le_verre(self):
+        self.ecrire("[General]\ntheme=Win11OS-dark\n")
+        modifie, _ = A.synchroniser_kvantum("BinixXSombre", FauxKde(flou=True), self.fichier)
+        self.assertFalse(modifie)
+        self.assertEqual(A.theme_kvantum(self.fichier), "Win11OS-dark")
 
     def test_le_theme_opaque_est_celui_par_defaut_quand_rien_n_est_choisi(self):
         self.ecrire("[General]\n")
@@ -842,6 +876,8 @@ class PageDuCentre(unittest.TestCase):
         L.MARQUEUR = os.path.join(self.dossier, "l.json")
         A.launch.run = self.faux
         self.addCleanup(self.restaurer)
+        os.environ["XDG_CONFIG_HOME"] = self.dossier  # le thème Kvantum (posé par l'ambiance et le profil léger) s'écrit ici
+        self.addCleanup(os.environ.pop, "XDG_CONFIG_HOME", None)
 
     def restaurer(self):
         A.MARQUEUR, T.MARQUEUR, L.MARQUEUR, A.launch.run = self.anciens
@@ -965,6 +1001,10 @@ class PageDuCentre(unittest.TestCase):
         self.assertEqual(page.leger.bouton.text(), "Activer")
         self.assertNotIn(("kwinrc", "Plugins", "blurEnabled"), self.faux.valeurs)
         self.assertIn("retrouvé ses effets", page.etat.text())
+        # le thème Kvantum a été remis d'accord avec le flou (absent ici : opaque)
+        self.assertIn(["busctl", "--user", "call", "org.kde.KWin", "/Effects", "org.kde.kwin.Effects", "isEffectLoaded", "s", "blur"],
+                      self.faux.commandes)
+        self.assertEqual(A.theme_kvantum(), "BinixX-Win11-light")
         page.close()
 
     def test_la_carte_du_profil_leger_depend_de_la_memoire(self):

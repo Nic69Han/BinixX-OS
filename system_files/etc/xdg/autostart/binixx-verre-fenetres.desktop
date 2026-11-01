@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Verre fumé des fenêtres BinixX OS
+Comment=Fenêtres en verre fumé quand le flou de KWin est actif, opaques sinon (machine virtuelle, vieux PC, profil léger)
+Exec=/usr/libexec/binixx/binixx-ambiance kvantum
+OnlyShowIn=KDE;
+NoDisplay=true
+X-KDE-autostart-phase=2

@@ -24,7 +24,7 @@ cursorTheme=Breeze_Light
 # Barre de titre de Windows : l'icône de l'application à gauche, réduire, agrandir et fermer à droite
 [kwinrc][org.kde.kdecoration2]
 library=org.kde.kwin.aurorae
-theme=__aurorae__svg__Win11OS-light
+theme=__aurorae__svg__BinixX-Verre-light
 ButtonsOnLeft=M
 ButtonsOnRight=IAX
 
