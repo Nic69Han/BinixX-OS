@@ -246,6 +246,15 @@ PYEOF
     else
         pass "barre des tâches flottante"
     fi
+    # Pilule centrée (disposition du thème global : panel.lengthMode = "fit", panel.alignment = "center") : Plasma écrit la longueur
+    # « ajustée au contenu » (PanelView::FitContent, 1) et l'alignement centré (Qt::AlignCenter, 132)
+    if [[ -f "${shellrc}" ]]; then
+        if grep -q '^panelLengthMode=1$' "${shellrc}" && grep -q '^alignment=132$' "${shellrc}"; then
+            pass "barre des tâches en pilule centrée, de la largeur de son contenu"
+        else
+            fail "barre des tâches pas en pilule centrée (panelLengthMode=1 et alignment=132 attendus) : $(grep -E '^(panelLengthMode|alignment|floating)=' "${shellrc}" | tr '\n' ' ')"
+        fi
+    fi
     local uid kwin
     uid="$(id -u "${TEST_USER}")"
     kwin="$(runuser -u "${TEST_USER}" -- env XDG_RUNTIME_DIR="/run/user/${uid}" \

@@ -156,6 +156,12 @@ jobs:
           python3 -m pip install --quiet numpy scipy pillow fonttools uharfbuzz
           python3 -m unittest discover -s tests/branding
 
+      # BinixX OS smoky glass (docs/theme-windows-11.md): the taskbar, menu and tooltip backgrounds drawn for the Plasma theme, and how
+      # they replace the original ones in the Aube and Nuit variants (glass with KWin blur, the same shape opaque without).
+      - name: Test the smoky glass Plasma backgrounds
+        run: |
+          python3 -m unittest discover -s tests/themes
+
       # BinixX OS silent boot (docs/demarrage.md): the tool that reads the VM screen during boot (the VM test relies on it to
       # tell the splash screen from console text), the script that hides the GRUB menu after a good boot, and the kernel
       # arguments are tested on their own.
