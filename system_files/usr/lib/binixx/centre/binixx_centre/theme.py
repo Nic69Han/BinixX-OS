@@ -24,15 +24,36 @@ ACCENTS = {
     "ardoise": ("#475569", "#94A3B8"),
 }
 
-STYLE = f"""
-QWidget#sidebar {{ background: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 {NAVY}, stop:1 {INK}); }}
-QLabel#sidebarTitle {{ color: white; font-size: 18pt; font-weight: 600; }}
-QLabel#sidebarSubtitle {{ color: #AEB8E6; font-size: 9pt; }}
+class Verre:
+    """Teintes du « verre fumé » (docs/theme-windows-11.md, maquette « Glassy Sidebar ») : celles de la barre des tâches et des menus.
+    Les fonds sont translucides : sur un PC qui sait flouter, le thème Kvantum « verre » rend la fenêtre floutée et le Centre devient du
+    verre ; sinon la fenêtre est opaque et ces fonds n'en sont que des nuances, lisibles."""
+
+    def __init__(self, sombre):
+        if sombre:  # Nuit : verre fumé
+            self.rail, self.carte = "rgba(22,22,30,0.55)", "rgba(30,30,42,0.45)"
+            self.liseret, self.reflet = "rgba(255,255,255,0.10)", "rgba(255,255,255,0.16)"
+            self.titre, self.nav, self.discret, self.survol = "#FFFFFF", "#E6E8F2", "#A9B0C6", "rgba(255,255,255,0.08)"
+        else:  # Aube : verre dépoli
+            self.rail, self.carte = "rgba(255,255,255,0.62)", "rgba(255,255,255,0.66)"
+            self.liseret, self.reflet = "rgba(0,0,0,0.08)", "rgba(255,255,255,0.90)"
+            self.titre, self.nav, self.discret, self.survol = INK, "#1B2230", "#5B6478", "rgba(47,91,255,0.10)"
+
+
+def feuille(sombre=False):
+    """Feuille de style du Centre pour un bureau clair (Aube) ou sombre (Nuit, contraste élevé)."""
+    v = Verre(sombre)
+    return f"""
+QWidget#sidebar {{
+    background: {v.rail}; border: 1px solid {v.liseret}; border-top-color: {v.reflet}; border-radius: 22px;
+}}
+QLabel#sidebarTitle {{ color: {v.titre}; font-size: 18pt; font-weight: 600; background: transparent; border: none; }}
+QLabel#sidebarSubtitle {{ color: {v.discret}; font-size: 9pt; background: transparent; border: none; }}
 QPushButton#nav {{
-    color: #DDE4FF; background: transparent; border: none; border-radius: 12px;
+    color: {v.nav}; background: transparent; border: none; border-radius: 15px;
     text-align: left; padding: 5px 8px; font-size: 10pt;
 }}
-QPushButton#nav:hover {{ background: rgba(255,255,255,0.08); }}
+QPushButton#nav:hover {{ background: {v.survol}; }}
 QPushButton#nav:checked {{
     color: white; font-weight: 600;
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {BLUE}, stop:1 #3F6BFF);
@@ -40,7 +61,7 @@ QPushButton#nav:checked {{
 QLabel#pageTitle {{ font-size: 22pt; font-weight: 600; }}
 QLabel#pageLead {{ font-size: 11pt; }}
 QLabel#sectionTitle {{ font-size: 13pt; font-weight: 700; padding-left: 14px; }}
-QFrame#card {{ border: 1px solid rgba(128,128,128,0.30); border-radius: 16px; background: palette(base); }}
+QFrame#card {{ border: 1px solid {v.liseret}; border-top-color: {v.reflet}; border-radius: 16px; background: {v.carte}; }}
 QFrame#card:hover {{ border-color: {BLUE}; background: rgba(47,91,255,0.04); }}
 QLabel#cardTitle {{ font-size: 11.5pt; font-weight: 600; background: transparent; border: none; }}
 QPushButton#primary {{
@@ -56,7 +77,7 @@ QPushButton#primary:hover {{ background: #4A71FF; }}
 QPushButton#primary:pressed {{ background: #2447D6; }}
 QPushButton#primary:disabled {{ background: rgba(128,128,128,0.35); color: rgba(255,255,255,0.75); }}
 QPushButton#primary:focus {{ border: 2px solid {SKY}; }}
-QFrame#barre {{ background: palette(base); border-top: 1px solid rgba(128,128,128,0.30); }}
+QFrame#barre {{ background: {v.carte}; border-top: 1px solid {v.liseret}; }}
 QLabel#installee {{ color: #047857; font-weight: 600; }}
 QProgressBar {{ border: none; border-radius: 4px; background: rgba(128,128,128,0.25); }}
 QProgressBar::chunk {{ border-radius: 4px; background: {BLUE}; }}
@@ -75,7 +96,7 @@ QListWidget#categories::item {{ padding: 4px 8px; margin: 1px 0; border-radius: 
 QListWidget#categories::item:hover {{ background: rgba(47,91,255,0.10); }}
 QListWidget#categories::item:selected {{ background: rgba(47,91,255,0.20); color: palette(text); }}
 QFrame#tuile {{
-    background: palette(base); border: 1px solid rgba(128,128,128,0.30); border-radius: 18px;
+    background: {v.carte}; border: 1px solid {v.liseret}; border-top-color: {v.reflet}; border-radius: 18px;
 }}
 QFrame#tuile:hover {{ border: 1px solid {BLUE}; background: rgba(47,91,255,0.07); }}
 QFrame#tuile:focus {{ border: 2px solid {BLUE}; }}
@@ -99,3 +120,12 @@ QScrollBar::add-line, QScrollBar::sub-line {{ width: 0; height: 0; }}
 QScrollBar::add-page, QScrollBar::sub-page {{ background: transparent; }}
 """
 
+
+def est_sombre(palette):
+    """True si les couleurs du bureau sont sombres (fond des fenêtres peu lumineux) ; palette : QPalette."""
+    from PySide6.QtGui import QPalette
+    return palette.color(QPalette.Window).lightness() < 128
+
+
+# Feuille d'un bureau clair, pour qui ne connaît pas encore les couleurs (tests, outils sans fenêtre)
+STYLE = feuille(False)

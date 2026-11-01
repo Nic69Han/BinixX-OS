@@ -122,7 +122,8 @@ applications gardent un contenu opaque (lisibilité, comme le « Mica » de Wind
     (`/etc/xdg/autostart/binixx-verre-fenetres.desktop`, après KWin), à chaque changement de couleurs, et quand on active ou coupe le
     profil léger depuis le Centre. Kvantum ne change qu'au prochain lancement d'une application. Un thème choisi à la main (Kvantum
     Manager, Win11OS d'origine) n'est jamais remplacé.
-- **Étape suivante** : le Centre BinixX dans ce style.
+- **Centre BinixX** (étape 3) : barre latérale en panneau de verre fumé, cartes en verre, clair ou sombre selon l'ambiance
+  ([centre-binixx.md](centre-binixx.md#présentation-commune)).
 
 ## Comment ça se règle
 

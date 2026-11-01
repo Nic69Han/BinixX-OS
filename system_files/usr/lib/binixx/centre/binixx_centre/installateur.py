@@ -194,7 +194,7 @@ def main(argv=None):
     app = QApplication(sys.argv[:1])
     app.setApplicationName("binixx-installer-application")
     app.setDesktopFileName("binixx-centre")
-    app.setStyleSheet(theme.STYLE)
+    app.setStyleSheet(theme.feuille(theme.est_sombre(app.palette())))
     fenetre = Fenetre(argv[0])
     fenetre.show()
     fenetre.demarrer()
