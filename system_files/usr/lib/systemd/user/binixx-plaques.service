@@ -1,0 +1,14 @@
+[Unit]
+Description=BinixX OS : icônes des applications installées après coup (Flatpak) sur leur plaque BinixX
+Documentation=https://github.com/Nic69Han/BinixX-OS/blob/main/docs/identite-visuelle.md
+# Plusieurs applications peuvent s'installer de suite : aucune limite de démarrages
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/binixx/binixx-plaques
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=default.target

@@ -80,6 +80,15 @@ Le bleu vif `#2F5BFF` des premières versions n'est plus utilisé.
 `branding/curseurs.py` (22 formes, attente animée, tailles 24 à 96 ; les formes manquantes viennent de Breeze). Le contraste
 élevé garde Breeze Light, à contour sombre, le plus visible.
 
+**Icônes d'applications** : chaque application est posée sur la même plaque **squircle** (la forme des icônes de téléphone). Si son
+logo a son propre fond (carré ou rond plein : Signal, Zoom, Spotify…), la plaque prend ce fond, façon One UI ; sinon (Firefox, VLC,
+GIMP…), c'est une plaque en verre teinté de la couleur principale du logo. En Nuit, les plaques sont un peu plus profondes. Le logo
+est celui que l'application installe, jamais redessiné. `binixx_centre/plaques.py` les fabrique à la construction de l'image pour les
+applications fournies (thèmes `binixx-os` et `binixx-os-dark`, répertoire `apps/scalable`), et le service utilisateur
+`binixx-plaques` fait de même pour les applications installées ensuite (Flatpak), dans `~/.local/share/icons`, à l'ouverture de
+session et à chaque installation. Les dossiers ont leur propre identité (pastel par contenu, voir
+[theme-windows-11.md](theme-windows-11.md#dossiers-pastel)).
+
 **Police de l'interface** : **Inter** (libre, OFL, paquet Fedora `rsms-inter-fonts`), nette aux petites tailles, posée dans
 `/etc/xdg/kdeglobals` ; la chasse fixe reste celle du système. Le logotype garde Outfit.
 
