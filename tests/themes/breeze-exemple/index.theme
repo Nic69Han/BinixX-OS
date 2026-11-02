@@ -1,0 +1,24 @@
+[Icon Theme]
+Name=Breeze
+Inherits=hicolor
+Directories=places/16,places/32,places/64,mimetypes/64
+
+[places/16]
+Size=16
+Context=Places
+Type=Fixed
+
+[places/32]
+Size=32
+Context=Places
+Type=Fixed
+
+[places/64]
+Size=64
+Context=Places
+Type=Fixed
+
+[mimetypes/64]
+Size=64
+Context=MimeTypes
+Type=Fixed

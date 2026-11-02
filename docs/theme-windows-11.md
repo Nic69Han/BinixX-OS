@@ -12,7 +12,7 @@ boutons, cases et barres de défilement plats, barre des tâches et menus de Pla
 | Barre de titre des fenêtres (angles arrondis, réduire, agrandir, fermer) | Win11OS KDE en **verre fumé** : thème Aurorae `BinixX-Verre-light` / `BinixX-Verre-dark` (fond recoloré, flouté par KWin) | `/usr/share/aurorae/themes/` |
 | Boutons, cases, barres de défilement, onglets des applications | Win11OS KDE, thème Kvantum, en **variante opaque** `BinixX-Win11-light` / `BinixX-Win11-dark` | `/usr/share/Kvantum/` (paquet Fedora `kvantum`) |
 | Barre des tâches, menu de démarrage, bulles, icônes de la zone de notification | Win11OS KDE, thème Plasma, en **verre fumé adaptatif** `BinixX-Win11-light` / `BinixX-Win11-dark` (barre en pilule, menus et bulles dessinés par BinixX OS : fumés avec le flou, opaques sans) | `/usr/share/plasma/desktoptheme/` |
-| **Dossiers jaunes** (et les dossiers Documents, Images, Musique… en jaune aussi) | BinixX OS, à partir des icônes de Breeze | thèmes d'icônes `binixx-os` et `binixx-os-dark` (`/usr/share/icons/`) |
+| **Dossiers pastel**, arrondis, d'une couleur par contenu (Documents bleu, Images vert, Musique rose…) | BinixX OS, à partir des icônes de Breeze | thèmes d'icônes `binixx-os` et `binixx-os-dark` (`/usr/share/icons/`) |
 | Couleurs (accent bleu BinixX OS, texte, sélection) | BinixX OS | `BinixXClair`, `BinixXSombre` |
 | Fond d'écran « Le marcheur de l'aube », disposition du panneau, logo du bouton Démarrer | BinixX OS | inchangés |
 | Pointeur blanc, double-clic | BinixX OS | inchangés |
@@ -29,27 +29,38 @@ d'autre. KWin met par défaut à gauche un bouton « sur tous les bureaux » (tr
 - **Ses thèmes globaux et ses couleurs** : remplacés par ceux de BinixX OS (`org.binixx.desktop`, `org.binixx.dark.desktop`, couleurs
   `BinixXClair` et `BinixXSombre`), qui posent les thèmes ci-dessus.
 - **Le thème d'icônes « Win11 »** du même auteur (une cinquantaine de Mo de sources) : ses icônes imitent de près celles des applications de
-  Microsoft (Explorateur de fichiers, Photos, Xbox, Visual Studio…), ce que BinixX OS préfère ne pas distribuer. Les dossiers jaunes
+  Microsoft (Explorateur de fichiers, Photos, Xbox, Visual Studio…), ce que BinixX OS préfère ne pas distribuer. Les dossiers pastel
   sont faits autrement (voir plus bas) ; le reste des icônes est celui de Breeze.
 - **Le menu Démarrer en grille** du même auteur : un autre projet, non repris pour l'instant (voir « Moderniser BinixX OS »).
 
-## Dossiers jaunes
+## Dossiers pastel
 
-Dans Breeze, un dossier prend la couleur d'accentuation du bureau : bleu BinixX OS, donc des dossiers bleus. Windows a des dossiers jaunes.
-`build_files/icones-dossiers-jaunes.py` fabrique, à chaque construction de l'image, deux thèmes d'icônes à partir de **Breeze tel qu'il
-est dans l'image** :
+Les dossiers de BinixX OS ont une **forme arrondie** (onglet arrière, face avant aux coins doux, fin reflet), comme ceux des téléphones
+(One UI), et **une couleur pastel selon leur contenu** (identité BinixX, choisie sur maquette ; [identite-visuelle.md](identite-visuelle.md)).
+`build_files/icones-binixx.py` les fabrique à chaque construction de l'image, à partir de **Breeze tel qu'il est dans l'image** :
 
-- `binixx-os` (Aube) : hérite de Breeze ; **près de 200 dossiers** copiés avec une seule modification, la couleur du corps du dossier (jaune
-  `#f2cb40` de Breeze, `#fdbc4b` aux tailles 16, 22 et 24 pixels), plus les liens qui y mènent (le type « dossier », les dossiers de
-  l'application…). Documents, Téléchargements, Musique, Images, Vidéos… gardent leur pictogramme, sur fond jaune.
-- `binixx-os-dark` (Nuit) : hérite de Breeze sombre ; ses dossiers sont ceux de `binixx-os` (liens), le reste vient de Breeze sombre.
-- Les pictogrammes dans les dossiers gardent leur couleur sombre dans les deux thèmes (l'identifiant de la feuille de style du dessin
-  est retiré pour que le bureau ne les recolore pas : en blanc sur du jaune, ils disparaîtraient).
-- Si Breeze change le dessin de ses dossiers, la construction **échoue** (aucun dossier à la couleur d'accent trouvé) au lieu de livrer
-  des dossiers redevenus bleus sans le dire. Les licences de Breeze (LGPL-3.0 ou plus, CC-BY-SA-4.0) sont copiées dans le thème avec une note
-  disant ce qui a été modifié.
+| Contenu | Aube | Nuit |
+| --- | --- | --- |
+| Dossier ordinaire, Git, Modèles… | jaune clair `#FFE58A` | `#C9A43A` |
+| Documents (et textes, notes, livres…) | bleu clair `#A9CBFF` | `#4C78C9` |
+| Images (et dessins, photos…) | vert `#AEE8BC` | `#3F9A5B` |
+| Musique, sons, podcasts | rose `#FFBBD4` | `#C45A86` |
+| Vidéos | violet `#CDBBFF` | `#7A5CD6` |
+| Téléchargements | orange `#FFCFA3` | `#C97A3A` |
+| Bureau | ardoise `#C9D0DE` | `#66708A` |
+| Public, réseau, nuage (OneDrive…) | turquoise `#A3E6DF` | `#3A9C93` |
+
+- Le **pictogramme** de Breeze (Documents, Images, Git, nuage…) est gardé, recoloré d'une nuance foncée de la couleur du dossier (claire
+  en Nuit) ; aux tailles 16, 22 et 24 pixels, le dossier est dessiné sans pictogramme.
+- `binixx-os` (Aube) hérite de Breeze, `binixx-os-dark` (Nuit) de Breeze sombre, avec les mêmes dossiers en tons plus profonds pour ne pas
+  éblouir. Les liens de Breeze vers un dossier (le type « dossier », les dossiers de l'application…) mènent aux dossiers BinixX.
+- **Choisir la couleur d'un dossier** : clic droit sur le dossier, dans Dolphin ou sur le bureau → « Couleur du dossier » (jaune, bleu,
+  vert, rose, violet, orange, ardoise, turquoise, rouge, brun, ou la couleur d'origine). Le choix s'écrit comme le fait KDE dans le fichier
+  caché `.directory` du dossier (`Icon=folder-<couleur>`), par `/usr/libexec/binixx/binixx-couleur-dossier`.
+- Si Breeze change le dessin de ses dossiers, la construction **échoue** au lieu de livrer des dossiers mal dessinés. Les licences de
+  Breeze (LGPL-3.0 ou plus, CC-BY-SA-4.0) sont copiées dans le thème avec une note disant ce qui a été modifié.
 - **Contraste élevé** garde les icônes de Breeze sombre : son contraste se vérifie sur ses couleurs noir, blanc et jaune.
-- Pour revenir aux dossiers bleus : Configuration du système → Apparence et comportement → Icônes → Breeze.
+- Pour revenir aux dossiers de Breeze : Configuration du système → Apparence et comportement → Icônes → Breeze.
 
 ## Verre adaptatif
 
@@ -155,7 +166,7 @@ Apparence et comportement → Thème global → **Breeze**.
 
 Les fichiers de Win11OS KDE (`aurorae`, `Kvantum`, `plasma/desktoptheme`) sont sous **GNU GPL version 3** : leur texte, la liste des
 auteurs et l'adresse exacte de la source (version et empreinte du commit) sont fournis dans l'image, dans
-`/usr/share/licenses/binixx-win11os-kde/` (`COPYING`, `AUTHORS`, `SOURCE.txt`). Ces fichiers sont des **copies sans modification** (les dossiers jaunes, eux, sont dérivés de Breeze : voir plus haut) ;
+`/usr/share/licenses/binixx-win11os-kde/` (`COPYING`, `AUTHORS`, `SOURCE.txt`). Ces fichiers sont des **copies sans modification** (les dossiers pastel, eux, sont dérivés de Breeze : voir plus haut) ;
 le code et les réglages propres à BinixX OS restent sous licence Apache 2.0. Le test de l'image vérifie la présence de la licence,
 des auteurs et de la source, et l'absence des fonds d'écran du projet.
 
@@ -224,9 +235,11 @@ Sources : [Liquid Glass (Wikipédia)](https://en.wikipedia.org/wiki/Liquid_Glass
   `/etc/skel` ; service et surveillance activés ; `binixx-ambiance kvantum` suit les couleurs sans remplacer un autre thème choisi.
   Les tests Python de `tests/image/centre/test_ambiances.py` couvrent la logique (thème par couleurs, fichier réécrit sans perdre les
   réglages par application, thème choisi à la main respecté, ordre dans `appliquer`).
-- Dossiers jaunes, dans les mêmes tests de l'image : thèmes `binixx-os` et `binixx-os-dark` (héritage, jaune de chaque taille de 16 à 96 pixels,
-  dossiers Documents, Téléchargements, Musique, Images et Vidéos, type « dossier », liens du thème sombre, licence) ; chaque thème global
-  nomme un thème d'icônes qui existe ; Contraste élevé reste sur Breeze sombre.
+- Dossiers pastel, dans les mêmes tests de l'image : thèmes `binixx-os` et `binixx-os-dark` (héritage, dossier redessiné de 16 à 96 pixels,
+  couleur de Documents, Images, Musique, Vidéos et Téléchargements avec leur pictogramme, dossiers de couleur du choix libre, type
+  « dossier », tons profonds du thème sombre, licence, menu « Couleur du dossier ») ; chaque thème global nomme un thème d'icônes qui
+  existe ; Contraste élevé reste sur Breeze sombre. `tests/themes/test_icones_binixx.py` (extraits de Breeze) et
+  `tests/image/centre/test_couleur_dossier.py` couvrent le générateur et le choix de couleur.
 - **VM** (`tests/vm/checks.d/82-theme-windows-11.sh`) : le compte de l'installation a le thème clair ; la surveillance tourne ; un
   changement de couleurs dans `kdeglobals` fait changer le thème Kvantum tout seul ; pour chaque ambiance, le style, la
   décoration des fenêtres, les boutons de la barre de titre, le thème Plasma, le thème d'icônes et le thème Kvantum relus dans la session

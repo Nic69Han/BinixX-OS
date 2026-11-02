@@ -169,21 +169,25 @@ check "Aube : Kvantum et thème Plasma BinixX-Win11-light, fenêtres BinixX-Verr
 check "Nuit : Kvantum et thème Plasma BinixX-Win11-dark, fenêtres BinixX-Verre-dark (verre fumé), couleurs BinixXSombre" style_theme_global org.binixx.dark.desktop dark BinixXSombre binixx-os-dark
 check "Contraste élevé : style Breeze, décoration Breeze, thème Plasma Breeze opaque (pas de style Windows 11)" bash -c \
     "f=${LNF}/org.binixx.contraste.desktop/contents/defaults; grep -qx 'widgetStyle=Breeze' \${f} && grep -qx 'ColorScheme=BinixXContraste' \${f} && grep -qx 'library=org.kde.breeze' \${f} && grep -qx 'name=BinixX-contraste' \${f} && ! grep -v '^#' \${f} | grep -qi 'kvantum\|aurorae\|Win11'"
-# Dossiers jaunes : les icônes de BinixX OS sont celles de Breeze, avec le corps des dossiers en jaune au lieu de la couleur d'accent (bleue).
-# Générées à la construction depuis Breeze (build_files/icones-dossiers-jaunes.py).
-check "icônes BinixX OS (clair) : hérite de Breeze, dossiers de 32 à 96 pixels en jaune, couleurs du bureau figées (plus d'identifiant « current-color-scheme »)" bash -c \
-    "grep -qx 'Inherits=breeze' /usr/share/icons/binixx-os/index.theme && for t in 32 48 64 96; do grep -q 'fill:#f2cb40' /usr/share/icons/binixx-os/places/\${t}/folder.svg && grep -q 'id=\"couleurs-fixes-binixx\"' /usr/share/icons/binixx-os/places/\${t}/folder.svg && ! grep -q 'id=\"current-color-scheme\"' /usr/share/icons/binixx-os/places/\${t}/folder.svg || exit 1; done"
-check "icônes BinixX OS : petits dossiers (16, 22 et 24 pixels) en jaune aussi, ouverts comme fermés" bash -c \
-    "for t in 16 22 24; do for f in folder folder-open; do grep -q 'fill:#fdbc4b' /usr/share/icons/binixx-os/places/\${t}/\${f}.svg || exit 1; done; done"
-check "icônes BinixX OS : les dossiers des répertoires usuels (Documents, Téléchargements, Musique, Images, Vidéos) sont jaunes aussi" bash -c \
-    "for f in folder-documents folder-download folder-music folder-pictures folder-videos; do grep -q 'fill:#f2cb40' /usr/share/icons/binixx-os/places/64/\${f}.svg || exit 1; done"
-check "icônes BinixX OS : le type « dossier » (inode-directory) mène au dossier jaune" bash -c \
+# Dossiers pastel : les icônes de BinixX OS sont celles de Breeze, avec des dossiers arrondis d'une couleur par contenu, le pictogramme de
+# Breeze gardé (build_files/icones-binixx.py) ; en Nuit, les mêmes dans des tons plus profonds.
+check "icônes BinixX OS (clair) : hérite de Breeze, dossier de 32 à 96 pixels redessiné, jaune clair, sans les couleurs du bureau" bash -c \
+    "grep -qx 'Inherits=breeze' /usr/share/icons/binixx-os/index.theme && for t in 32 48 64 96; do f=/usr/share/icons/binixx-os/places/\${t}/folder.svg; grep -q 'build_files/icones-binixx.py' \${f} && grep -q 'fill=\"#FFE58A\"' \${f} && ! grep -q 'current-color-scheme' \${f} || exit 1; done"
+check "icônes BinixX OS : petits dossiers (16, 22 et 24 pixels) redessinés aussi, ouverts comme fermés" bash -c \
+    "for t in 16 22 24; do for f in folder folder-open; do grep -q 'build_files/icones-binixx.py' /usr/share/icons/binixx-os/places/\${t}/\${f}.svg || exit 1; done; done"
+check "icônes BinixX OS : une couleur par contenu (Documents bleu, Images vert, Musique rose, Vidéos violet, Téléchargements orange), pictogramme gardé" bash -c \
+    "d=/usr/share/icons/binixx-os/places/64; grep -q '#A9CBFF' \${d}/folder-documents.svg && grep -q '#AEE8BC' \${d}/folder-pictures.svg && grep -q '#FFBBD4' \${d}/folder-music.svg && grep -q '#CDBBFF' \${d}/folder-videos.svg && grep -q '#FFCFA3' \${d}/folder-download.svg && test \$(grep -o '<path' \${d}/folder-documents.svg | wc -l) -gt \$(grep -o '<path' \${d}/folder.svg | wc -l)"
+check "icônes BinixX OS : dossiers de couleur pour le choix libre (folder-blue, folder-green…)" bash -c \
+    "for f in folder-yellow folder-blue folder-green folder-magenta folder-violet folder-orange folder-grey folder-cyan folder-red folder-brown; do grep -q 'build_files/icones-binixx.py' /usr/share/icons/binixx-os/places/64/\${f}.svg || exit 1; done"
+check "icônes BinixX OS : le type « dossier » (inode-directory) mène au dossier BinixX" bash -c \
     "test \"\$(readlink -f /usr/share/icons/binixx-os/mimetypes/64/inode-directory.svg)\" = /usr/share/icons/binixx-os/places/64/folder.svg"
-check "icônes BinixX OS sombres : Breeze sombre pour le reste, mêmes dossiers jaunes (liens vers le thème clair)" bash -c \
-    "grep -qx 'Inherits=breeze-dark' /usr/share/icons/binixx-os-dark/index.theme && test \"\$(readlink -f /usr/share/icons/binixx-os-dark/places/64/folder.svg)\" = /usr/share/icons/binixx-os/places/64/folder.svg"
+check "icônes BinixX OS sombres : Breeze sombre pour le reste, dossiers en tons profonds (pas ceux du thème clair)" bash -c \
+    "grep -qx 'Inherits=breeze-dark' /usr/share/icons/binixx-os-dark/index.theme && grep -q 'fill=\"#C9A43A\"' /usr/share/icons/binixx-os-dark/places/64/folder.svg && test \"\$(readlink -f /usr/share/icons/binixx-os-dark/mimetypes/64/inode-directory.svg)\" = /usr/share/icons/binixx-os-dark/places/64/folder.svg"
 check "icônes BinixX OS : licence de Breeze et note sur la modification fournies" bash -c \
     "test -s /usr/share/icons/binixx-os/LISEZMOI.txt && ls /usr/share/icons/binixx-os | grep -qi 'COPYING\|LICENSE'"
-check "Contraste élevé garde les icônes de Breeze sombre (pas de dossiers jaunes : le contraste se vérifie sur les couleurs)" bash -c \
+check "couleur d'un dossier au clic droit : menu de Dolphin et outil binixx-couleur-dossier" bash -c \
+    "m=/usr/share/kio/servicemenus/binixx-couleur-dossier.desktop; grep -q 'inode/directory' \${m} && grep -q 'binixx-couleur-dossier bleu %F' \${m} && test -x /usr/libexec/binixx/binixx-couleur-dossier && /usr/libexec/binixx/binixx-couleur-dossier fuchsia /tmp | grep -q 'Couleur inconnue'"
+check "Contraste élevé garde les icônes de Breeze sombre (pas de dossiers pastel : le contraste se vérifie sur les couleurs)" bash -c \
     "grep -qx 'Theme=breeze-dark' ${LNF}/org.binixx.contraste.desktop/contents/defaults"
 check "contraste élevé : thème global complet (métadonnées, disposition du panneau, aperçus hérités de Brise sombre)" bash -c \
     "grep -q '\"Id\": \"org.binixx.contraste.desktop\"' ${LNF}/org.binixx.contraste.desktop/metadata.json && cmp ${LNF}/org.binixx.desktop/contents/layouts/org.kde.plasma.desktop-layout.js ${LNF}/org.binixx.contraste.desktop/contents/layouts/org.kde.plasma.desktop-layout.js && test -f ${LNF}/org.binixx.contraste.desktop/contents/previews/preview.png && test -f ${LNF}/org.binixx.contraste.desktop/contents/previews/fullscreenpreview.jpg"

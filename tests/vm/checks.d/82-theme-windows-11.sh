@@ -114,7 +114,7 @@ theme_scene() {
     theme_egal "décoration des fenêtres" "$(theme_reglage kwinrc org.kde.kdecoration2 theme)" "${decoration}"
     lu="$(theme_reglage plasmarc Theme name)"
     theme_egal "thème Plasma" "${lu:-default}" "${plasma}"
-    theme_egal "thème d'icônes (dossiers jaunes sauf en contraste élevé)" "$(theme_reglage kdeglobals Icons Theme)" "${icones}"
+    theme_egal "thème d'icônes (dossiers pastel sauf en contraste élevé)" "$(theme_reglage kdeglobals Icons Theme)" "${icones}"
     theme_egal "barre de titre, à gauche (icône de l'application)" "$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnLeft)" M
     theme_egal "barre de titre, à droite (réduire, agrandir, fermer)" "$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnRight)" IAX
     # Sans flou (cette machine virtuelle), Plasma prend les fonds opaques et les fenêtres (Kvantum) restent opaques : le thème Kvantum
