@@ -191,6 +191,9 @@ PYEOF
 # build_files/icones-binixx.py (échoue si le dessin des dossiers de Breeze a changé). Les thèmes globaux les posent (Icons Theme dans
 # look-and-feel/*/contents/defaults). La couleur d'un dossier se change au clic droit (binixx-couleur-dossier).
 python3 /ctx/icones-binixx.py
+# Puis chaque application fournie sur sa plaque « squircle » (fond du logo, ou verre teinté de sa couleur), comme sur un téléphone :
+# binixx_centre/plaques.py, rendu par Qt (PySide6, déjà dans l'image pour le Centre), dans binixx-os et binixx-os-dark
+PYTHONPATH=/usr/lib/binixx/centre QT_QPA_PLATFORM=offscreen python3 -m binixx_centre.plaques --systeme
 
 # Variantes des thèmes (build_files/variantes-themes.py, qui échoue si un réglage ou un fond attendu a disparu des thèmes d'origine, laissés
 # inchangés à côté) : les thèmes de Win11OS KDE sont translucides et comptent sur le flou de KWin ; sans flou on lit les fenêtres à travers
@@ -369,6 +372,8 @@ systemctl enable cockpit.socket
 # Thème Kvantum d'accord avec les couleurs du bureau, pour chaque utilisateur : à l'ouverture de session et chaque fois que ses
 # couleurs changent (usr/lib/systemd/user/binixx-kvantum.{path,service})
 systemctl --global enable binixx-kvantum.service binixx-kvantum.path
+# Icônes BinixX des applications installées après coup (Flatpak) : à l'ouverture de session et à chaque installation
+systemctl --global enable binixx-plaques.service binixx-plaques.path
 
 ### 7. Sécurité
 # Pare-feu : zone binixx par défaut (usr/lib/firewalld/zones/binixx.xml) au lieu de

@@ -1,0 +1,11 @@
+[Unit]
+Description=BinixX OS : surveille les applications installées (Flatpak) pour leur donner leur icône BinixX
+Documentation=https://github.com/Nic69Han/BinixX-OS/blob/main/docs/identite-visuelle.md
+
+[Path]
+PathChanged=/var/lib/flatpak/exports/share/applications
+PathChanged=%h/.local/share/flatpak/exports/share/applications
+Unit=binixx-plaques.service
+
+[Install]
+WantedBy=default.target

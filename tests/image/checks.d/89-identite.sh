@@ -29,3 +29,11 @@ sys.path.insert(0, "/usr/lib/binixx/centre")
 from binixx_centre import taille_texte
 assert taille_texte.DEFAUTS[("General", "font")].startswith("Inter,10,")
 '
+
+# Applications sur leur plaque « squircle » (binixx_centre/plaques.py, fabriquées à la construction de l'image)
+check "icônes d'applications BinixX : plaques des applications fournies (Firefox, Dolphin, Centre BinixX), Aube et Nuit" bash -c \
+    "for t in binixx-os binixx-os-dark; do for a in firefox org.kde.dolphin binixx; do grep -q 'binixx-plaque' /usr/share/icons/\${t}/apps/scalable/\${a}.svg || exit 1; done; grep -q '^Directories=.*apps/scalable' /usr/share/icons/\${t}/index.theme || exit 1; done"
+check "icônes d'applications BinixX : au moins 40 applications sur leur plaque" bash -c \
+    "test \$(ls /usr/share/icons/binixx-os/apps/scalable/*.svg | wc -l) -ge 40"
+check "icônes d'applications BinixX : les applications installées ensuite (Flatpak) ont la leur (service utilisateur activé)" bash -c \
+    "test -x /usr/libexec/binixx/binixx-plaques && test -L /etc/systemd/user/default.target.wants/binixx-plaques.path && test -L /etc/systemd/user/default.target.wants/binixx-plaques.service"
