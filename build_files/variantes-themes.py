@@ -37,6 +37,7 @@ import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import verre_fenetres  # (barre de titre « verre fumé », à côté de ce fichier)
 import verre_plasma  # (fonds « verre fumé » de BinixX OS, à côté de ce fichier)
 
 VARIANTES = ("light", "dark")
@@ -44,6 +45,10 @@ CONTRASTE = ("default", "BinixX-contraste")
 # Fonds que « solid » doit fournir : le menu de démarrage et les bulles (dialogs/background), les fenêtres de Plasma et la barre des tâches
 FONDS_OPAQUES = {"dialogs": ("background",), "widgets": ("background", "panel-background")}
 # Réglages Kvantum qui rendent quelque chose translucide ou flou : tous passent à « false »
+# Variante « verre » (posée seulement quand le flou de KWin est actif, voir binixx_centre/ambiances.py) : fenêtres translucides et floutées
+# (barre d'outils, panneaux latéraux), mais le contenu (liste des fichiers de Dolphin, de PCManFM) reste opaque
+KVANTUM_VERRE_REGLAGES = {"translucent_windows": "true", "blurring": "true", "popup_blurring": "true",
+                          "transparent_dolphin_view": "false", "transparent_pcmanfm_view": "false"}
 KVANTUM_COUPES = ("translucent_windows", "blurring", "popup_blurring", "transparent_dolphin_view", "transparent_pcmanfm_sidepane",
                   "transparent_pcmanfm_view", "transparent_menutitle", "blur_translucent")
 
@@ -58,6 +63,43 @@ def kvantum_opaque(texte, amont, aval):
     if n != 1:
         raise SystemExit(f"{amont}.kvconfig : ligne « comment= » introuvable")
     return texte
+
+
+def kvantum_verre(texte, amont):
+    """Le .kvconfig d'origine en verre : fenêtres floutées, contenu opaque ; SystemExit si un réglage attendu manque."""
+    for cle, valeur in KVANTUM_VERRE_REGLAGES.items():
+        texte, n = re.subn(rf"^{cle}=.*$", f"{cle}={valeur}", texte, flags=re.M)
+        if n != 1:
+            raise SystemExit(f"{amont}.kvconfig : « {cle} » trouvé {n} fois (une seule attendue) : le thème d'origine a changé, à revoir")
+    texte, n = re.subn(r"^comment=(.*)$", r"comment=\1 (variante verre de BinixX OS : fenêtres floutées, contenu opaque)", texte,
+                       count=1, flags=re.M)
+    if n != 1:
+        raise SystemExit(f"{amont}.kvconfig : ligne « comment= » introuvable")
+    return texte
+
+
+def aurorae_verre(racine, variante):
+    """Décoration des fenêtres BinixX-Verre-<variante> : la barre de titre de Win11OS KDE en verre fumé, flouté par KWin
+    (build_files/verre_fenetres.py). Les boutons sont des liens vers ceux d'origine."""
+    amont, aval = f"Win11OS-{variante}", f"BinixX-Verre-{variante}"
+    source, cible = os.path.join(racine, "aurorae", "themes", amont), os.path.join(racine, "aurorae", "themes", aval)
+    shutil.rmtree(cible, ignore_errors=True)
+    os.makedirs(cible)
+    for nom in sorted(os.listdir(source)):
+        chemin = os.path.join(source, nom)
+        with open(chemin, encoding="utf-8") as fichier:
+            texte = fichier.read() if nom in ("decoration.svg", f"{amont}rc", "metadata.desktop") else None
+        if nom == "decoration.svg":
+            ecrire(os.path.join(cible, nom), verre_fenetres.decoration_verre(texte, variante))
+        elif nom == f"{amont}rc":
+            ecrire(os.path.join(cible, f"{aval}rc"), verre_fenetres.rc_verre(texte, variante))
+        elif nom == "metadata.desktop":
+            texte = texte.replace(amont, aval)
+            if f"X-KDE-PluginInfo-Name={aval}" not in texte:
+                raise SystemExit(f"aurorae/{amont}/metadata.desktop : nom mal remplacé")
+            ecrire(os.path.join(cible, nom), texte)
+        else:
+            os.symlink(os.path.join("..", amont, nom), os.path.join(cible, nom))
 
 
 def sans_section_wallpaper(texte, fichier):
@@ -182,6 +224,18 @@ def fabriquer(racine="/usr/share"):
         with open(os.path.join(cible, f"{aval}.kvconfig"), "w", encoding="utf-8") as fichier:
             fichier.write(texte)
         shutil.copy2(os.path.join(source, f"{amont}.svg"), os.path.join(cible, f"{aval}.svg"))
+        # Kvantum : verre (fenêtres floutées, contenu opaque), pour les PC où le flou de KWin est actif
+        verre = f"{aval}-verre"
+        cible = os.path.join(racine, "Kvantum", verre)
+        shutil.rmtree(cible, ignore_errors=True)
+        os.makedirs(cible)
+        with open(os.path.join(source, f"{amont}.kvconfig"), encoding="utf-8") as fichier:
+            texte = kvantum_verre(fichier.read(), amont)
+        with open(os.path.join(cible, f"{verre}.kvconfig"), "w", encoding="utf-8") as fichier:
+            fichier.write(texte)
+        shutil.copy2(os.path.join(source, f"{amont}.svg"), os.path.join(cible, f"{verre}.svg"))
+        # Fenêtres : barre de titre en verre fumé
+        aurorae_verre(racine, variante)
 
         # Plasma : verre adaptatif
         def metadonnees_win11(nom, texte, amont=amont, aval=aval):

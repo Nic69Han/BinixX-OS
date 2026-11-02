@@ -117,7 +117,8 @@ theme_scene() {
     theme_egal "thème d'icônes (dossiers jaunes sauf en contraste élevé)" "$(theme_reglage kdeglobals Icons Theme)" "${icones}"
     theme_egal "barre de titre, à gauche (icône de l'application)" "$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnLeft)" M
     theme_egal "barre de titre, à droite (réduire, agrandir, fermer)" "$(theme_reglage kwinrc org.kde.kdecoration2 ButtonsOnRight)" IAX
-    # Sans flou (cette machine virtuelle), Plasma prend les fonds opaques ; le verre dépoli ne se voit que sur un PC où le flou est actif
+    # Sans flou (cette machine virtuelle), Plasma prend les fonds opaques et les fenêtres (Kvantum) restent opaques : le thème Kvantum
+    # attendu est l'opaque ; le verre fumé ne se voit que sur un PC où le flou est actif
     echo "            info : effet de flou de KWin chargé : $(theme_session busctl --user call org.kde.KWin /Effects org.kde.kwin.Effects isEffectLoaded s blur 2>&1 | head -n 1)"
     if [[ -n "${kvantum}" ]]; then theme_egal "thème Kvantum" "$(theme_kvantum)" "${kvantum}"; fi
     uid="$(id -u "${TEST_USER}")"
@@ -136,8 +137,8 @@ theme_scene() {
     fi
     sleep 10 # le temps d'afficher la fenêtre avant la capture d'écran
 }
-check_theme_aube() { theme_scene aube BinixXClair kvantum __aurorae__svg__Win11OS-light BinixX-Win11-light BinixX-Win11-light binixx-os; }
-check_theme_nuit() { theme_scene nuit BinixXSombre kvantum __aurorae__svg__Win11OS-dark BinixX-Win11-dark BinixX-Win11-dark binixx-os-dark; }
+check_theme_aube() { theme_scene aube BinixXClair kvantum __aurorae__svg__BinixX-Verre-light BinixX-Win11-light BinixX-Win11-light binixx-os; }
+check_theme_nuit() { theme_scene nuit BinixXSombre kvantum __aurorae__svg__BinixX-Verre-dark BinixX-Win11-dark BinixX-Win11-dark binixx-os-dark; }
 check_theme_contraste() { theme_scene contraste BinixXContraste Breeze Breeze BinixX-contraste "" breeze-dark; }
 register_check theme-aube check_theme_aube
 register_check theme-nuit check_theme_nuit

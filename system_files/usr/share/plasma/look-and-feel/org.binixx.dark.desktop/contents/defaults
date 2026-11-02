@@ -20,7 +20,7 @@ cursorTheme=Breeze_Light
 
 [kwinrc][org.kde.kdecoration2]
 library=org.kde.kwin.aurorae
-theme=__aurorae__svg__Win11OS-dark
+theme=__aurorae__svg__BinixX-Verre-dark
 ButtonsOnLeft=M
 ButtonsOnRight=IAX
 

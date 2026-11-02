@@ -10,11 +10,18 @@ Dans l'image :
   /usr/share/Kvantum/Win11OS-light, Win11OS-dark                 style des boutons, cases, barres de défilement (Kvantum)
   /usr/share/plasma/desktoptheme/Win11OS-light, Win11OS-dark     barre des tâches, fenêtres et bulles de Plasma
 
-Dérivés à la construction de l'image (build_files/win11os-opaque.py), à partir des copies ci-dessus :
+Dérivés à la construction de l'image (build_files/variantes-themes.py, verre_plasma.py, verre_fenetres.py), à partir des copies
+ci-dessus :
   /usr/share/Kvantum/BinixX-Win11-light, BinixX-Win11-dark        les thèmes Kvantum, avec les réglages de transparence et de flou
                                                                   coupés (huit lignes du fichier .kvconfig) ; même dessin
-  /usr/share/plasma/desktoptheme/BinixX-Win11-light, -dark        liens vers les thèmes Plasma d'origine, sauf « translucent » qui mène
-                                                                  à « solid » (fonds opaques) ; section Wallpaper retirée
+  /usr/share/Kvantum/BinixX-Win11-light-verre, -dark-verre        les thèmes Kvantum translucides et floutés, mais la liste des
+                                                                  fichiers (Dolphin, PCManFM) opaque (deux lignes) ; même dessin
+  /usr/share/plasma/desktoptheme/BinixX-Win11-light, -dark        liens vers les thèmes Plasma d'origine ; fonds de la barre des
+                                                                  tâches, des fenêtres de Plasma et des bulles remplacés par ceux,
+                                                                  « verre fumé », de BinixX OS ; section Wallpaper retirée
+  /usr/share/aurorae/themes/BinixX-Verre-light, -dark             la décoration des fenêtres, avec le fond de la barre de titre et du
+                                                                  cadre recoloré (verre fumé) et un masque de flou ajouté ; boutons
+                                                                  et réglages d'origine
   Ils sont posés par défaut : les thèmes d'origine comptent sur le flou de KWin et deviennent illisibles sans lui. Ces dérivés restent
   sous GNU GPL version 3, comme les thèmes dont ils viennent ; les modifications sont celles décrites ici.
 

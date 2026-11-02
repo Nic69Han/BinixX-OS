@@ -214,6 +214,8 @@ class Page(QWidget):
         QGuiApplication.setOverrideCursor(Qt.WaitCursor)
         try:
             _, message = (leger.activer if activer else leger.desactiver)()
+            # Le flou vient de s'arrêter ou de reprendre : les fenêtres (Kvantum) passent à l'opaque ou au verre fumé
+            ambiances.synchroniser_kvantum()
         finally:
             QGuiApplication.restoreOverrideCursor()
         self.actualiser(message)

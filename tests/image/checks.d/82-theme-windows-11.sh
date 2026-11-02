@@ -77,6 +77,33 @@ plasma_verre() ( # plasma_verre <thème d'origine> <variante>
     test "$(readlink -f "${aval}/widgets/tasks.svgz")" = "${amont}/widgets/tasks.svgz"
 )
 
+# Fenêtres en verre fumé (build_files/verre_fenetres.py) : barre de titre recolorée avec son masque de flou (Aurorae le passe à KWin),
+# boutons d'origine ; Kvantum « -verre » (fenêtres floutées, liste des fichiers opaque), posé seulement quand le flou de KWin est actif
+fenetres_verre() ( # fenetres_verre <light|dark>
+    set -e
+    a=/usr/share/aurorae/themes
+    d="${a}/BinixX-Verre-$1"
+    test -f "${d}/decoration.svg" && test ! -L "${d}/decoration.svg"
+    grep -q 'build_files/verre_fenetres.py' "${d}/decoration.svg"
+    for morceau in topleft top topright left right bottomleft bottom bottomright; do
+        grep -q "id=\"mask-${morceau}\"" "${d}/decoration.svg"
+    done
+    grep -q 'href="#mask-left"' "${d}/decoration.svg"
+    grep -qx "X-KDE-PluginInfo-Name=BinixX-Verre-$1" "${d}/metadata.desktop"
+    grep -q '^\[Layout\]' "${d}/BinixX-Verre-$1rc"
+    for bouton in close maximize minimize restore; do
+        test "$(readlink -f "${d}/${bouton}.svg")" = "${a}/Win11OS-$1/${bouton}.svg"
+    done
+    k="/usr/share/Kvantum/BinixX-Win11-$1-verre/BinixX-Win11-$1-verre.kvconfig"
+    for c in translucent_windows blurring popup_blurring; do grep -qx "${c}=true" "${k}"; done
+    for c in transparent_dolphin_view transparent_pcmanfm_view; do grep -qx "${c}=false" "${k}"; done
+    cmp "/usr/share/Kvantum/BinixX-Win11-$1-verre/BinixX-Win11-$1-verre.svg" "/usr/share/Kvantum/Win11OS-$1/Win11OS-$1.svg"
+)
+check "fenêtres d'Aube en verre fumé (barre de titre BinixX-Verre-light floutée, Kvantum BinixX-Win11-light-verre)" fenetres_verre light
+check "fenêtres de Nuit en verre fumé (barre de titre BinixX-Verre-dark floutée, Kvantum BinixX-Win11-dark-verre)" fenetres_verre dark
+check "à l'ouverture de session, les fenêtres passent au verre si le flou est actif (autostart binixx-verre-fenetres)" bash -c \
+    "grep -qx 'Exec=/usr/libexec/binixx/binixx-ambiance kvantum' /etc/xdg/autostart/binixx-verre-fenetres.desktop && grep -qx 'X-KDE-autostart-phase=2' /etc/xdg/autostart/binixx-verre-fenetres.desktop"
+
 for variante in light dark; do
     amont="Win11OS-${variante}"
     aval="BinixX-Win11-${variante}"
@@ -109,7 +136,7 @@ check "les fonds d'écran et l'écran de connexion du projet ne sont pas dans l'
 style_theme_global() ( # style_theme_global thème variante couleurs icônes
     set -e
     f="${LNF}/$1/contents/defaults"
-    nom="Win11OS-$2"
+    nom="BinixX-Verre-$2"
     opaque="BinixX-Win11-$2"
     grep -qx 'widgetStyle=kvantum' "${f}"
     grep -qx "ColorScheme=$3" "${f}"
@@ -122,8 +149,8 @@ style_theme_global() ( # style_theme_global thème variante couleurs icônes
     test -s "/usr/share/color-schemes/$3.colors"
     test -s "/usr/share/icons/$4/index.theme"
 )
-check "Aube : Kvantum et thème Plasma BinixX-Win11-light (opaques), fenêtres Win11OS-light, couleurs BinixXClair" style_theme_global org.binixx.desktop light BinixXClair binixx-os
-check "Nuit : Kvantum et thème Plasma BinixX-Win11-dark (opaques), fenêtres Win11OS-dark, couleurs BinixXSombre" style_theme_global org.binixx.dark.desktop dark BinixXSombre binixx-os-dark
+check "Aube : Kvantum et thème Plasma BinixX-Win11-light, fenêtres BinixX-Verre-light (verre fumé), couleurs BinixXClair" style_theme_global org.binixx.desktop light BinixXClair binixx-os
+check "Nuit : Kvantum et thème Plasma BinixX-Win11-dark, fenêtres BinixX-Verre-dark (verre fumé), couleurs BinixXSombre" style_theme_global org.binixx.dark.desktop dark BinixXSombre binixx-os-dark
 check "Contraste élevé : style Breeze, décoration Breeze, thème Plasma Breeze opaque (pas de style Windows 11)" bash -c \
     "f=${LNF}/org.binixx.contraste.desktop/contents/defaults; grep -qx 'widgetStyle=Breeze' \${f} && grep -qx 'ColorScheme=BinixXContraste' \${f} && grep -qx 'library=org.kde.breeze' \${f} && grep -qx 'name=BinixX-contraste' \${f} && ! grep -v '^#' \${f} | grep -qi 'kvantum\|aurorae\|Win11'"
 # Dossiers jaunes : les icônes de BinixX OS sont celles de Breeze, avec le corps des dossiers en jaune au lieu de la couleur d'accent (bleue).

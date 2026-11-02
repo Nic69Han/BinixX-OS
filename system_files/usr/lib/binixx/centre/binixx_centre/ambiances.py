@@ -38,9 +38,12 @@ THEME_CURSEUR = "Breeze_Light"      # le pointeur blanc de Windows ; « breeze_c
 # BinixX-Win11-* : les thèmes Kvantum de Win11OS KDE rendus opaques à la construction (build_files/variantes-themes.py), posés par défaut.
 # Win11OS-* : les thèmes d'origine, translucides, qu'on peut choisir à la main dans Kvantum Manager sur un PC qui sait flouter : on les suit
 # aussi (un thème clair sous des couleurs sombres serait illisible), sans jamais les remplacer par les opaques.
+# BinixX-Win11-*-verre : le « verre fumé » des fenêtres (barre d'outils et panneaux latéraux floutés, contenu opaque), posé à la place des
+# opaques quand le flou de KWin est actif, et inversement (machine virtuelle, vieux PC, profil léger) : voir synchroniser_kvantum.
 KVANTUM_PAR_COULEURS = {"BinixXClair": "BinixX-Win11-light", "BinixXSombre": "BinixX-Win11-dark"}
+KVANTUM_VERRE_PAR_COULEURS = {"BinixXClair": "BinixX-Win11-light-verre", "BinixXSombre": "BinixX-Win11-dark-verre"}
 KVANTUM_TRANSLUCIDE_PAR_COULEURS = {"BinixXClair": "Win11OS-light", "BinixXSombre": "Win11OS-dark"}
-FAMILLES_KVANTUM = (KVANTUM_PAR_COULEURS, KVANTUM_TRANSLUCIDE_PAR_COULEURS)
+FAMILLES_KVANTUM = (KVANTUM_PAR_COULEURS, KVANTUM_VERRE_PAR_COULEURS, KVANTUM_TRANSLUCIDE_PAR_COULEURS)
 THEMES_KVANTUM = tuple(theme for famille in FAMILLES_KVANTUM for theme in famille.values())
 
 # cle, titre, texte, thème global de Plasma, schéma de couleurs, aperçu (fond, texte, accent, barre de titre)
@@ -131,10 +134,20 @@ def poser_theme_kvantum(theme, chemin=None):
     os.replace(temporaire, chemin)
 
 
+def flou_actif(run=None):
+    """True si l'effet de flou de KWin tourne (PC avec accélération graphique, profil léger coupé) ; False sans session graphique ou si
+    KWin ne répond pas : dans le doute, les fenêtres restent opaques, donc lisibles."""
+    run = run or launch.run
+    code, sortie = run(["busctl", "--user", "call", "org.kde.KWin", "/Effects", "org.kde.kwin.Effects", "isEffectLoaded", "s", "blur"],
+                       timeout=15)
+    return code == 0 and sortie.strip() == "b true"
+
+
 def synchroniser_kvantum(couleurs=None, run=None, chemin=None):
-    """Met le thème Kvantum d'accord avec les couleurs (celles données, sinon celles en place) ; (modifié, message).
-    Un thème de Win11OS KDE choisi à la main (translucide) est suivi dans sa propre famille ; un autre thème (Kvantum Manager) n'est
-    jamais remplacé, et les couleurs qui ne sont pas à nous (contraste élevé, couleurs de KDE) ne touchent à rien."""
+    """Met le thème Kvantum d'accord avec les couleurs (celles données, sinon celles en place) et avec le flou ; (modifié, message).
+    Les thèmes de BinixX OS : le verre (BinixX-Win11-*-verre) quand le flou de KWin est actif, l'opaque sinon. Un thème de Win11OS KDE
+    choisi à la main (translucide) est suivi dans sa propre famille ; un autre thème (Kvantum Manager) n'est jamais remplacé, et les
+    couleurs qui ne sont pas à nous (contraste élevé, couleurs de KDE) ne touchent à rien."""
     couleurs = couleurs or couleurs_actuelles(run)
     if couleurs not in KVANTUM_PAR_COULEURS:
         return False, f"Couleurs « {couleurs or 'inconnues'} » : le thème Kvantum n'est pas touché."
@@ -142,7 +155,9 @@ def synchroniser_kvantum(couleurs=None, run=None, chemin=None):
     famille = next((f for f in FAMILLES_KVANTUM if actuel in f.values()), None)
     if actuel and famille is None:
         return False, f"Un autre thème Kvantum est choisi (« {actuel} ») : il est laissé tel quel."
-    voulu = (famille or KVANTUM_PAR_COULEURS)[couleurs]
+    if famille is not KVANTUM_TRANSLUCIDE_PAR_COULEURS:
+        famille = KVANTUM_VERRE_PAR_COULEURS if flou_actif(run) else KVANTUM_PAR_COULEURS
+    voulu = famille[couleurs]
     if actuel == voulu:
         return False, f"Le thème Kvantum « {voulu} » est déjà en place."
     poser_theme_kvantum(voulu, chemin)
