@@ -221,7 +221,14 @@ Toutes les pages partagent le même style moderne (retour du propriétaire : « 
   logo), le liseré des titres de section et les pastilles des cartes. Accueil bleu, Paramètres indigo, Mon logiciel Windows
   orange, Installer des applications violet, Windows complet cyan, Récupérer mes fichiers vert, Obtenir de l'aide rose,
   Protéger mes données sarcelle, Jeux rouge. Mode sombre compris.
-- **La barre latérale** montre, devant chaque page, une pastille de sa couleur avec son pictogramme.
+- **La barre latérale** montre, devant chaque page, une pastille de sa couleur avec son pictogramme. C'est un panneau en **verre
+  fumé** détaché du bord de la fenêtre (coins de 22 px, liseré d'un pixel), comme la barre des tâches : verre fumé en Nuit, verre
+  dépoli en Aube ; la page ouverte est une pilule bleu BinixX. Les cartes et les tuiles ont le même verre.
+- **Clair ou sombre tout seul** : `theme.feuille(sombre)` donne la feuille de style d'Aube ou de Nuit, choisie d'après les couleurs
+  du bureau, et le Centre la change s'il est ouvert quand on passe d'Aube à Nuit. Les fonds sont translucides : sur un PC qui sait
+  flouter, le thème Kvantum « verre » (docs/theme-windows-11.md) rend la fenêtre floutée et le Centre devient du vrai verre ; sinon ce
+  sont des nuances d'une fenêtre opaque, toujours lisibles. Les libellés restent écrits en toutes lettres à côté des pictogrammes (la
+  maquette n'avait que des pictogrammes) : qui arrive de Windows lit « Installer des applications » plus vite qu'il ne devine une icône.
 - **Des cartes** arrondies avec une pastille d'icône, un titre, un texte et un bouton en pilule ; sur l'accueil, des cartes
   « hautes » rangées sur trois, deux ou une colonne selon la largeur de la fenêtre (rien ne déborde).
 - **Les états se voient** : sous « Windows complet », ✔/⚠/✖ sont des pastilles verte, orange et rouge ; sous « Installer des

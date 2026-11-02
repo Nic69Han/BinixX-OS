@@ -5,10 +5,9 @@ import os
 import sys
 import traceback
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QEvent, QSize, Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (QApplication, QButtonGroup, QHBoxLayout, QLabel, QPushButton, QStackedWidget,
-                               QVBoxLayout, QWidget)
+from PySide6.QtWidgets import QApplication, QButtonGroup, QHBoxLayout, QLabel, QPushButton, QStackedWidget, QVBoxLayout, QWidget
 
 from . import pages, premiere_session, theme, widgets
 
@@ -45,9 +44,14 @@ class Centre(QWidget):
         racine.setContentsMargins(0, 0, 0, 0)
         racine.setSpacing(0)
 
+        # Barre latérale en verre fumé, détachée du bord de la fenêtre (maquette « Glassy Sidebar », docs/theme-windows-11.md)
+        cadre = QVBoxLayout()
+        cadre.setContentsMargins(12, 12, 4, 12)
         barre = QWidget()
         barre.setObjectName("sidebar")
-        barre.setFixedWidth(264)
+        barre.setAttribute(Qt.WA_StyledBackground, True)
+        barre.setFixedWidth(256)
+        cadre.addWidget(barre)
         colonne = QVBoxLayout(barre)
         colonne.setContentsMargins(12, 22, 12, 16)
         colonne.setSpacing(3)
@@ -69,8 +73,14 @@ class Centre(QWidget):
             self._ajouter_page(module, colonne)
         colonne.addStretch(1)
 
-        racine.addWidget(barre)
+        racine.addLayout(cadre)
         racine.addWidget(self.pile, 1)
+
+    def changeEvent(self, event):
+        # Aube ↔ Nuit pendant que le Centre est ouvert : le verre suit (clair ou fumé)
+        if event.type() in (QEvent.PaletteChange, QEvent.ApplicationPaletteChange):
+            appliquer_style(QApplication.instance())
+        super().changeEvent(event)
 
     def _ajouter_page(self, module, colonne):
         try:
@@ -111,6 +121,15 @@ class Centre(QWidget):
         return False
 
 
+def appliquer_style(app):
+    """Pose la feuille de style du Centre, claire ou sombre selon les couleurs du bureau ; rien si elle est déjà la bonne."""
+    if app is None:
+        return
+    feuille = theme.feuille(theme.est_sombre(app.palette()))
+    if app.styleSheet() != feuille:
+        app.setStyleSheet(feuille)
+
+
 def parse(argv):
     parser = argparse.ArgumentParser(prog="binixx-centre", description="Centre BinixX OS")
     parser.add_argument("--page", default="accueil", help="page à ouvrir (accueil, catalogue, aide…)")
@@ -133,7 +152,7 @@ def main(argv=None):
     app = QApplication(sys.argv[:1])
     app.setApplicationName("binixx-centre")
     app.setDesktopFileName("binixx-centre")
-    app.setStyleSheet(theme.STYLE)
+    appliquer_style(app)
     centre = Centre()
     if args.programme:
         args.page = "catalogue"

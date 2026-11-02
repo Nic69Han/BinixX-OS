@@ -192,13 +192,13 @@ class Modules(unittest.TestCase):
         self.assertFalse(p.KCM.match("kcm_a; rm -rf /"))
 
     def test_le_fichier_ne_cite_que_des_modules_de_l_image_de_kinoite(self):
-        # modules relevés dans l'image (kcmshell6 --list, build du 3 octobre 2026) : ceux qui ont été corrigés
+        # modules relevés dans l'image (kcmshell6 --list, build du 2 novembre 2026) : ceux qui ont été corrigés
         cibles = {r.cible for r in p.charger(FICHIER) if r.type == "kcm"}
         self.assertNotIn("kcm_sddm", cibles)           # le gestionnaire de connexion est Plasma Login (kcm_plasmalogin)
-        self.assertNotIn("kcm_spellchecking", cibles)  # le module s'appelle kcmspellchecking
+        self.assertNotIn("kcmspellchecking", cibles)   # renommé kcm_spellchecking par KDE (vu dans l'image du 2 novembre 2026)
         self.assertNotIn("kcm_kdeconnect", cibles)     # KDE Connect n'est pas dans l'image
         self.assertIn("kcm_plasmalogin", cibles)
-        self.assertIn("kcmspellchecking", cibles)
+        self.assertIn("kcm_spellchecking", cibles)
 
     def test_sortie_inutilisable_ne_masque_rien(self):
         self.assertIsNone(p.modules_disponibles(""))

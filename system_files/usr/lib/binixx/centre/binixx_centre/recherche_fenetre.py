@@ -283,7 +283,7 @@ def main(argv=None):
     app = QApplication(sys.argv[:1])
     app.setApplicationName("binixx-recherche")
     app.setDesktopFileName("binixx-recherche")
-    app.setStyleSheet(theme.STYLE)
+    app.setStyleSheet(theme.feuille(theme.est_sombre(app.palette())))
     fenetre = Fenetre()
     if args.test:
         os.makedirs(args.test, exist_ok=True)
