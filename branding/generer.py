@@ -38,9 +38,13 @@ INK = "#0B0F1A"          # encre : texte et fonds sombres
 WHITE = "#FFFFFF"
 # « BinixX OS » a deux « i » (positions 1 et 3 du texte) : ceux dont le point devient une gemme
 POINTS_EN_GEMME = (1, 3)
-# dégradé de la gemme : ciel lumineux -> bleu BinixX OS -> indigo profond
-GEM_LIGHT = [("0", "#5FB2FF"), ("0.45", "#2F5BFF"), ("1", "#1A26C9")]
-GEM_DARK = [("0", "#8CCBFF"), ("0.45", "#5A7DFF"), ("1", "#3A3FE0")]
+# Le bleu BinixX (choisi en novembre 2026, docs/identite-visuelle.md) : un pastel entre ciel et azur, et sa nuance « forte »,
+# assez foncée pour du texte blanc dessus (4,7:1), pour les boutons et les liens
+BLEU_PASTEL = "#ADCFFB"
+BLEU_FORT = "#0C6EEE"
+# dégradé de la gemme : pastel éclairci -> bleu BinixX pastel -> nuance forte (sur fond sombre, une fin plus lumineuse)
+GEM_LIGHT = [("0", "#BBD7FC"), ("0.45", BLEU_PASTEL), ("1", BLEU_FORT)]
+GEM_DARK = [("0", "#D6E7FE"), ("0.45", BLEU_PASTEL), ("1", "#3C8CF2")]
 
 _ids = [0]
 

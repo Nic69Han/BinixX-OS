@@ -12,22 +12,25 @@ pointeur_valeur_par_defaut() ( # pointeur_valeur_par_defaut fichier groupe clé
 valeur="$(pointeur_valeur_par_defaut kdeglobals KDE SingleClick)"
 if [[ "${valeur}" == false ]]; then pass "kdeglobals : SingleClick=false (un clic sélectionne, un double-clic ouvre)"; else fail "SingleClick='${valeur}' (false attendu)"; fi
 valeur="$(pointeur_valeur_par_defaut kcminputrc Mouse cursorTheme)"
-if [[ "${valeur}" == Breeze_Light ]]; then pass "kcminputrc : pointeur ${valeur} par défaut"; else fail "cursorTheme='${valeur}' (Breeze_Light attendu)"; fi
-check "thème global BinixX OS clair : pointeur Breeze_Light" grep -qx 'cursorTheme=Breeze_Light' "${LNF_CLAIR}"
-check "thème global BinixX OS sombre : pointeur Breeze_Light" grep -qx 'cursorTheme=Breeze_Light' "${LNF_SOMBRE}"
-check "le pointeur de repli de « Grand texte » est Breeze_Light" python3 -c '
+if [[ "${valeur}" == binixx-curseurs ]]; then pass "kcminputrc : pointeur ${valeur} par défaut"; else fail "cursorTheme='${valeur}' (binixx-curseurs attendu)"; fi
+check "thème global BinixX OS clair : pointeur BinixX" grep -qx 'cursorTheme=binixx-curseurs' "${LNF_CLAIR}"
+check "thème global BinixX OS sombre : pointeur BinixX" grep -qx 'cursorTheme=binixx-curseurs' "${LNF_SOMBRE}"
+check "contraste élevé : pointeur Breeze Light (contour sombre, le plus visible)" grep -qx 'cursorTheme=Breeze_Light' /usr/share/plasma/look-and-feel/org.binixx.contraste.desktop/contents/defaults
+check "thème de pointeur BinixX complet (index.theme, flèche, main, texte, attente, et les noms X11 qui y mènent)" bash -c \
+    "d=/usr/share/icons/binixx-curseurs; grep -qx 'Inherits=breeze_cursors' \${d}/index.theme && for c in default left_ptr pointer hand2 text xterm wait watch progress left_ptr_watch not-allowed move grab ew-resize ns-resize nwse-resize nesw-resize crosshair; do test -s \${d}/cursors/\${c} || exit 1; done"
+check "le pointeur de repli de « Grand texte » est le pointeur BinixX" python3 -c '
 import sys
 sys.path.insert(0, "/usr/lib/binixx/centre")
 from binixx_centre import ambiances
-assert ambiances.THEME_CURSEUR == "Breeze_Light", ambiances.THEME_CURSEUR
+assert ambiances.THEME_CURSEUR == "binixx-curseurs", ambiances.THEME_CURSEUR
 '
 
 # La flèche est vraiment blanche (comme celle de Windows) et non noire : on lit l'image du curseur (format Xcursor, 32 pixels environ) et
 # on compte ses pixels opaques clairs et sombres (le contour sombre de Breeze Light est semi-transparent : il n'y compte pas). Mesuré sur
 # Fedora 44 : Breeze Light 134 pixels opaques, tous clairs ; « Breeze » (noir, contour blanc) 207 pixels dont 147 sombres et 39 clairs.
-check "le pointeur Breeze_Light est une flèche blanche" python3 -c '
+check "le pointeur BinixX est une flèche blanche" python3 -c '
 import struct
-fichier = "/usr/share/icons/Breeze_Light/cursors/left_ptr"
+fichier = "/usr/share/icons/binixx-curseurs/cursors/left_ptr"
 d = open(fichier, "rb").read()
 assert d[:4] == b"Xcur", "pas un fichier Xcursor : " + fichier
 _, _, nb = struct.unpack_from("<III", d, 4)

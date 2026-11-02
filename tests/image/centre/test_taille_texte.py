@@ -51,7 +51,7 @@ class Kdeglobals:
         return 0, ""
 
 
-def police(famille="Noto Sans", taille=10):
+def police(famille="Inter", taille=10):
     return f"{famille},{taille},{STYLE}"
 
 
@@ -60,7 +60,7 @@ class Calcul(unittest.TestCase):
         self.assertEqual(T.taille_de(police(taille=10)), 10.0)
         self.assertEqual(T.taille_de(police(taille=10.5)), 10.5)
         self.assertIsNone(T.taille_de("n'importe quoi"))
-        self.assertIsNone(T.taille_de("Noto Sans,grand,-1"))
+        self.assertIsNone(T.taille_de("Inter,grand,-1"))
         self.assertEqual(T.avec_taille(police(taille=10), 15), police(taille=15))
         self.assertEqual(T.avec_taille(police(taille=10), 12.5), police(taille=12.5))
         self.assertEqual(T.avec_taille(police(taille=10), 12.4), police(taille=12.5))     # au demi-point
@@ -78,8 +78,8 @@ class Calcul(unittest.TestCase):
 
     def test_150_pour_cent_des_polices_de_kde(self):
         voulues = T.calculer(150, {})
-        self.assertEqual(voulues[("General", "font")], "Noto Sans,15," + STYLE)
-        self.assertEqual(voulues[("General", "smallestReadableFont")], "Noto Sans,12," + STYLE)
+        self.assertEqual(voulues[("General", "font")], "Inter,15," + STYLE)
+        self.assertEqual(voulues[("General", "smallestReadableFont")], "Inter,12," + STYLE)
         self.assertEqual(T.taille_de(voulues[("General", "fixed")]), 15.0)
         self.assertEqual(T.taille_de(voulues[("WM", "activeFont")]), 15.0)
         self.assertEqual(set(voulues), set(T.CLES))
@@ -88,7 +88,7 @@ class Calcul(unittest.TestCase):
         voulues = T.calculer(120, {("General", "font"): police("Selawik", 11)})
         self.assertEqual(voulues[("General", "font")], police("Selawik", 13))              # 11 × 1,2 = 13,2 → 13
         self.assertTrue(voulues[("General", "font")].startswith("Selawik,13"))
-        self.assertTrue(voulues[("General", "menuFont")].startswith("Noto Sans,12,"))
+        self.assertTrue(voulues[("General", "menuFont")].startswith("Inter,12,"))
 
     def test_100_pour_cent_c_est_comme_avant(self):
         originales = {("General", "font"): police("Selawik", 11)}
@@ -129,7 +129,7 @@ class Reglage(unittest.TestCase):
         faux = Kdeglobals()
         self.appliquer(150, faux)
         self.appliquer(120, faux)
-        self.assertEqual(faux.valeurs[("General", "font")], "Noto Sans,12," + STYLE)    # 10 × 1,2, pas 15 × 1,2
+        self.assertEqual(faux.valeurs[("General", "font")], "Inter,12," + STYLE)    # 10 × 1,2, pas 15 × 1,2
         self.appliquer(100, faux)
         self.assertNotIn(("General", "font"), faux.valeurs)                              # comme avant : rien d'écrit
         self.assertEqual(T.pourcentage_actuel(self.marqueur), 100)
@@ -172,7 +172,7 @@ class Reglage(unittest.TestCase):
         faux = Kdeglobals(sans_notify=True)
         reussi, _ = self.appliquer(150, faux)
         self.assertTrue(reussi)
-        self.assertEqual(faux.valeurs[("General", "font")], "Noto Sans,15," + STYLE)
+        self.assertEqual(faux.valeurs[("General", "font")], "Inter,15," + STYLE)
 
     def test_le_bureau_ne_repond_pas(self):
         reussi, message = self.appliquer(150, Kdeglobals(panne=True))
@@ -186,7 +186,7 @@ class Reglage(unittest.TestCase):
         ecriture = next(c for c in faux.commandes if c[0] == "kwriteconfig6" and "font" in c)
         self.assertEqual(ecriture[:7], ["kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", "font"])
         self.assertIn("--notify", ecriture)
-        self.assertEqual(ecriture[-1], "Noto Sans,15," + STYLE)
+        self.assertEqual(ecriture[-1], "Inter,15," + STYLE)
 
     def test_pourcentage_invalide(self):
         reussi, message = self.appliquer("grand", Kdeglobals())
@@ -311,7 +311,7 @@ class PageDuCentre(unittest.TestCase):
         page = self.ouvrir()
         page.curseur.setValue(150)
         page.appliquer.click()
-        self.assertEqual(self.faux.valeurs[("General", "font")], "Noto Sans,15," + STYLE)
+        self.assertEqual(self.faux.valeurs[("General", "font")], "Inter,15," + STYLE)
         self.assertEqual(page.actuel, 150)
         self.assertIn("150 %", page.etat.text())
         self.assertFalse(page.appliquer.isEnabled())

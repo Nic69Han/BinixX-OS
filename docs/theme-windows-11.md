@@ -108,7 +108,7 @@ applications gardent un contenu opaque (lisibilité, comme le « Mica » de Wind
 | Nuit | verre fumé `#181822` à 52 %, liseré blanc à 10 % | `#1D1F2A` plein |
 | Aube | verre dépoli blanc à 66 %, liseré noir à 8 % | `#F5F6FA` plein |
 
-  L'accent reste le **bleu BinixX** (`#2F5BFF`, couleurs `BinixXClair` / `BinixXSombre`) pour la sélection, le survol et le focus.
+  L'accent reste le **bleu BinixX** (nuance forte `#0C6EEE` et pastel `#ADCFFB`, couleurs `BinixXClair` / `BinixXSombre`, voir [identite-visuelle.md](identite-visuelle.md)) pour la sélection, le survol et le focus.
 - Le reste du thème Plasma (boutons, onglets, barres de défilement, fonds des widgets du bureau) reste celui de Win11OS KDE. Le contraste
   élevé n'a pas de verre (Breeze opaque).
 - **Fenêtres** (étape 2) :

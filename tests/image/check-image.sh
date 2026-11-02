@@ -66,7 +66,7 @@ check "thème BinixX OS sombre : aperçus hérités de Brise sombre" \
 for scheme in BinixXClair BinixXSombre; do
     colors="/usr/share/color-schemes/${scheme}.colors"
     selection="$(kreadconfig6 --file "${colors}" --group Colors:Selection --key BackgroundNormal 2>/dev/null)"
-    if [[ "${selection}" == 47,91,255 || "${selection}" == 90,125,255 ]] && grep -q "^ColorScheme=${scheme}$" "${colors}"; then
+    if [[ "${selection}" == 12,110,238 ]] && grep -q "^ColorScheme=${scheme}$" "${colors}"; then
         pass "couleurs ${scheme} : sélection en bleu BinixX OS (${selection})"
     else
         fail "couleurs ${scheme} : sélection '${selection}'"

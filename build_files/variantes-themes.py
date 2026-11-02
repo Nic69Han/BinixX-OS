@@ -65,6 +65,34 @@ def kvantum_opaque(texte, amont, aval):
     return texte
 
 
+# Le bleu BinixX (docs/identite-visuelle.md) à la place de l'accent de Win11OS KDE : la nuance forte #0C6EEE (cases cochées,
+# curseurs, barres de progression, sélection : texte blanc lisible), et le pastel #ADCFFB pour les liens sur fond sombre
+BLEU_FORT, BLEU_PASTEL = "#0C6EEE", "#ADCFFB"
+KVANTUM_ACCENT_DESSIN = {"light": "#007de6", "dark": "#4bc8ff"}  # couleur d'accent du dessin (.svg) de chaque thème d'origine
+KVANTUM_ACCENT_REGLAGES = {
+    "light": {"highlight.color": BLEU_FORT, "inactive.highlight.color": BLEU_FORT + "30", "link.color": "#0A5CC8"},
+    "dark": {"highlight.color": BLEU_FORT, "inactive.highlight.color": BLEU_FORT + "30", "link.color": BLEU_PASTEL},
+}
+
+
+def kvantum_bleu_reglages(texte, amont, variante):
+    """Couleurs d'accent du .kvconfig remplacées par le bleu BinixX ; SystemExit si un réglage attendu manque."""
+    for cle, valeur in KVANTUM_ACCENT_REGLAGES[variante].items():
+        texte, n = re.subn(rf"^{re.escape(cle)}=.*$", f"{cle}={valeur}", texte, flags=re.M)
+        if n != 1:
+            raise SystemExit(f"{amont}.kvconfig : « {cle} » trouvé {n} fois (une seule attendue) : le thème d'origine a changé, à revoir")
+    return texte
+
+
+def kvantum_bleu_dessin(texte, amont, variante):
+    """Le dessin (.svg) avec le bleu BinixX à la place de la couleur d'accent d'origine ; SystemExit si elle n'y est plus."""
+    accent = KVANTUM_ACCENT_DESSIN[variante]
+    texte, n = re.subn(re.escape(accent), BLEU_FORT.lower(), texte, flags=re.I)
+    if n < 20:
+        raise SystemExit(f"{amont}.svg : couleur d'accent {accent} trouvée {n} fois seulement, le thème d'origine a changé, à revoir")
+    return texte
+
+
 def kvantum_verre(texte, amont):
     """Le .kvconfig d'origine en verre : fenêtres floutées, contenu opaque ; SystemExit si un réglage attendu manque."""
     for cle, valeur in KVANTUM_VERRE_REGLAGES.items():
@@ -220,20 +248,24 @@ def fabriquer(racine="/usr/share"):
         shutil.rmtree(cible, ignore_errors=True)
         os.makedirs(cible)
         with open(os.path.join(source, f"{amont}.kvconfig"), encoding="utf-8") as fichier:
-            texte = kvantum_opaque(fichier.read(), amont, aval)
+            texte = kvantum_bleu_reglages(kvantum_opaque(fichier.read(), amont, aval), amont, variante)
         with open(os.path.join(cible, f"{aval}.kvconfig"), "w", encoding="utf-8") as fichier:
             fichier.write(texte)
-        shutil.copy2(os.path.join(source, f"{amont}.svg"), os.path.join(cible, f"{aval}.svg"))
+        with open(os.path.join(source, f"{amont}.svg"), encoding="utf-8") as fichier:
+            dessin = kvantum_bleu_dessin(fichier.read(), amont, variante)
+        with open(os.path.join(cible, f"{aval}.svg"), "w", encoding="utf-8") as fichier:
+            fichier.write(dessin)
         # Kvantum : verre (fenêtres floutées, contenu opaque), pour les PC où le flou de KWin est actif
         verre = f"{aval}-verre"
         cible = os.path.join(racine, "Kvantum", verre)
         shutil.rmtree(cible, ignore_errors=True)
         os.makedirs(cible)
         with open(os.path.join(source, f"{amont}.kvconfig"), encoding="utf-8") as fichier:
-            texte = kvantum_verre(fichier.read(), amont)
+            texte = kvantum_bleu_reglages(kvantum_verre(fichier.read(), amont), amont, variante)
         with open(os.path.join(cible, f"{verre}.kvconfig"), "w", encoding="utf-8") as fichier:
             fichier.write(texte)
-        shutil.copy2(os.path.join(source, f"{amont}.svg"), os.path.join(cible, f"{verre}.svg"))
+        with open(os.path.join(cible, f"{verre}.svg"), "w", encoding="utf-8") as fichier:
+            fichier.write(dessin)
         # Fenêtres : barre de titre en verre fumé
         aurorae_verre(racine, variante)
 

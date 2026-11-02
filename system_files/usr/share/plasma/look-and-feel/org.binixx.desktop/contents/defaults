@@ -19,7 +19,7 @@ name=BinixX-Win11-light
 Image=BinixX
 
 [kcminputrc][Mouse]
-cursorTheme=Breeze_Light
+cursorTheme=binixx-curseurs
 
 # Barre de titre de Windows : l'icône de l'application à gauche, réduire, agrandir et fermer à droite
 [kwinrc][org.kde.kdecoration2]

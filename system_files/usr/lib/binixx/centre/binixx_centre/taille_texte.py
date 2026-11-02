@@ -3,7 +3,7 @@
 Aucune dépendance à Qt : testé seul (tests/image/centre/test_taille_texte.py) ; l'outil en ligne de commande est
 /usr/libexec/binixx/binixx-taille-texte.
 
-KDE range ses polices dans `kdeglobals` (« Noto Sans,10,-1,5,400,… » : famille, taille en points, puis le style). On
+KDE range ses polices dans `kdeglobals` (« Inter,10,-1,5,400,… » : famille, taille en points, puis le style). On
 multiplie la taille de chacune par le facteur, avec kwriteconfig6 --notify : les applications Qt et le bureau changent
 de police tout de suite, et le module GTK de KDE recopie la police dans les applications GTK. On ne touche ni aux
 familles, ni aux tailles des icônes, ni à la mise à l'échelle de l'écran.
@@ -25,12 +25,14 @@ MINIMUM, MAXIMUM, PAS = 100, 200, 10
 # (groupe, clé) : les polices de KDE dont on agrandit la taille
 CLES = (("General", "font"), ("General", "fixed"), ("General", "smallestReadableFont"), ("General", "toolBarFont"),
         ("General", "menuFont"), ("WM", "activeFont"))
-# Ce que KDE utilise quand rien n'est écrit : la police de l'interface, la police à chasse fixe, la plus petite lisible
+# Ce que BinixX OS pose quand l'utilisateur n'a rien choisi (/etc/xdg/kdeglobals, build_files/build.sh) : Inter pour l'interface,
+# la police à chasse fixe, la plus petite lisible
+POLICE = "Inter"
 STYLE = "-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 DEFAUTS = {
-    ("General", "font"): f"Noto Sans,10,{STYLE}", ("General", "fixed"): f"Monospace,10,{STYLE}",
-    ("General", "smallestReadableFont"): f"Noto Sans,8,{STYLE}", ("General", "toolBarFont"): f"Noto Sans,10,{STYLE}",
-    ("General", "menuFont"): f"Noto Sans,10,{STYLE}", ("WM", "activeFont"): f"Noto Sans,10,{STYLE}",
+    ("General", "font"): f"{POLICE},10,{STYLE}", ("General", "fixed"): f"Monospace,10,{STYLE}",
+    ("General", "smallestReadableFont"): f"{POLICE},8,{STYLE}", ("General", "toolBarFont"): f"{POLICE},10,{STYLE}",
+    ("General", "menuFont"): f"{POLICE},10,{STYLE}", ("WM", "activeFont"): f"{POLICE},10,{STYLE}",
 }
 
 

@@ -22,6 +22,8 @@ cp -avf /ctx/system_files/. /
 # Liberation = Arial / Times New Roman / Courier New.
 # fontconfig fait déjà la substitution (30-metric-aliases.conf).
 FONTS=(
+    # Inter : la police de l'interface de BinixX OS (docs/identite-visuelle.md), nette aux petites tailles
+    rsms-inter-fonts
     google-carlito-fonts
     google-crosextra-caladea-fonts
     liberation-mono-fonts
@@ -152,15 +154,16 @@ cp -a "${LNF_DIR}/org.binixx.desktop/contents/layouts" "${LNF_DIR}/org.binixx.co
 cp -a --update=none "${LNF_DIR}/org.kde.breezedark.desktop/." "${LNF_DIR}/org.binixx.contraste.desktop/"
 
 # Couleurs BinixX OS clair et sombre : celles de Brise, avec le bleu BinixX OS comme couleur d'accent
-# (sélection, survol, focus, liens), comme les couleurs d'accent de Zorin OS 18. Générées
+# (sélection, survol, focus, liens), comme les couleurs d'accent de Zorin OS 18. Le bleu BinixX (docs/identite-visuelle.md) :
+# la nuance forte #0C6EEE pour la sélection (texte blanc lisible, 4,7:1), le pastel #ADCFFB pour les liens et le focus en sombre. Générées
 # depuis les fichiers de Brise de l'image, pour suivre ses mises à jour.
 python3 - <<'PYEOF'
 SCHEMES = {
     # Brise : (fichier BinixX OS, nom affiché, couleurs remplacées)
     "BreezeLight": ("BinixXClair", "BinixX OS clair",
-                    {"61,174,233": "47,91,255", "41,128,185": "34,72,224", "29,153,243": "90,125,255"}),
+                    {"61,174,233": "12,110,238", "41,128,185": "10,92,200", "29,153,243": "93,154,244"}),
     "BreezeDark": ("BinixXSombre", "BinixX OS sombre",
-                   {"61,174,233": "90,125,255", "29,153,243": "140,170,255"}),
+                   {"61,174,233": "12,110,238", "29,153,243": "173,207,251"}),
 }
 for source, (scheme, name, colors) in SCHEMES.items():
     lines, replaced = [], 0
@@ -227,12 +230,21 @@ kwriteconfig6 --file /etc/xdg/kwinrc --group org.kde.kdecoration2 --key ButtonsO
 # Pavé numérique activé à l'ouverture de session, comme sous Windows (0 = activé)
 kwriteconfig6 --file /etc/xdg/kcminputrc --group Keyboard --key NumLock 0
 
-# Souris, comme sous Windows : un double-clic ouvre un fichier ou un dossier (un clic le sélectionne), et le pointeur est la flèche
-# blanche à contour sombre (« Breeze Light » ; le « Breeze » de KDE est noir à contour blanc). Valable pour le bureau, Dolphin et les
+# Souris, comme sous Windows : un double-clic ouvre un fichier ou un dossier (un clic le sélectionne), et le pointeur est le pointeur
+# BinixX : blanc, plat et fin, contour bleu BinixX pastel (binixx-curseurs, fabriqué par branding/curseurs.py ; le contraste élevé
+# garde Breeze Light, à contour sombre). Valable pour le bureau, Dolphin et les
 # boîtes de dialogue des applications. Le thème global pose le même pointeur (look-and-feel/*/contents/defaults) ; cette valeur
 # couvre les cas où il n'est pas appliqué.
 kwriteconfig6 --file /etc/xdg/kdeglobals --group KDE --key SingleClick false
-kwriteconfig6 --file /etc/xdg/kcminputrc --group Mouse --key cursorTheme Breeze_Light
+kwriteconfig6 --file /etc/xdg/kcminputrc --group Mouse --key cursorTheme binixx-curseurs
+
+# Police de l'interface : Inter (libre, OFL), comme les téléphones récents ; la chasse fixe reste celle du système. Mêmes tailles que
+# KDE (10 points, 8 pour la plus petite). « Taille du texte » (binixx-taille-texte) part de ces valeurs.
+for cle in font toolBarFont menuFont; do
+    kwriteconfig6 --file /etc/xdg/kdeglobals --group General --key "${cle}" "Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+done
+kwriteconfig6 --file /etc/xdg/kdeglobals --group General --key smallestReadableFont "Inter,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+kwriteconfig6 --file /etc/xdg/kdeglobals --group WM --key activeFont "Inter,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1"
 
 ### 4. Identité visuelle BinixX OS
 # Logo, icône, fond d'écran et écran de démarrage viennent de system_files/

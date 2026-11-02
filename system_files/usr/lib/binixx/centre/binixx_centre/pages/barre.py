@@ -39,7 +39,7 @@ class Apercu(QWidget):
         ecran = QRectF(2, 2, self.width() - 4, self.height() - 4)
         fond = QLinearGradient(ecran.topLeft(), ecran.bottomRight())
         fond.setColorAt(0, QColor("#10163A"))
-        fond.setColorAt(1, QColor("#2F5BFF"))
+        fond.setColorAt(1, QColor("#0C6EEE"))
         chemin = QPainterPath()
         chemin.addRoundedRect(ecran, 10, 10)
         p.fillPath(chemin, QBrush(fond))
