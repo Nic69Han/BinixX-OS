@@ -23,8 +23,8 @@ STYLE = f"""
 QFrame#recherchePanneau {{ background: palette(window); border: 1px solid rgba(128,128,128,0.45); border-radius: 20px; }}
 QListWidget#resultats {{ background: transparent; border: none; outline: 0; }}
 QListWidget#resultats::item {{ border-radius: 12px; padding: 0; }}
-QListWidget#resultats::item:hover {{ background: rgba(47,91,255,0.10); }}
-QListWidget#resultats::item:selected {{ background: rgba(47,91,255,0.22); }}
+QListWidget#resultats::item:hover {{ background: rgba(12,110,238,0.10); }}
+QListWidget#resultats::item:selected {{ background: rgba(12,110,238,0.22); }}
 QLabel#rechercheCategorie {{ font-size: 8.5pt; font-weight: 700; padding: 8px 8px 2px 8px; background: transparent; }}
 QLabel#resultatTitre {{ font-size: 10.5pt; font-weight: 600; background: transparent; }}
 QLabel#resultatPrecision {{ font-size: 8.5pt; background: transparent; }}

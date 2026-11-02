@@ -97,18 +97,34 @@ fenetres_verre() ( # fenetres_verre <light|dark>
     k="/usr/share/Kvantum/BinixX-Win11-$1-verre/BinixX-Win11-$1-verre.kvconfig"
     for c in translucent_windows blurring popup_blurring; do grep -qx "${c}=true" "${k}"; done
     for c in transparent_dolphin_view transparent_pcmanfm_view; do grep -qx "${c}=false" "${k}"; done
-    cmp "/usr/share/Kvantum/BinixX-Win11-$1-verre/BinixX-Win11-$1-verre.svg" "/usr/share/Kvantum/Win11OS-$1/Win11OS-$1.svg"
+    cmp "/usr/share/Kvantum/BinixX-Win11-$1-verre/BinixX-Win11-$1-verre.svg" "/usr/share/Kvantum/BinixX-Win11-$1/BinixX-Win11-$1.svg"
 )
 check "fenêtres d'Aube en verre fumé (barre de titre BinixX-Verre-light floutée, Kvantum BinixX-Win11-light-verre)" fenetres_verre light
 check "fenêtres de Nuit en verre fumé (barre de titre BinixX-Verre-dark floutée, Kvantum BinixX-Win11-dark-verre)" fenetres_verre dark
 check "à l'ouverture de session, les fenêtres passent au verre si le flou est actif (autostart binixx-verre-fenetres)" bash -c \
     "grep -qx 'Exec=/usr/libexec/binixx/binixx-ambiance kvantum' /etc/xdg/autostart/binixx-verre-fenetres.desktop && grep -qx 'X-KDE-autostart-phase=2' /etc/xdg/autostart/binixx-verre-fenetres.desktop"
 
+# Le bleu BinixX dans Kvantum (build_files/variantes-themes.py) : la couleur d'accent du dessin d'origine remplacée par #0C6EEE, rien
+# d'autre ; sélection et liens du .kvconfig au bleu BinixX
+kvantum_bleu() ( # kvantum_bleu <thème d'origine> <variante> <light|dark>
+    set -e
+    k=/usr/share/Kvantum
+    accent='#007de6'
+    lien='#0A5CC8'
+    if [[ "$3" == dark ]]; then accent='#4bc8ff'; lien='#ADCFFB'; fi
+    ! grep -qi "${accent}" "${k}/$2/$2.svg"
+    grep -qi '#0c6eee' "${k}/$2/$2.svg"
+    cmp <(sed "s/${accent}/ACCENT/gI" "${k}/$1/$1.svg") <(sed 's/#0c6eee/ACCENT/gI' "${k}/$2/$2.svg")
+    grep -qx 'highlight.color=#0C6EEE' "${k}/$2/$2.kvconfig"
+    grep -qx "link.color=${lien}" "${k}/$2/$2.kvconfig"
+)
+
 for variante in light dark; do
     amont="Win11OS-${variante}"
     aval="BinixX-Win11-${variante}"
-    check "${aval} : thème Kvantum sans transparence ni flou (huit réglages à false), même dessin que ${amont}" bash -c \
-        "k=/usr/share/Kvantum/${aval}/${aval}.kvconfig; for c in translucent_windows blurring popup_blurring transparent_dolphin_view transparent_pcmanfm_sidepane transparent_pcmanfm_view transparent_menutitle blur_translucent; do grep -qx \"\${c}=false\" \${k} || exit 1; done; cmp /usr/share/Kvantum/${aval}/${aval}.svg /usr/share/Kvantum/${amont}/${amont}.svg"
+    check "${aval} : thème Kvantum sans transparence ni flou (huit réglages à false)" bash -c \
+        "k=/usr/share/Kvantum/${aval}/${aval}.kvconfig; for c in translucent_windows blurring popup_blurring transparent_dolphin_view transparent_pcmanfm_sidepane transparent_pcmanfm_view transparent_menutitle blur_translucent; do grep -qx \"\${c}=false\" \${k} || exit 1; done"
+    check "${aval} : thème Kvantum au bleu BinixX (accent #0C6EEE), sinon même dessin que ${amont}" kvantum_bleu "${amont}" "${aval}" "${variante}"
     check "${amont} : le thème Kvantum d'origine est resté translucide (inchangé)" bash -c \
         "grep -qx 'translucent_windows=true' /usr/share/Kvantum/${amont}/${amont}.kvconfig"
     check "${aval} : thème Plasma sans la section Wallpaper du thème d'origine, nommé ${aval}" bash -c \

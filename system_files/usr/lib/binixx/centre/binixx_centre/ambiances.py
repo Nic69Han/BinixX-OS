@@ -33,7 +33,7 @@ MARQUEUR = os.path.join(DOSSIER_REGLAGES, "grand-texte.json")
 POINTEUR_GRAND = 36
 POINTEUR_NORMAL = 24          # la taille de KDE quand rien n'est écrit
 TEXTE_GRAND = 130
-THEME_CURSEUR = "Breeze_Light"      # le pointeur blanc de Windows ; « breeze_cursors » est le noir
+THEME_CURSEUR = "binixx-curseurs"   # le pointeur BinixX : blanc, fin, contour bleu BinixX pastel (branding/curseurs.py)
 # Thème Kvantum de chaque schéma de couleurs (le contraste élevé garde le style Breeze, qui suit toutes les couleurs à la lettre).
 # BinixX-Win11-* : les thèmes Kvantum de Win11OS KDE rendus opaques à la construction (build_files/variantes-themes.py), posés par défaut.
 # Win11OS-* : les thèmes d'origine, translucides, qu'on peut choisir à la main dans Kvantum Manager sur un PC qui sait flouter : on les suit
@@ -51,10 +51,10 @@ Ambiance = namedtuple("Ambiance", "cle titre texte theme couleurs apercu")
 AMBIANCES = (
     Ambiance("aube", "Aube", "Le thème clair de BinixX OS : fond clair, bleu BinixX OS, icônes sombres. Le plus proche de "
                              "Windows en mode clair.",
-             "org.binixx.desktop", "BinixXClair", ("#F4F6FB", "#1B2230", "#2F5BFF", "#FFFFFF")),
+             "org.binixx.desktop", "BinixXClair", ("#F4F6FB", "#1B2230", "#0C6EEE", "#FFFFFF")),
     Ambiance("nuit", "Nuit", "Le thème sombre de BinixX OS : fond sombre, bleu clair, icônes clairs. Repose les yeux le soir et "
                              "dans une pièce peu éclairée.",
-             "org.binixx.dark.desktop", "BinixXSombre", ("#1E232E", "#EEF1F8", "#5A7DFF", "#2A3040")),
+             "org.binixx.dark.desktop", "BinixXSombre", ("#1E232E", "#EEF1F8", "#ADCFFB", "#2A3040")),
     Ambiance("contraste", "Contraste élevé", "Texte blanc sur fond noir, sélection en jaune : chaque élément se détache "
                                               "nettement, pour mieux lire quand la vue est fatiguée ou l'écran très "
                                               "lumineux.",

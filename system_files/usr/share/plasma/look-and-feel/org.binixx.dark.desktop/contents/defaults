@@ -16,7 +16,7 @@ name=BinixX-Win11-dark
 Image=BinixX
 
 [kcminputrc][Mouse]
-cursorTheme=Breeze_Light
+cursorTheme=binixx-curseurs
 
 [kwinrc][org.kde.kdecoration2]
 library=org.kde.kwin.aurorae

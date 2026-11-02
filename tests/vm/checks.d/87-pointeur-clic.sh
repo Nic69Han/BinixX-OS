@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # Souris comme sous Windows : double-clic pour ouvrir et pointeur blanc, tels que la session de l'utilisateur de test les lit (le contrôle
-# des ambiances, qui passe avant, a pu écrire le thème de pointeur : il doit rester Breeze_Light).
+# des ambiances, qui passe avant, a pu écrire le thème de pointeur : il doit rester le pointeur BinixX, binixx-curseurs).
 pointeur_session() {
     local uid
     uid="$(id -u "${TEST_USER}")"
@@ -13,8 +13,8 @@ check_pointeur_clic() {
     valeur="$(pointeur_session kreadconfig6 --file kdeglobals --group KDE --key SingleClick)"
     if [[ "${valeur}" == false ]]; then pass "kdeglobals : SingleClick=false (double-clic pour ouvrir)"; else fail "SingleClick='${valeur}' (false attendu)"; fi
     valeur="$(pointeur_session kreadconfig6 --file kcminputrc --group Mouse --key cursorTheme)"
-    if [[ "${valeur}" == Breeze_Light ]]; then pass "kcminputrc : pointeur ${valeur} (flèche blanche)"; else fail "cursorTheme='${valeur}' (Breeze_Light attendu)"; fi
-    check "le thème de pointeur Breeze_Light est installé" test -e /usr/share/icons/Breeze_Light/cursors/left_ptr
+    if [[ "${valeur}" == binixx-curseurs ]]; then pass "kcminputrc : pointeur ${valeur} (flèche blanche, contour bleu BinixX)"; else fail "cursorTheme='${valeur}' (binixx-curseurs attendu)"; fi
+    check "le thème de pointeur BinixX est installé" test -e /usr/share/icons/binixx-curseurs/cursors/left_ptr
 }
 register_check base check_pointeur_clic
 
@@ -25,6 +25,6 @@ check_pointeur_clic_apres_mise_a_jour() {
     valeur="$(pointeur_session kreadconfig6 --file kdeglobals --group KDE --key SingleClick)"
     if [[ "${valeur}" == false ]]; then pass "double-clic toujours en place"; else fail "SingleClick='${valeur}' après la mise à jour (false attendu)"; fi
     valeur="$(pointeur_session kreadconfig6 --file kcminputrc --group Mouse --key cursorTheme)"
-    if [[ "${valeur}" == Breeze_Light ]]; then pass "pointeur blanc toujours en place"; else fail "cursorTheme='${valeur}' après la mise à jour (Breeze_Light attendu)"; fi
+    if [[ "${valeur}" == binixx-curseurs ]]; then pass "pointeur BinixX toujours en place"; else fail "cursorTheme='${valeur}' après la mise à jour (binixx-curseurs attendu)"; fi
 }
 register_check after-update check_pointeur_clic_apres_mise_a_jour

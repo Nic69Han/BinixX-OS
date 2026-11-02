@@ -2,8 +2,8 @@
 
 INK = "#0B0F1A"
 NAVY = "#10163A"
-BLUE = "#2F5BFF"
-SKY = "#5FB2FF"
+BLUE = "#0C6EEE"  # le bleu BinixX, nuance forte : boutons, liens, page ouverte (texte blanc lisible)
+SKY = "#ADCFFB"   # le bleu BinixX pastel : focus, survols, reflets
 
 # Un couple (foncé, clair) par couleur : l'en-tête, les liserés et les pastilles de chaque page, et les catégories de
 # Paramètres. Les noms servent de clés (page.COULEURS = ACCENTS["orange"]).
@@ -37,7 +37,7 @@ class Verre:
         else:  # Aube : verre dépoli
             self.rail, self.carte = "rgba(255,255,255,0.62)", "rgba(255,255,255,0.66)"
             self.liseret, self.reflet = "rgba(0,0,0,0.08)", "rgba(255,255,255,0.90)"
-            self.titre, self.nav, self.discret, self.survol = INK, "#1B2230", "#5B6478", "rgba(47,91,255,0.10)"
+            self.titre, self.nav, self.discret, self.survol = INK, "#1B2230", "#5B6478", "rgba(12,110,238,0.10)"
 
 
 def feuille(sombre=False):
@@ -56,13 +56,13 @@ QPushButton#nav {{
 QPushButton#nav:hover {{ background: {v.survol}; }}
 QPushButton#nav:checked {{
     color: white; font-weight: 600;
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {BLUE}, stop:1 #3F6BFF);
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {BLUE}, stop:1 #3A8BF3);
 }}
 QLabel#pageTitle {{ font-size: 22pt; font-weight: 600; }}
 QLabel#pageLead {{ font-size: 11pt; }}
 QLabel#sectionTitle {{ font-size: 13pt; font-weight: 700; padding-left: 14px; }}
 QFrame#card {{ border: 1px solid {v.liseret}; border-top-color: {v.reflet}; border-radius: 16px; background: {v.carte}; }}
-QFrame#card:hover {{ border-color: {BLUE}; background: rgba(47,91,255,0.04); }}
+QFrame#card:hover {{ border-color: {BLUE}; background: rgba(12,110,238,0.04); }}
 QLabel#cardTitle {{ font-size: 11.5pt; font-weight: 600; background: transparent; border: none; }}
 QPushButton#primary {{
     background: {BLUE}; color: white; border: none; border-radius: 14px; padding: 7px 18px; font-weight: 600;
@@ -73,8 +73,8 @@ QPushButton#secondaire {{
 }}
 QPushButton#secondaire:hover {{ border-color: {BLUE}; color: {BLUE}; }}
 QPushButton#secondaire:disabled {{ color: rgba(128,128,128,0.8); border-color: rgba(128,128,128,0.25); }}
-QPushButton#primary:hover {{ background: #4A71FF; }}
-QPushButton#primary:pressed {{ background: #2447D6; }}
+QPushButton#primary:hover {{ background: #2F84F2; }}
+QPushButton#primary:pressed {{ background: #0A5AC6; }}
 QPushButton#primary:disabled {{ background: rgba(128,128,128,0.35); color: rgba(255,255,255,0.75); }}
 QPushButton#primary:focus {{ border: 2px solid {SKY}; }}
 QFrame#barre {{ background: {v.carte}; border-top: 1px solid {v.liseret}; }}
@@ -82,7 +82,7 @@ QLabel#installee {{ color: #047857; font-weight: 600; }}
 QProgressBar {{ border: none; border-radius: 4px; background: rgba(128,128,128,0.25); }}
 QProgressBar::chunk {{ border-radius: 4px; background: {BLUE}; }}
 QLabel#bandeau {{
-    background: rgba(47,91,255,0.10); border: 1px solid rgba(47,91,255,0.40); border-radius: 14px; padding: 12px 16px;
+    background: rgba(12,110,238,0.10); border: 1px solid rgba(12,110,238,0.40); border-radius: 14px; padding: 12px 16px;
 }}
 QLabel#heroTitre {{ color: white; font-size: 23pt; font-weight: 700; background: transparent; }}
 QLabel#heroTexte {{ color: rgba(255,255,255,0.86); font-size: 10.5pt; background: transparent; }}
@@ -93,14 +93,14 @@ QLineEdit#recherche {{
 QLineEdit#recherche:focus {{ border-color: {SKY}; }}
 QListWidget#categories {{ background: transparent; border: none; outline: 0; font-size: 10.5pt; }}
 QListWidget#categories::item {{ padding: 4px 8px; margin: 1px 0; border-radius: 14px; }}
-QListWidget#categories::item:hover {{ background: rgba(47,91,255,0.10); }}
-QListWidget#categories::item:selected {{ background: rgba(47,91,255,0.20); color: palette(text); }}
+QListWidget#categories::item:hover {{ background: rgba(12,110,238,0.10); }}
+QListWidget#categories::item:selected {{ background: rgba(12,110,238,0.20); color: palette(text); }}
 QFrame#tuile {{
     background: {v.carte}; border: 1px solid {v.liseret}; border-top-color: {v.reflet}; border-radius: 18px;
 }}
-QFrame#tuile:hover {{ border: 1px solid {BLUE}; background: rgba(47,91,255,0.07); }}
+QFrame#tuile:hover {{ border: 1px solid {BLUE}; background: rgba(12,110,238,0.07); }}
 QFrame#tuile:focus {{ border: 2px solid {BLUE}; }}
-QFrame#tuile[appuye="true"] {{ background: rgba(47,91,255,0.17); }}
+QFrame#tuile[appuye="true"] {{ background: rgba(12,110,238,0.17); }}
 QFrame#tuile[info="true"] {{ background: transparent; border: 1px dashed rgba(128,128,128,0.50); }}
 QFrame#tuile[info="true"]:hover {{ background: transparent; border: 1px dashed rgba(128,128,128,0.50); }}
 QLabel#tuileTitre {{ font-size: 11.5pt; font-weight: 600; background: transparent; }}

@@ -669,7 +669,7 @@ class GrandTexte(unittest.TestCase):
         self.assertTrue(reussi, message)
         self.assertIn("130 %", message)
         self.assertEqual(T.pourcentage_actuel(self.texte), 130)
-        self.assertEqual(faux.valeurs[("kdeglobals", "General", "font")], "Noto Sans,13," + "-1,5,400,0,0,0,0,0,0,0,0,0,0,1")
+        self.assertEqual(faux.valeurs[("kdeglobals", "General", "font")], "Inter,13," + "-1,5,400,0,0,0,0,0,0,0,0,0,0,1")
         self.assertEqual(faux.pointeur(), "36")
         self.assertTrue(self.actif())
         self.assertEqual(A.lire_marqueur(self.marqueur), {"curseur": None})    # aucune taille de pointeur écrite avant
@@ -677,7 +677,7 @@ class GrandTexte(unittest.TestCase):
     def test_la_commande_du_pointeur_est_celle_de_plasma(self):
         faux = FauxKde()
         self.activer(faux)
-        self.assertIn(["plasma-apply-cursortheme", "--size", "36", "Breeze_Light"], faux.commandes)
+        self.assertIn(["plasma-apply-cursortheme", "--size", "36", "binixx-curseurs"], faux.commandes)
 
     def test_le_pointeur_garde_le_theme_choisi(self):
         faux = FauxKde({("kcminputrc", "Mouse", "cursorTheme"): "Oxygen_White"})

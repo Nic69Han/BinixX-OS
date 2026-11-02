@@ -60,14 +60,28 @@ l'aube est la seule touche chaude de l'identité (voir [Couleurs](#couleurs)).
 
 ## Couleurs
 
+Le **bleu BinixX** a été choisi en novembre 2026, sur maquette, entre un bleu ciel et un azur doux : un **pastel** et sa
+**nuance forte**. Le pastel seul ne permet pas d'écrire en blanc dessus : la nuance forte, même teinte en plus foncé, porte les
+boutons, les liens et la sélection (texte blanc lisible à 4,7:1) ; le pastel porte le reste (texte foncé lisible à 10,6:1).
+
 | Nom | Valeur | Usage |
 | --- | --- | --- |
-| Dégradé BinixX OS | `#5FB2FF` → `#2F5BFF` → `#1A26C9` | Gemme sur fond clair |
-| Dégradé sombre | `#8CCBFF` → `#5A7DFF` → `#3A3FE0` | Gemme sur fond sombre |
-| Bleu BinixX OS | `#2F5BFF` | Couleur unie quand le dégradé n'est pas possible |
+| Bleu BinixX pastel | `#ADCFFB` | Survols, focus, barres de progression, contour du pointeur, liens sur fond sombre |
+| Bleu BinixX fort | `#0C6EEE` | Boutons, liens sur fond clair, sélection (Aube et Nuit), accent de Kvantum, page ouverte du Centre |
+| Dégradé de la gemme | `#BBD7FC` → `#ADCFFB` → `#0C6EEE` | Logo sur fond clair, icône du système |
+| Dégradé sombre | `#D6E7FE` → `#ADCFFB` → `#3C8CF2` | Logo sur fond sombre (écran de démarrage, installeur) |
 | Encre | `#0B0F1A` | Texte, fonds sombres |
-| Accent clair | `#2F5BFF` (liens `#2248E0`) | Sélection, survol, focus, dans les couleurs « BinixX OS clair » |
-| Accent sombre | `#5A7DFF` (liens `#8CAAFF`) | Même rôle dans « BinixX OS sombre » |
+| Accent clair | `#0C6EEE` (liens visités `#0A5CC8`, focus `#5D9AF4`) | Couleurs « BinixX OS clair » |
+| Accent sombre | `#0C6EEE` (liens et focus `#ADCFFB`) | Couleurs « BinixX OS sombre » |
+
+Le bleu vif `#2F5BFF` des premières versions n'est plus utilisé.
+
+**Pointeur** : `binixx-curseurs`, blanc, plat et fin, contour au bleu pastel et ombre douce, fabriqué par
+`branding/curseurs.py` (22 formes, attente animée, tailles 24 à 96 ; les formes manquantes viennent de Breeze). Le contraste
+élevé garde Breeze Light, à contour sombre, le plus visible.
+
+**Police de l'interface** : **Inter** (libre, OFL, paquet Fedora `rsms-inter-fonts`), nette aux petites tailles, posée dans
+`/etc/xdg/kdeglobals` ; la chasse fixe reste celle du système. Le logotype garde Outfit.
 
 Deux thèmes globaux, appariés dans Configuration du système → Thème global (bascule automatique
 selon l'heure possible) : **BinixX OS** (clair, par défaut) et **BinixX OS sombre**. Même disposition :
@@ -93,6 +107,13 @@ python3 branding/generer.py   # Chromium ou Chrome nécessaire pour les images P
 
 `--installeur-seulement` ne régénère que les images de l'installeur : les fonds d'écran ont un
 grain aléatoire et changeraient à chaque fois.
+
+Le pointeur se régénère à part (il ne dépend que de ses dessins et du bleu pastel) :
+
+```bash
+pip install pyside6-essentials numpy
+python3 branding/curseurs.py
+```
 
 La police Outfit est fournie sous licence SIL Open Font License (`branding/police/OFL.txt`).
 Le texte des logos est converti en tracés : aucune police n'est nécessaire pour les afficher.
