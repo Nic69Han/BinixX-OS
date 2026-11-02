@@ -76,9 +76,12 @@ def _coin(ident, x, y, r, sx, sy, m):
     balayage = 1 if sx * sy > 0 else 0
     fond = (f'<path d="M {_n(cx)} {_n(cy)} L {_n(ax)} {_n(ay)} A {r} {r} 0 0 {balayage} {_n(bx)} {_n(by)} Z" '
             f'fill="{m.fond}" fill-opacity="{_n(m.opacite)}"/>')
-    rl = r - 0.5
-    liseret = (f'<path d="M {_n(cx - sx * rl)} {_n(cy)} A {_n(rl)} {_n(rl)} 0 0 {balayage} {_n(cx)} {_n(cy - sy * rl)}" fill="none" '
-               f'stroke="{m.liseret}" stroke-opacity="{_n(m.opacite_liseret)}" stroke-width="1"/>')
+    # Liseré : un quart d'anneau d'un pixel, rempli (pas un trait : QtSvg compte la demi-épaisseur d'un trait dans la boîte de
+    # l'élément, le coin mesurait alors r + 0,5 px et Plasma laissait un raccord visible entre le coin et les bords)
+    ri = r - 1
+    liseret = (f'<path d="M {_n(ax)} {_n(ay)} A {r} {r} 0 0 {balayage} {_n(bx)} {_n(by)} '
+               f'L {_n(cx)} {_n(cy - sy * ri)} A {ri} {ri} 0 0 {1 - balayage} {_n(cx - sx * ri)} {_n(cy)} Z" '
+               f'fill="{m.liseret}" fill-opacity="{_n(m.opacite_liseret)}"/>')
     # rectangle invisible : la boîte du morceau fait exactement r × r
     return f'<g id="{ident}">{_rect("", x, y, r, r)}{fond}{liseret}</g>'
 

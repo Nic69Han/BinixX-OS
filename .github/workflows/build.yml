@@ -160,7 +160,9 @@ jobs:
       # they replace the original ones in the Aube and Nuit variants (glass with KWin blur, the same shape opaque without).
       - name: Test the smoky glass Plasma backgrounds
         run: |
-          python3 -m unittest discover -s tests/themes
+          # QtSvg measures each piece exactly as Plasma (KSvg) does: a piece half a pixel too large leaves a visible seam
+          python3 -m pip install --quiet pyside6-essentials
+          QT_QPA_PLATFORM=offscreen python3 -m unittest discover -s tests/themes
 
       # BinixX OS silent boot (docs/demarrage.md): the tool that reads the VM screen during boot (the VM test relies on it to
       # tell the splash screen from console text), the script that hides the GRUB menu after a good boot, and the kernel

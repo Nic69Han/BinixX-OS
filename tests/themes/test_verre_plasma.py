@@ -20,6 +20,13 @@ RACINE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 sys.path.insert(0, os.path.join(RACINE, "build_files"))
 import verre_plasma as V
 
+try:
+    from PySide6.QtCore import QByteArray
+    from PySide6.QtSvg import QSvgRenderer
+    AVEC_QTSVG = True
+except ImportError:
+    AVEC_QTSVG = False
+
 SVG = "{http://www.w3.org/2000/svg}"
 MORCEAUX = ("topleft", "top", "topright", "left", "center", "right", "bottomleft", "bottom", "bottomright")
 
@@ -88,6 +95,30 @@ class Fonds(unittest.TestCase):
         # le contenu ne déborde pas dans l'arrondi : marge gauche et droite assez grandes
         self.assertGreaterEqual(forme.marges[1], forme.rayon // 2)
         self.assertGreaterEqual(forme.marges[3], forme.rayon // 2)
+
+    def test_aucun_trait_qui_deborderait_des_morceaux(self):
+        # un trait (stroke) déborde de sa forme d'une demi-épaisseur : le morceau grandit et Plasma laisse un raccord visible
+        for teinte, matieres in V.MATIERES.items():
+            for matiere in matieres.values():
+                for fond, forme in V.FONDS.items():
+                    self.assertNotIn("stroke", V.svg(forme, matiere), (teinte, fond))
+
+    @unittest.skipUnless(AVEC_QTSVG, "PySide6 (QtSvg) absent")
+    def test_morceaux_aux_tailles_exactes_pour_qt(self):
+        # Plasma (KSvg) prend la taille de chaque morceau dans QSvgRenderer.boundsOnElement : elle doit tomber juste, au pixel
+        for teinte, matieres in V.MATIERES.items():
+            for matiere in matieres.values():
+                for fond, forme in V.FONDS.items():
+                    rendu = QSvgRenderer(QByteArray(V.svg(forme, matiere).encode()))
+                    r, c, k = forme.rayon, V.CENTRE, forme.ombre + forme.rayon
+                    attendu = {"topleft": (r, r), "top": (c, r), "topright": (r, r), "left": (r, c), "center": (c, c), "right": (r, c),
+                               "bottomleft": (r, r), "bottom": (c, r), "bottomright": (r, r)}
+                    attendu.update({f"shadow-{coin}": (k, k) for coin in ("topleft", "topright", "bottomleft", "bottomright")})
+                    for morceau, (largeur, hauteur) in attendu.items():
+                        with self.subTest(teinte=teinte, fond=fond, morceau=morceau):
+                            boite = rendu.boundsOnElement(morceau)
+                            self.assertAlmostEqual(boite.width(), largeur, places=3)
+                            self.assertAlmostEqual(boite.height(), hauteur, places=3)
 
     def test_meme_image_a_chaque_fois(self):
         forme, matiere = V.FONDS["widgets/tooltip"], V.MATIERES["dark"]["verre"]
