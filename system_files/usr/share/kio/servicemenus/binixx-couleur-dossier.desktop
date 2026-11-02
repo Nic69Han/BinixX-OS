@@ -1,0 +1,64 @@
+[Desktop Entry]
+Type=Service
+MimeType=inode/directory;
+X-KDE-ServiceTypes=KonqPopupMenu/Plugin
+X-KDE-Submenu=Couleur du dossier
+X-KDE-Submenu[fr]=Couleur du dossier
+Icon=folder
+Actions=defaut;jaune;bleu;vert;rose;violet;orange;ardoise;turquoise;rouge;brun;
+X-KDE-Priority=TopLevel
+
+[Desktop Action defaut]
+Name=Couleur d'origine (selon le contenu)
+Icon=edit-undo
+Exec=/usr/libexec/binixx/binixx-couleur-dossier defaut %F
+
+[Desktop Action jaune]
+Name=Jaune
+Icon=folder-yellow
+Exec=/usr/libexec/binixx/binixx-couleur-dossier jaune %F
+
+[Desktop Action bleu]
+Name=Bleu
+Icon=folder-blue
+Exec=/usr/libexec/binixx/binixx-couleur-dossier bleu %F
+
+[Desktop Action vert]
+Name=Vert
+Icon=folder-green
+Exec=/usr/libexec/binixx/binixx-couleur-dossier vert %F
+
+[Desktop Action rose]
+Name=Rose
+Icon=folder-magenta
+Exec=/usr/libexec/binixx/binixx-couleur-dossier rose %F
+
+[Desktop Action violet]
+Name=Violet
+Icon=folder-violet
+Exec=/usr/libexec/binixx/binixx-couleur-dossier violet %F
+
+[Desktop Action orange]
+Name=Orange
+Icon=folder-orange
+Exec=/usr/libexec/binixx/binixx-couleur-dossier orange %F
+
+[Desktop Action ardoise]
+Name=Ardoise
+Icon=folder-grey
+Exec=/usr/libexec/binixx/binixx-couleur-dossier ardoise %F
+
+[Desktop Action turquoise]
+Name=Turquoise
+Icon=folder-cyan
+Exec=/usr/libexec/binixx/binixx-couleur-dossier turquoise %F
+
+[Desktop Action rouge]
+Name=Rouge
+Icon=folder-red
+Exec=/usr/libexec/binixx/binixx-couleur-dossier rouge %F
+
+[Desktop Action brun]
+Name=Brun
+Icon=folder-brown
+Exec=/usr/libexec/binixx/binixx-couleur-dossier brun %F

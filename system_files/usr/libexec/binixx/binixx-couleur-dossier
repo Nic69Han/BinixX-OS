@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+"""Couleur d'un dossier (menu « Couleur du dossier » de Dolphin) : binixx-couleur-dossier COULEUR DOSSIER…"""
+
+import sys
+
+sys.path.insert(0, "/usr/lib/binixx/centre")
+
+from binixx_centre.couleur_dossier import main  # noqa: E402
+
+sys.exit(main())

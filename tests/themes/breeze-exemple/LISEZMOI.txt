@@ -1,0 +1,1 @@
+Extraits de Breeze (KDE, breeze-icons, LGPL-3.0-or-later) pour les tests de build_files/icones-binixx.py.

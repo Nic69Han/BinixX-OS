@@ -186,10 +186,11 @@ for source, (scheme, name, colors) in SCHEMES.items():
     print(f"{scheme}.colors : {replaced} couleurs d'accent BinixX OS")
 PYEOF
 
-# Icônes BinixX OS (clair et sombre) : celles de Breeze, avec des dossiers jaunes comme ceux de Windows au lieu de dossiers à la couleur
-# d'accent (bleue). Générées depuis le Breeze de l'image : voir build_files/icones-dossiers-jaunes.py (échoue si le dessin des dossiers
-# de Breeze a changé). Les thèmes globaux les posent (Icons Theme dans look-and-feel/*/contents/defaults).
-python3 /ctx/icones-dossiers-jaunes.py
+# Icônes BinixX OS (clair et sombre) : celles de Breeze, avec des dossiers arrondis et pastel, d'une couleur par contenu (Documents bleu,
+# Images vert, Musique rose…), plus profonds en Nuit ; le pictogramme de Breeze est gardé. Générées depuis le Breeze de l'image : voir
+# build_files/icones-binixx.py (échoue si le dessin des dossiers de Breeze a changé). Les thèmes globaux les posent (Icons Theme dans
+# look-and-feel/*/contents/defaults). La couleur d'un dossier se change au clic droit (binixx-couleur-dossier).
+python3 /ctx/icones-binixx.py
 
 # Variantes des thèmes (build_files/variantes-themes.py, qui échoue si un réglage ou un fond attendu a disparu des thèmes d'origine, laissés
 # inchangés à côté) : les thèmes de Win11OS KDE sont translucides et comptent sur le flou de KWin ; sans flou on lit les fenêtres à travers
