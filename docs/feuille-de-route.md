@@ -31,7 +31,7 @@ malveillants téléchargés, vol ou perte du PC, réseaux Wi-Fi publics, mises �
 mise à jour du système compromise à la source.
 
 Déjà en place : Secure Boot, SELinux en mode strict (enforcing), `/usr` en lecture seule, mises à jour
-automatiques testées avec retour arrière, applications isolées (Flatpak), les `.exe` ne s'exécutent pas.
+automatiques testées avec retour arrière, applications isolées (Flatpak), les `.exe` ne s'exécutent qu'à la demande, dans Bottles (Flatpak).
 
 | PR | Contenu | Critères d'acceptation |
 | --- | --- | --- |

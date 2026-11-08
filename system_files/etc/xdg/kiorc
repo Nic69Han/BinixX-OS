@@ -1,0 +1,9 @@
+# BinixX OS : réglages de KIO pour tous les utilisateurs (chacun peut les changer : Dolphin, Configurer, Confirmations).
+
+[Executable scripts]
+# Double-clic sur un fichier exécutable (programme Windows .exe, script .sh, .py…) : l'ouvrir avec son application,
+# sans la boîte de KDE « Exécuter ce fichier ? ». Pour un .exe, c'est la fenêtre « Comment voulez-vous ouvrir ce
+# fichier ? » de BinixX OS (binixx-ouvrir-windows) qui répond, seule ; sans ce réglage, la boîte de KDE passait avant
+# elle (deux fenêtres l'une après l'autre). Un script s'ouvre dans l'éditeur de texte au lieu de s'exécuter : plus sûr,
+# et comme sous Windows. Les raccourcis (.desktop) posés sur le bureau se lancent toujours d'un clic.
+behaviourOnLaunch=open

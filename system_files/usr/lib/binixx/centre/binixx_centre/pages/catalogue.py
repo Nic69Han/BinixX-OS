@@ -84,8 +84,9 @@ class Page(QWidget):
     def ouvrir_fichier(self, chemin):
         """Appelé quand on ouvre un .exe ou un .msi : explique, puis cherche d'après le nom du fichier."""
         nom = os.path.basename(chemin)
-        self.bandeau.setText(f"Vous avez ouvert <b>{_echapper(nom)}</b>. Les programmes Windows (.exe, .msi) ne "
-                             "s'exécutent pas directement sous BinixX OS : voici ce qui s'en approche.")
+        self.bandeau.setText(f"Vous avez ouvert <b>{_echapper(nom)}</b>, un programme Windows : voici ce qui le remplace "
+                             "sous BinixX OS. Pour l'ouvrir tel quel, avec Wine ou Windows : clic droit sur le fichier, "
+                             "« Programme Windows ».")
         self.bandeau.setVisible(True)
         requete, _ = catalogue.chercher_fichier(self.entrees, chemin)
         self.recherche.setText(requete)

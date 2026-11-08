@@ -46,7 +46,9 @@ WinBoat lui-même n'est pas embarqué : projet jeune, absent de Flathub, à tél
 ## Alternatives écartées
 
 - **WinApps** : licence **AGPL-3.0**, hors de ce que nous embarquons ; WinBoat poursuit le même but sous MIT.
-- **Bottles / Wine** : déjà proposé à la demande (« Mon logiciel Windows »), sans garantie, ce n'est pas Windows.
+- **Bottles / Wine** : pas une façon de faire tourner Windows, mais le premier essai pour un `.exe` : l'aiguillage
+  ([centre-binixx.md](centre-binixx.md#quand-on-ouvre-un-exe-ou-un-msi--laiguillage)) propose Wine, et Windows si
+  Wine échoue ou si le programme est connu pour ne pas marcher avec lui.
 - **Double démarrage** : plus performant mais contraire à l'esprit « un seul système, sans risque » ; l'installeur
   de BinixX OS n'est pas fait pour partager un disque avec Windows.
 - **VirtualBox / VMware** : absents de Flathub ou à licence restrictive ; Boxes (QEMU/KVM) couvre le besoin.

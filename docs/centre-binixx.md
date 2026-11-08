@@ -16,14 +16,49 @@ Une seule application, `Bienvenue dans BinixX OS` dans le menu (commande `binixx
 
 D'autres pages s'y ajoutent : voir la [feuille de route](feuille-de-route.md).
 
-## Quand on ouvre un .exe ou un .msi
+## Quand on ouvre un .exe ou un .msi : l'aiguillage
 
-BinixX OS n'exécute pas les programmes Windows directement. Un double-clic sur un `.exe` ou un `.msi`
-ouvre « Mon logiciel Windows », avec une explication et une recherche déjà remplie d'après le nom du
-fichier (`Setup_Sage100_v2023.exe` → « Sage »). Le fichier n'est **jamais** exécuté ni lu par le Centre :
-seul son nom sert. Le lanceur est `binixx-windows-program.desktop`, associé aux types MIME
-`application/vnd.microsoft.portable-executable`, `application/x-msi` et leurs variantes
-(`etc/xdg/kde-mimeapps.list`).
+Un double-clic sur un `.exe` ou un `.msi` ouvre une petite fenêtre calquée sur « Ouvrir avec » de Windows 11, que les
+habitués de Windows reconnaissent (`binixx-ouvrir-windows`, `binixx_centre/moteurs.py` et `aiguillage_fenetre.py`) :
+« Comment voulez-vous ouvrir ce fichier ? », trois lignes, la plus adaptée en premier et déjà sélectionnée (fond bleu pastel), puis
+« Juste une fois » (Entrée) ou « Toujours » ; un double-clic sur une ligne l'ouvre, Échap ferme. On dit « Installer »
+pour un programme d'installation (`setup`, `install`, `.msi`), « Lancer » sinon, et l'équivalent rappelle le logiciel
+Windows qu'il remplace (« Remplace Microsoft Word »). Aucun nom technique
+à l'écran : l'icône de l'application pour l'équivalent, un éclair pour « Ouvrir ici » (Wine), quatre carreaux blancs sur une tuile
+bleue pour « Ouvrir dans Windows » (WinBoat ; une forme générique dessinée par BinixX OS, pas le logo de Microsoft,
+marque déposée) :
+
+| Chemin | Quand il est conseillé | Ce qui se passe |
+| --- | --- | --- |
+| **Équivalent BinixX OS** | le catalogue « Mon logiciel Windows » en connaît un (`WordSetup.exe` → OnlyOffice) | l'équivalent s'ouvre, ou s'installe |
+| **Ouvrir ici** (Wine) | programme inconnu du catalogue | Bottles (Flatpak) est installé s'il manque, la bouteille « BinixX » est préparée la première fois, puis le programme s'ouvre. Rien ne s'affiche ? un bouton propose Windows |
+| **Ouvrir dans Windows** (WinBoat) | programme connu pour ne pas marcher avec Wine (`catalogue-windows/windows-requis.tsv` : Adobe, Office pour Windows, CAO…) ou sans équivalent au catalogue (Sage, Access) | WinBoat s'ouvre s'il est installé et que le PC peut faire tourner Windows, avec la marche à suivre ; sinon la page *Windows complet*, qui dit ce qui manque ([windows-vm.md](windows-vm.md)) |
+
+Une seule fenêtre : de lui-même, KDE (Dolphin, le bureau) demande « Exécuter ce fichier ? » avant d'ouvrir un
+exécutable, puis passe la main à l'application associée, ce qui faisait deux fenêtres l'une après l'autre.
+`/etc/xdg/kiorc` (`[Executable scripts] behaviourOnLaunch=open`) lui fait ouvrir directement : le `.exe` arrive dans
+l'aiguillage, un script (`.sh`, `.py`) s'ouvre dans l'éditeur de texte au lieu de s'exécuter (plus sûr, comme sous
+Windows), les raccourcis posés sur le bureau se lancent toujours d'un clic. Chacun peut revenir au réglage de KDE :
+Dolphin, Configurer, Confirmations.
+
+« Toujours » enregistre le choix dans `~/.config/binixx/moteurs-windows.json` : les fois
+suivantes, le programme s'ouvre directement. Le clic droit sur un `.exe` (menu **Programme Windows** de Dolphin)
+donne les mêmes chemins, « Choisir comment l'ouvrir… » et « Oublier mon choix ».
+
+Sécurité : le programme n'est lancé qu'après un clic de l'utilisateur, jamais par un shell. Bottles est un Flatpak
+sans accès aux fichiers : il ne reçoit, **en lecture seule**, que le dossier du programme (un installateur a souvent
+ses fichiers à côté de lui), et seulement le fichier quand ce dossier est le dossier personnel ou la racine d'un
+disque. Les programmes s'installent dans la bouteille, à part du système et des autres bouteilles.
+
+L'équivalent seul reste accessible : « Autres solutions », ou `binixx-centre --programme FICHIER` (page « Mon
+logiciel Windows » avec la recherche déjà remplie d'après le nom du fichier). Le lanceur est
+`binixx-windows-program.desktop`, associé aux types MIME `application/vnd.microsoft.portable-executable`,
+`application/x-msi` et leurs variantes (`etc/xdg/kde-mimeapps.list`).
+
+Tests : `tests/image/centre/test_moteurs.py` (conseil, choix retenu, commandes Bottles, et la fenêtre avec un faux
+Flatpak : installation de Bottles, première bouteille, lancement, échec), `55-catalogue.sh` dans l'image, et dans le
+test VM `72-windows-vm.sh` (conseil pour l'utilisateur de test). Wine n'est pas lancé par la CI : Bottles et son moteur
+se téléchargent (plusieurs centaines de Mo) ; **à essayer sur un vrai PC**.
 
 ## Paramètres
 

@@ -29,3 +29,26 @@ for r in v.verifier():
     fi
 }
 register_check base check_windows_vm
+
+# Aiguillage des programmes Windows sur le vrai système, pour l'utilisateur de test : binixx-ouvrir-windows (ouvert par le
+# double-clic sur un .exe, voir 55-catalogue.sh dans l'image) conseille un équivalent, Wine ou Windows. Wine lui-même n'est pas lancé (Bottles et son
+# moteur Wine se téléchargent : plusieurs centaines de Mo) ; la fenêtre et ses étapes sont testées dans l'image.
+check_aiguillage_windows() {
+    section "Aiguillage des programmes Windows"
+    local out cas
+    out="$(runuser -u "${TEST_USER}" -- kreadconfig6 --file kiorc --group 'Executable scripts' --key behaviourOnLaunch 2>&1)" || true
+    if [[ "${out}" == "open" ]]; then
+        pass "double-clic sur un .exe : une seule fenêtre (pas de « Exécuter ? » de KDE avant l'aiguillage)"
+    else
+        fail "kiorc behaviourOnLaunch pour l'utilisateur : '${out}' (attendu : open)"
+    fi
+    for cas in "WordSetup.exe:equivalent" "Setup_Zorglub_Pro.exe:wine" "SolidWorks2025.msi:windows"; do
+        out="$(runuser -u "${TEST_USER}" -- /usr/libexec/binixx/binixx-ouvrir-windows --json "/tmp/${cas%%:*}" 2>&1)" || true
+        if grep -q "\"moteur\": \"${cas##*:}\"" <<<"${out}"; then
+            pass "aiguillage : ${cas%%:*} → ${cas##*:}"
+        else
+            fail "aiguillage : ${cas%%:*} : ${out:0:300}"
+        fi
+    done
+}
+register_check base check_aiguillage_windows
