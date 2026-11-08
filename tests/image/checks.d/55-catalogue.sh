@@ -39,6 +39,7 @@ check "double-clic sur un .exe : l'aiguillage" grep -qx 'Exec=/usr/libexec/binix
 check "menu « Programme Windows » du clic droit : .exe et .msi, Wine, Windows, choix" bash -c \
     "m=/usr/share/kio/servicemenus/binixx-ouvrir-windows.desktop; grep -q 'portable-executable' \${m} && grep -q 'x-msi' \${m} && grep -q 'binixx-ouvrir-windows --moteur wine %f' \${m} && grep -q 'binixx-ouvrir-windows --moteur windows %f' \${m} && grep -q 'binixx-ouvrir-windows --choisir %f' \${m}"
 check "menu « Programme Windows » exécutable (exigé par Dolphin)" test -x /usr/share/kio/servicemenus/binixx-ouvrir-windows.desktop
+check "double-clic sur un exécutable : pas de boîte « Exécuter ? » de KDE avant l'aiguillage" grep -qx 'behaviourOnLaunch=open' /etc/xdg/kiorc
 check "liste des programmes qui demandent Windows fournie" test -s /usr/share/binixx/catalogue-windows/windows-requis.tsv
 if out="$(BINIXX_CENTRE=/usr/lib/binixx/centre BINIXX_CATALOGUE="${CATALOGUE}" BINIXX_WINDOWS_REQUIS=/usr/share/binixx/catalogue-windows/windows-requis.tsv QT_QPA_PLATFORM=offscreen python3 -m unittest discover -s /tests/centre -p 'test_moteurs.py' 2>&1)"; then
     pass "aiguillage : conseil, choix retenu, commandes Bottles, fenêtre (${out##*$'\n'})"

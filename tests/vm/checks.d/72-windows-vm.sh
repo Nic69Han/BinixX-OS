@@ -36,6 +36,12 @@ register_check base check_windows_vm
 check_aiguillage_windows() {
     section "Aiguillage des programmes Windows"
     local out cas
+    out="$(runuser -u "${TEST_USER}" -- kreadconfig6 --file kiorc --group 'Executable scripts' --key behaviourOnLaunch 2>&1)" || true
+    if [[ "${out}" == "open" ]]; then
+        pass "double-clic sur un .exe : une seule fenêtre (pas de « Exécuter ? » de KDE avant l'aiguillage)"
+    else
+        fail "kiorc behaviourOnLaunch pour l'utilisateur : '${out}' (attendu : open)"
+    fi
     for cas in "WordSetup.exe:equivalent" "Setup_Zorglub_Pro.exe:wine" "SolidWorks2025.msi:windows"; do
         out="$(runuser -u "${TEST_USER}" -- /usr/libexec/binixx/binixx-ouvrir-windows --json "/tmp/${cas%%:*}" 2>&1)" || true
         if grep -q "\"moteur\": \"${cas##*:}\"" <<<"${out}"; then

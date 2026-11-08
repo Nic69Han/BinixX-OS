@@ -34,6 +34,13 @@ marque déposée) :
 | **Ouvrir ici** (Wine) | programme inconnu du catalogue | Bottles (Flatpak) est installé s'il manque, la bouteille « BinixX » est préparée la première fois, puis le programme s'ouvre. Rien ne s'affiche ? un bouton propose Windows |
 | **Ouvrir dans Windows** (WinBoat) | programme connu pour ne pas marcher avec Wine (`catalogue-windows/windows-requis.tsv` : Adobe, Office pour Windows, CAO…) ou sans équivalent au catalogue (Sage, Access) | WinBoat s'ouvre s'il est installé et que le PC peut faire tourner Windows, avec la marche à suivre ; sinon la page *Windows complet*, qui dit ce qui manque ([windows-vm.md](windows-vm.md)) |
 
+Une seule fenêtre : de lui-même, KDE (Dolphin, le bureau) demande « Exécuter ce fichier ? » avant d'ouvrir un
+exécutable, puis passe la main à l'application associée, ce qui faisait deux fenêtres l'une après l'autre.
+`/etc/xdg/kiorc` (`[Executable scripts] behaviourOnLaunch=open`) lui fait ouvrir directement : le `.exe` arrive dans
+l'aiguillage, un script (`.sh`, `.py`) s'ouvre dans l'éditeur de texte au lieu de s'exécuter (plus sûr, comme sous
+Windows), les raccourcis posés sur le bureau se lancent toujours d'un clic. Chacun peut revenir au réglage de KDE :
+Dolphin, Configurer, Confirmations.
+
 « Toujours » enregistre le choix dans `~/.config/binixx/moteurs-windows.json` : les fois
 suivantes, le programme s'ouvre directement. Le clic droit sur un `.exe` (menu **Programme Windows** de Dolphin)
 donne les mêmes chemins, « Choisir comment l'ouvrir… » et « Oublier mon choix ».
