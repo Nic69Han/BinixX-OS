@@ -223,6 +223,28 @@ class Fenetre(unittest.TestCase):
         with open(os.path.join(self.etat, "journal")) as fichier:
             return fichier.read()
 
+    def test_mots_de_windows(self):
+        self.assertTrue(moteurs.est_installateur("/t/Setup_Sage100.exe"))
+        self.assertTrue(moteurs.est_installateur("/t/Firefox Installer.exe"))
+        self.assertTrue(moteurs.est_installateur("/t/outil.msi"))
+        self.assertFalse(moteurs.est_installateur("/t/notepad++.exe"))
+        word = os.path.join(self.dossier, "WordSetup.exe")
+        fenetre = self.fenetre(word)
+        textes = [l.text() for l in fenetre.findChildren(aiguillage_fenetre.QLabel)]
+        self.assertIn("Comment voulez-vous ouvrir ce fichier ?", textes)
+        self.assertTrue(any(t.startswith("Remplace Microsoft Word") for t in textes))
+        self.assertIn("Installer le programme", textes)
+        self.assertIn("Recommandé", textes)
+        self.assertEqual((fenetre.toujours.text(), fenetre.une_fois.text()), ("Toujours", "Juste une fois"))
+
+    def test_juste_une_fois_ne_retient_rien(self):
+        open(os.path.join(self.etat, "installe"), "w").close()
+        open(os.path.join(self.etat, "bouteille"), "w").close()
+        fenetre = self.fenetre()
+        fenetre.une_fois.click()
+        self.attendre(fenetre)
+        self.assertEqual(moteurs.lire_memoire(), {})
+
     def test_ordre_des_choix(self):
         self.assertEqual(list(self.fenetre().cartes), ["wine", "windows"])  # pas d'équivalent connu
         word = os.path.join(self.dossier, "WordSetup.exe")
@@ -233,8 +255,8 @@ class Fenetre(unittest.TestCase):
 
     def test_wine_installe_bottles_prepare_la_bouteille_puis_ouvre(self):
         fenetre = self.fenetre()
-        fenetre.retenir.setChecked(True)
-        fenetre.choisir("wine")
+        self.assertTrue(fenetre.cartes["wine"].isChecked())   # la recommandée, sélectionnée d'avance
+        fenetre.toujours.click()
         self.attendre(fenetre)
         journal = self.journal()
         self.assertIn("installateur com.usebottles.bottles", journal)

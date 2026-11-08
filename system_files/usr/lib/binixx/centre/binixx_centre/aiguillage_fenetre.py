@@ -13,8 +13,8 @@ import sys
 
 from PySide6.QtCore import QProcess, QSize, Qt, QTimer
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLabel, QProgressBar, QPushButton, QVBoxLayout,
-                               QWidget)
+from PySide6.QtWidgets import (QApplication, QButtonGroup, QHBoxLayout, QLabel, QProgressBar, QPushButton,
+                               QVBoxLayout, QWidget)
 
 from . import catalogue, launch, moteurs, theme, virtualisation, widgets
 
@@ -26,13 +26,13 @@ ICONES = {"equivalent": "package", "wine": "zap", "windows": "grid"}
 COULEURS = {"equivalent": theme.ACCENTS["vert"], "wine": theme.ACCENTS["ambre"], "windows": theme.ACCENTS["bleu"]}
 TAILLE_ICONE = 36
 
-# Une feuille « Ouvrir avec » de téléphone : des lignes plates, la conseillée sur un fond bleu pastel
+# La boîte « Ouvrir avec » de Windows 11, que les habitués de Windows connaissent : on sélectionne une ligne (la
+# recommandée l'est d'avance), puis « Juste une fois » ou « Toujours » ; un double-clic ouvre tout de suite
 STYLE = f"""
-QPushButton#choixLigne {{ background: transparent; border: none; border-radius: 14px; padding: 0; text-align: left; }}
+QPushButton#choixLigne {{ background: transparent; border: none; border-radius: 12px; padding: 0; text-align: left; }}
 QPushButton#choixLigne:hover {{ background: rgba(128,128,128,0.12); }}
-QPushButton#choixLigne:focus {{ outline: none; background: rgba(128,128,128,0.12); }}
-QPushButton#choixLigne[conseille="true"] {{ background: rgba(173,207,251,0.38); }}
-QPushButton#choixLigne[conseille="true"]:hover {{ background: rgba(173,207,251,0.55); }}
+QPushButton#choixLigne:focus {{ outline: none; }}
+QPushButton#choixLigne:checked {{ background: rgba(173,207,251,0.45); }}
 QLabel#choixTitre {{ font-size: 10.5pt; font-weight: 600; background: transparent; }}
 QLabel#choixSous {{ font-size: 9pt; background: transparent; }}
 QLabel#choixPastille {{ background: {theme.BLUE}; color: white; border-radius: 9px; padding: 2px 9px;
@@ -48,13 +48,14 @@ def _echapper(texte):
 
 
 class Ligne(QPushButton):
-    """Une ligne cliquable : pastille, titre, une ligne de précision, et « Conseillé » à droite."""
+    """Une ligne à sélectionner : icône, titre, une ligne de précision, et « Recommandé » à droite. Double-clic : ouvrir."""
 
     def __init__(self, titre, sous_titre, icone, couleurs, conseille=False, explication="", image=None):
         super().__init__()
         self.setObjectName("choixLigne")
-        self.setProperty("conseille", conseille)
+        self.setCheckable(True)
         self.setCursor(Qt.PointingHandCursor)
+        self.double_clic = None
         self.setToolTip(explication)
         self.setAccessibleName(f"{titre} : {sous_titre}")
         ligne = QHBoxLayout(self)
@@ -80,12 +81,18 @@ class Ligne(QPushButton):
         colonne.addWidget(bas)
         ligne.addLayout(colonne, 1)
         if conseille:
-            marque = QLabel("Conseillé")
+            marque = QLabel("Recommandé")
             marque.setObjectName("choixPastille")
             ligne.addWidget(marque, 0, Qt.AlignVCenter)
         for enfant in self.findChildren(QLabel):
             enfant.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setMinimumHeight(56)
+
+    def mouseDoubleClickEvent(self, evenement):
+        if self.double_clic is not None:
+            self.double_clic()
+        else:
+            super().mouseDoubleClickEvent(evenement)
 
 
 class Fenetre(QWidget):
@@ -130,13 +137,13 @@ class Fenetre(QWidget):
             tete.addWidget(fichier)
         noms = QVBoxLayout()
         noms.setSpacing(0)
-        nom = QLabel(self.nom)
-        nom.setObjectName("aiguillageNom")
-        nom.setTextFormat(Qt.PlainText)  # le nom du fichier tel quel, jamais lu comme du HTML
-        nom.setToolTip(self.programme)
-        precision = QLabel("Programme pour Windows · comment l'ouvrir ?")
+        question = QLabel("Comment voulez-vous ouvrir ce fichier ?")  # la question de Windows
+        question.setObjectName("aiguillageNom")
+        precision = QLabel(self.nom)
+        precision.setTextFormat(Qt.PlainText)  # le nom du fichier tel quel, jamais lu comme du HTML
+        precision.setToolTip(self.programme)
         precision.setEnabled(False)
-        noms.addWidget(nom)
+        noms.addWidget(question)
         noms.addWidget(precision)
         tete.addLayout(noms, 1)
         page.addLayout(tete)
@@ -153,22 +160,35 @@ class Fenetre(QWidget):
         colonne.setContentsMargins(0, 0, 0, 0)
         colonne.setSpacing(2)
         self.cartes = {}
+        self.groupe = QButtonGroup(self)
+        self.groupe.setExclusive(True)
         for moteur_ in self._ordre():
             ligne = self._ligne(moteur_)
             if ligne is not None:
-                ligne.clicked.connect(lambda _=False, m=moteur_: self.choisir(m))
+                ligne.double_clic = lambda m=moteur_: self.choisir(m)
+                self.groupe.addButton(ligne)
                 self.cartes[moteur_] = ligne
                 colonne.addWidget(ligne)
-        bas = QHBoxLayout()
-        bas.setContentsMargins(4, 6, 0, 0)
-        self.retenir = QCheckBox("Toujours l'ouvrir ainsi")
-        self.autres = QPushButton("Autres solutions")
+        if self.cartes:
+            self.cartes[self.conseil.moteur if self.conseil.moteur in self.cartes else next(iter(self.cartes))].setChecked(True)
+        self.autres = QPushButton("Plus d'options")
         self.autres.setObjectName("lien")
         self.autres.setCursor(Qt.PointingHandCursor)
         self.autres.clicked.connect(self._autres_solutions)
-        bas.addWidget(self.retenir)
+        colonne.addWidget(self.autres, 0, Qt.AlignLeft)
+        bas = QHBoxLayout()
+        bas.setContentsMargins(0, 6, 0, 0)
         bas.addStretch(1)
-        bas.addWidget(self.autres)
+        self.toujours = QPushButton("Toujours")
+        self.toujours.setCursor(Qt.PointingHandCursor)
+        self.toujours.clicked.connect(lambda: self.choisir(self.selection(), toujours=True))
+        self.une_fois = QPushButton("Juste une fois")
+        self.une_fois.setObjectName("primary")
+        self.une_fois.setCursor(Qt.PointingHandCursor)
+        self.une_fois.setDefault(True)  # Entrée
+        self.une_fois.clicked.connect(lambda: self.choisir(self.selection()))
+        bas.addWidget(self.toujours)
+        bas.addWidget(self.une_fois)
         colonne.addLayout(bas)
         page.addWidget(self.choix)
 
@@ -196,7 +216,7 @@ class Fenetre(QWidget):
         self.fermer = QPushButton("Fermer")
         self.fermer.setCursor(Qt.PointingHandCursor)
         self.fermer.clicked.connect(self.close)
-        autres = QPushButton("Autres solutions")
+        autres = QPushButton("Plus d'options")
         autres.setObjectName("lien")
         autres.setCursor(Qt.PointingHandCursor)
         autres.clicked.connect(self._autres_solutions)
@@ -217,22 +237,31 @@ class Fenetre(QWidget):
         suite = ("equivalent", "windows", "wine") if self.raison_windows else moteurs.MOTEURS
         return [self.conseil.moteur] + [m for m in suite if m != self.conseil.moteur]
 
+    def selection(self):
+        """Le chemin de la ligne sélectionnée."""
+        for moteur, ligne in self.cartes.items():
+            if ligne.isChecked():
+                return moteur
+        return self.conseil.moteur
+
     def _ligne(self, moteur):
         conseille = moteur == self.conseil.moteur
+        verbe = "Installer" if moteurs.est_installateur(self.programme) else "Lancer"
         if moteur == "equivalent":
             if self.equivalent is None:
                 return None
-            _, bouton, action = self.equivalent
+            _, bouton, _ = self.equivalent
             entree = self.conseil.equivalent
-            etat = {"Ouvrir": "déjà installée", "Ouvrir le site": "en ligne"}.get(bouton, "à installer")
-            return Ligne(entree.remplacant, f"L'application qui le remplace · {etat}", catalogue.icone_de(entree.categorie),
+            etat = {"Ouvrir": "déjà installé", "Ouvrir le site": "en ligne"}.get(bouton, "à installer")
+            # le nom du logiciel Windows qu'on connaît : « Remplace Microsoft Word »
+            return Ligne(entree.remplacant, f"Remplace {entree.windows} · {etat}", catalogue.icone_de(entree.categorie),
                          COULEURS[moteur], conseille, entree.remarque, image=self._icone_application(entree))
         if moteur == "wine":
             sous_titre = "Déconseillé pour ce programme" if self.raison_windows else "Rapide · pas avec tous les programmes"
-            return Ligne("Ouvrir ici", sous_titre, ICONES[moteur], COULEURS[moteur], conseille,
+            return Ligne(f"{verbe} le programme", sous_titre, ICONES[moteur], COULEURS[moteur], conseille,
                          self.raison_windows or "Le programme s'ouvre directement sur BinixX OS, sans Windows. Beaucoup "
                          "de programmes marchent ainsi, pas tous.")
-        return Ligne("Ouvrir dans Windows", "Marche presque toujours · plus lent à démarrer", ICONES[moteur],
+        return Ligne(f"{verbe} dans Windows", "Marche presque toujours · plus lent à démarrer", ICONES[moteur],
                      COULEURS[moteur], conseille, "Windows tourne en arrière-plan et le programme s'affiche dans sa "
                      "propre fenêtre. Il faut une licence Windows, et un PC assez puissant.")
 
@@ -257,12 +286,12 @@ class Fenetre(QWidget):
     def showEvent(self, evenement):
         super().showEvent(evenement)
         QTimer.singleShot(0, self._ajuster)
-        premiere = next(iter(self.cartes.values()), None)
-        if premiere is not None and not self.auto:
-            premiere.setFocus()  # Entrée ouvre le chemin conseillé
+        if not self.auto:
+            self.une_fois.setFocus()  # Entrée : « Juste une fois » sur la ligne recommandée
 
-    def choisir(self, moteur):
-        if not self.auto and self.retenir.isChecked():
+    def choisir(self, moteur, toujours=False):
+        """Ouvre par ce chemin ; `toujours` : le retenir pour ce programme (bouton « Toujours »)."""
+        if toujours:
             try:
                 moteurs.retenir(self.programme, moteur)
             except OSError:

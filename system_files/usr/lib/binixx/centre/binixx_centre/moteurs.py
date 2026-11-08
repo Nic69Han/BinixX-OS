@@ -74,6 +74,13 @@ def windows_requis(regles, chemin):
     return None
 
 
+def est_installateur(chemin):
+    """Un programme d'installation (« Setup_Sage.exe », « Firefox Installer.exe », tout .msi) : on dit alors « Installer »
+    plutôt que « Lancer », comme sous Windows."""
+    nom = catalogue.normaliser(os.path.basename(chemin))
+    return chemin.lower().endswith(".msi") or bool(re.search(r"setup|install", nom.replace(" ", "")))
+
+
 # --- Choix retenus ---------------------------------------------------------------------------------------------------------
 
 def fichier_memoire():
