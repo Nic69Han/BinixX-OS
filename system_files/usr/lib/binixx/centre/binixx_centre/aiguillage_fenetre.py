@@ -35,8 +35,6 @@ QPushButton#choixLigne:focus {{ outline: none; }}
 QPushButton#choixLigne:checked {{ background: rgba(173,207,251,0.45); }}
 QLabel#choixTitre {{ font-size: 10.5pt; font-weight: 600; background: transparent; }}
 QLabel#choixSous {{ font-size: 9pt; background: transparent; }}
-QLabel#choixPastille {{ background: {theme.BLUE}; color: white; border-radius: 9px; padding: 2px 9px;
-                        font-size: 8pt; font-weight: 600; }}
 QLabel#aiguillageNom {{ font-size: 12pt; font-weight: 700; }}
 QPushButton#lien {{ background: transparent; border: none; color: {theme.BLUE}; padding: 4px 2px; }}
 QPushButton#lien:hover {{ text-decoration: underline; }}
@@ -73,9 +71,9 @@ def _echapper(texte):
 
 
 class Ligne(QPushButton):
-    """Une ligne à sélectionner : icône, titre (et « Recommandé »), une ligne de précision. Double-clic : ouvrir."""
+    """Une ligne à sélectionner : icône, titre, une ligne de précision. Double-clic : ouvrir."""
 
-    def __init__(self, titre, sous_titre, icone, couleurs, conseille=False, explication="", image=None):
+    def __init__(self, titre, sous_titre, icone, couleurs, explication="", image=None):
         super().__init__()
         self.setObjectName("choixLigne")
         self.setCheckable(True)
@@ -102,15 +100,7 @@ class Ligne(QPushButton):
         bas.setObjectName("choixSous")
         bas.setTextFormat(Qt.PlainText)
         bas.setEnabled(False)  # gris discret du thème
-        rangee = QHBoxLayout()  # le titre, et « Recommandé » juste à côté : la précision garde toute la largeur
-        rangee.setSpacing(8)
-        rangee.addWidget(haut)
-        if conseille:
-            marque = QLabel("Recommandé")
-            marque.setObjectName("choixPastille")
-            rangee.addWidget(marque, 0, Qt.AlignVCenter)
-        rangee.addStretch(1)
-        colonne.addLayout(rangee)
+        colonne.addWidget(haut)
         colonne.addWidget(bas)
         ligne.addLayout(colonne, 1)
         for enfant in self.findChildren(QLabel):
@@ -275,7 +265,6 @@ class Fenetre(QWidget):
         return self.conseil.moteur
 
     def _ligne(self, moteur):
-        conseille = moteur == self.conseil.moteur
         verbe = "Installer" if moteurs.est_installateur(self.programme) else "Lancer"
         if moteur == "equivalent":
             if self.equivalent is None:
@@ -285,14 +274,14 @@ class Fenetre(QWidget):
             etat = {"Ouvrir": "déjà installé", "Ouvrir le site": "en ligne"}.get(bouton, "à installer")
             # le nom du logiciel Windows qu'on connaît : « Remplace Microsoft Word »
             return Ligne(entree.remplacant, f"Remplace {entree.windows} · {etat}", catalogue.icone_de(entree.categorie),
-                         COULEURS[moteur], conseille, entree.remarque, image=self._icone_application(entree))
+                         COULEURS[moteur], entree.remarque, image=self._icone_application(entree))
         if moteur == "wine":
             sous_titre = "Déconseillé pour ce programme" if self.raison_windows else "Rapide · pas avec tous les programmes"
-            return Ligne(f"{verbe} le programme", sous_titre, ICONES[moteur], COULEURS[moteur], conseille,
+            return Ligne(f"{verbe} le programme", sous_titre, ICONES[moteur], COULEURS[moteur],
                          self.raison_windows or "Le programme s'ouvre directement sur BinixX OS, sans Windows. Beaucoup "
                          "de programmes marchent ainsi, pas tous.")
         return Ligne(f"{verbe} dans Windows", "Marche presque toujours · plus lent à démarrer", ICONES[moteur],
-                     COULEURS[moteur], conseille, "Windows tourne en arrière-plan et le programme s'affiche dans sa "
+                     COULEURS[moteur], "Windows tourne en arrière-plan et le programme s'affiche dans sa "
                      "propre fenêtre. Il faut une licence Windows, et un PC assez puissant.", image=icone_windows())
 
     @staticmethod

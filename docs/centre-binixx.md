@@ -20,7 +20,7 @@ D'autres pages s'y ajoutent : voir la [feuille de route](feuille-de-route.md).
 
 Un double-clic sur un `.exe` ou un `.msi` ouvre une petite fenêtre calquée sur « Ouvrir avec » de Windows 11, que les
 habitués de Windows reconnaissent (`binixx-ouvrir-windows`, `binixx_centre/moteurs.py` et `aiguillage_fenetre.py`) :
-« Comment voulez-vous ouvrir ce fichier ? », trois lignes, la « Recommandé » en premier et déjà sélectionnée, puis
+« Comment voulez-vous ouvrir ce fichier ? », trois lignes, la plus adaptée en premier et déjà sélectionnée (fond bleu pastel), puis
 « Juste une fois » (Entrée) ou « Toujours » ; un double-clic sur une ligne l'ouvre, Échap ferme. On dit « Installer »
 pour un programme d'installation (`setup`, `install`, `.msi`), « Lancer » sinon, et l'équivalent rappelle le logiciel
 Windows qu'il remplace (« Remplace Microsoft Word »). Aucun nom technique

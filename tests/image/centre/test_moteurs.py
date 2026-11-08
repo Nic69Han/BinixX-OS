@@ -234,7 +234,8 @@ class Fenetre(unittest.TestCase):
         self.assertIn("Comment voulez-vous ouvrir ce fichier ?", textes)
         self.assertTrue(any(t.startswith("Remplace Microsoft Word") for t in textes))
         self.assertIn("Installer le programme", textes)
-        self.assertIn("Recommandé", textes)
+        self.assertNotIn("Recommandé", textes)   # la ligne conseillée est seulement sélectionnée d'avance
+        self.assertTrue(fenetre.cartes["equivalent"].isChecked())
         self.assertEqual((fenetre.toujours.text(), fenetre.une_fois.text()), ("Toujours", "Juste une fois"))
 
     def test_icone_windows(self):
