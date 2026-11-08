@@ -24,8 +24,9 @@ habitués de Windows reconnaissent (`binixx-ouvrir-windows`, `binixx_centre/mote
 « Juste une fois » (Entrée) ou « Toujours » ; un double-clic sur une ligne l'ouvre, Échap ferme. On dit « Installer »
 pour un programme d'installation (`setup`, `install`, `.msi`), « Lancer » sinon, et l'équivalent rappelle le logiciel
 Windows qu'il remplace (« Remplace Microsoft Word »). Aucun nom technique
-à l'écran : l'icône de l'application pour l'équivalent, un éclair pour « Ouvrir ici » (Wine), les quatre carreaux
-pour « Ouvrir dans Windows » (WinBoat) :
+à l'écran : l'icône de l'application pour l'équivalent, un éclair pour « Ouvrir ici » (Wine), quatre carreaux blancs sur une tuile
+bleue pour « Ouvrir dans Windows » (WinBoat ; une forme générique dessinée par BinixX OS, pas le logo de Microsoft,
+marque déposée) :
 
 | Chemin | Quand il est conseillé | Ce qui se passe |
 | --- | --- | --- |

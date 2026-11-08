@@ -237,6 +237,13 @@ class Fenetre(unittest.TestCase):
         self.assertIn("Recommandé", textes)
         self.assertEqual((fenetre.toujours.text(), fenetre.une_fois.text()), ("Toujours", "Juste une fois"))
 
+    def test_icone_windows(self):
+        image = aiguillage_fenetre.icone_windows(36).toImage()
+        self.assertEqual((image.width(), image.height()), (72, 72))   # dessinée en double pour la haute densité
+        centre_carreau = image.pixelColor(26, 26)                        # un carreau blanc
+        self.assertGreater(min(centre_carreau.red(), centre_carreau.green(), centre_carreau.blue()), 240)
+        self.assertEqual(image.pixelColor(0, 0).alpha(), 0)              # coin arrondi transparent
+
     def test_juste_une_fois_ne_retient_rien(self):
         open(os.path.join(self.etat, "installe"), "w").close()
         open(os.path.join(self.etat, "bouteille"), "w").close()

@@ -11,8 +11,8 @@ Ouverte avec un moteur déjà choisi (choix retenu, menu du clic droit), elle pa
 import os
 import sys
 
-from PySide6.QtCore import QProcess, QSize, Qt, QTimer
-from PySide6.QtGui import QIcon
+from PySide6.QtCore import QProcess, QRectF, QSize, Qt, QTimer
+from PySide6.QtGui import QBrush, QColor, QIcon, QLinearGradient, QPainter, QPixmap
 from PySide6.QtWidgets import (QApplication, QButtonGroup, QHBoxLayout, QLabel, QProgressBar, QPushButton,
                                QVBoxLayout, QWidget)
 
@@ -21,7 +21,7 @@ from . import catalogue, launch, moteurs, theme, virtualisation, widgets
 LARGEUR = 440
 FERMETURE_AUTO_MS = 4000  # choix retenu : la fenêtre se ferme seule une fois le programme lancé
 # Des images qui se comprennent d'un coup d'œil, sans nom technique : un éclair (ouvrir ici, vite), les quatre carreaux
-# (dans Windows) ; l'équivalent montre l'icône de l'application elle-même
+# (dans Windows, voir icone_windows) ; l'équivalent montre l'icône de l'application elle-même
 ICONES = {"equivalent": "package", "wine": "zap", "windows": "grid"}
 COULEURS = {"equivalent": theme.ACCENTS["vert"], "wine": theme.ACCENTS["ambre"], "windows": theme.ACCENTS["bleu"]}
 TAILLE_ICONE = 36
@@ -43,12 +43,37 @@ QPushButton#lien:hover {{ text-decoration: underline; }}
 """
 
 
+def icone_windows(taille=TAILLE_ICONE):
+    """Quatre carreaux blancs pleins sur une tuile bleue : on y reconnaît Windows d'un coup d'œil. Une forme générique
+    dessinée ici, pas le logo de Microsoft (marque déposée)."""
+    image = QPixmap(taille * 2, taille * 2)  # dessiné en double, net sur les écrans haute densité
+    image.fill(Qt.transparent)
+    image.setDevicePixelRatio(2)
+    peintre = QPainter(image)
+    peintre.setRenderHint(QPainter.Antialiasing)
+    degrade = QLinearGradient(0, 0, taille, taille)
+    degrade.setColorAt(0, QColor(theme.ACCENTS["bleu"][1]))
+    degrade.setColorAt(1, QColor(theme.ACCENTS["bleu"][0]))
+    peintre.setBrush(QBrush(degrade))
+    peintre.setPen(Qt.NoPen)
+    peintre.drawRoundedRect(QRectF(0, 0, taille, taille), taille * 0.30, taille * 0.30)
+    marge, ecart = taille * 0.25, taille * 0.05
+    cote = (taille - 2 * marge - ecart) / 2
+    peintre.setBrush(QColor("#FFFFFF"))
+    for ligne in range(2):
+        for colonne in range(2):
+            x, y = marge + colonne * (cote + ecart), marge + ligne * (cote + ecart)
+            peintre.drawRoundedRect(QRectF(x, y, cote, cote), cote * 0.12, cote * 0.12)
+    peintre.end()
+    return image
+
+
 def _echapper(texte):
     return texte.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 class Ligne(QPushButton):
-    """Une ligne à sélectionner : icône, titre, une ligne de précision, et « Recommandé » à droite. Double-clic : ouvrir."""
+    """Une ligne à sélectionner : icône, titre (et « Recommandé »), une ligne de précision. Double-clic : ouvrir."""
 
     def __init__(self, titre, sous_titre, icone, couleurs, conseille=False, explication="", image=None):
         super().__init__()
@@ -77,13 +102,17 @@ class Ligne(QPushButton):
         bas.setObjectName("choixSous")
         bas.setTextFormat(Qt.PlainText)
         bas.setEnabled(False)  # gris discret du thème
-        colonne.addWidget(haut)
-        colonne.addWidget(bas)
-        ligne.addLayout(colonne, 1)
+        rangee = QHBoxLayout()  # le titre, et « Recommandé » juste à côté : la précision garde toute la largeur
+        rangee.setSpacing(8)
+        rangee.addWidget(haut)
         if conseille:
             marque = QLabel("Recommandé")
             marque.setObjectName("choixPastille")
-            ligne.addWidget(marque, 0, Qt.AlignVCenter)
+            rangee.addWidget(marque, 0, Qt.AlignVCenter)
+        rangee.addStretch(1)
+        colonne.addLayout(rangee)
+        colonne.addWidget(bas)
+        ligne.addLayout(colonne, 1)
         for enfant in self.findChildren(QLabel):
             enfant.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setMinimumHeight(56)
@@ -210,6 +239,7 @@ class Fenetre(QWidget):
         boutons.setContentsMargins(0, 4, 0, 0)
         self.essayer_windows = QPushButton("Ouvrir dans Windows")
         self.essayer_windows.setObjectName("primary")
+        self.essayer_windows.setIcon(QIcon(icone_windows(18)))
         self.essayer_windows.setCursor(Qt.PointingHandCursor)
         self.essayer_windows.clicked.connect(lambda: self.choisir("windows"))
         self.essayer_windows.setVisible(False)
@@ -263,7 +293,7 @@ class Fenetre(QWidget):
                          "de programmes marchent ainsi, pas tous.")
         return Ligne(f"{verbe} dans Windows", "Marche presque toujours · plus lent à démarrer", ICONES[moteur],
                      COULEURS[moteur], conseille, "Windows tourne en arrière-plan et le programme s'affiche dans sa "
-                     "propre fenêtre. Il faut une licence Windows, et un PC assez puissant.")
+                     "propre fenêtre. Il faut une licence Windows, et un PC assez puissant.", image=icone_windows())
 
     @staticmethod
     def _icone_application(entree):
