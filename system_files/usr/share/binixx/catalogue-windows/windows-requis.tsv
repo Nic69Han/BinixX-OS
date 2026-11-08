@@ -1,0 +1,12 @@
+# Programmes Windows connus pour ne pas marcher avec Wine : l'aiguillage des .exe (binixx-ouvrir-windows) conseille
+# alors Windows lui-même (WinBoat) plutôt que Wine. Voir binixx_centre/moteurs.py.
+# Colonnes séparées par une tabulation :
+#   mots   cherchés dans le nom du fichier, sans espaces ni ponctuation, séparés par « ; »
+#   raison une phrase pour l'utilisateur
+# Rester prudent : un mot court trouverait d'autres programmes (« cc », « ps »…). Ne mettre que des logiciels dont
+# l'échec avec Wine est connu (ProtonDB/WineHQ : « garbage » ou installation impossible).
+creativecloud;adobecc;photoshop;illustrator;indesign;premierepro;aftereffects;lightroomclassic	Les logiciels Adobe (Creative Cloud) ne s'installent pas avec Wine : il leur faut Windows.
+officesetup;office365;microsoft365;o365	Microsoft Office pour Windows ne s'installe pas avec Wine : il lui faut Windows (ou la version en ligne, ou OnlyOffice, déjà installé).
+autocad;revit;autodeskinventor;solidworks;catia;fusion360	Les logiciels de CAO de ce type (Autodesk, Dassault) demandent Windows : ils ne marchent pas avec Wine.
+sage100;sage50;ebpcompta;ebpgestion;cegid;cielcompta;cielgestion	Les logiciels de gestion et de comptabilité (Sage, EBP, Cegid, Ciel) demandent Windows, ou leur version en ligne.
+teamviewerhost;anydeskservice	Les services d'accès à distance installés comme service Windows ne marchent pas avec Wine.

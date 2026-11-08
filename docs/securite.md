@@ -14,7 +14,7 @@ l'administrateur. La feuille de route sécurité est dans [feuille-de-route.md](
 | Failles non corrigées | Mises à jour automatiques chaque nuit du système (appliquées au redémarrage suivant, sauf connexion limitée) et des applications | test VM |
 | Connexions entrantes | Pare-feu : rien n'entre, sauf la découverte du réseau local (imprimantes, partages) et KDE Connect ; pas de serveur SSH | tests image et VM |
 | Publicités piégées, sites malveillants | Firefox : uBlock Origin installé d'office, mode HTTPS uniquement, télémétrie coupée | test image |
-| Programme téléchargé malveillant | Les programmes Windows (`.exe`) ne s'exécutent pas ; les applications viennent de Flathub et tournent isolées | — |
+| Programme téléchargé malveillant | Un programme Windows (`.exe`, `.msi`) ne s'exécute qu'après un choix explicite dans l'aiguillage, et alors dans Bottles (Flatpak) : il ne lit que son propre dossier, en lecture seule, et s'installe dans une bouteille à part ; l'équivalent BinixX OS est proposé d'abord. Le bac à sable n'est pas étanche (réseau, périphériques, affichage X11 de Bottles) : un `.exe` malveillant lancé peut encore nuire dans la session. Les applications viennent de Flathub et tournent isolées | tests image (commandes de lancement) |
 | Exploitation de failles du noyau | Journaux et adresses du noyau réservés à l'administrateur, pas d'espionnage d'un programme par un autre | test VM |
 
 **Pas encore en place** : la signature des images (les postes acceptent aujourd'hui toute image publiée

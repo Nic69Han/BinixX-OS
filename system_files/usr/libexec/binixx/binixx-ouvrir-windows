@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+"""Ouvrir un programme Windows (.exe, .msi) : un équivalent, Wine (Bottles) ou Windows (WinBoat). Voir moteurs.py."""
+
+import sys
+
+sys.path.insert(0, "/usr/lib/binixx/centre")
+
+from binixx_centre.moteurs import main  # noqa: E402
+
+sys.exit(main())

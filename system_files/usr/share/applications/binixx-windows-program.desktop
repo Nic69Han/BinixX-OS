@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=Programme Windows
-Comment=Chercher l'équivalent BinixX OS d'un programme Windows (.exe, .msi)
-Exec=/usr/libexec/binixx/binixx-centre --programme %f
+Comment=Ouvrir un programme Windows (.exe, .msi) : équivalent, Wine ou Windows
+Exec=/usr/libexec/binixx/binixx-ouvrir-windows %f
 Icon=binixx
 Terminal=false
 NoDisplay=true

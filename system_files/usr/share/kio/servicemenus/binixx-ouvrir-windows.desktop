@@ -1,0 +1,34 @@
+[Desktop Entry]
+Type=Service
+MimeType=application/vnd.microsoft.portable-executable;application/x-ms-dos-executable;application/x-msdownload;application/x-msi;application/x-dosexec;
+X-KDE-ServiceTypes=KonqPopupMenu/Plugin
+X-KDE-Submenu=Programme Windows
+X-KDE-Submenu[fr]=Programme Windows
+Icon=binixx
+Actions=choisir;wine;windows;equivalent;oublier;
+X-KDE-Priority=TopLevel
+
+[Desktop Action choisir]
+Name=Choisir comment l'ouvrir…
+Icon=system-run
+Exec=/usr/libexec/binixx/binixx-ouvrir-windows --choisir %f
+
+[Desktop Action wine]
+Name=Ouvrir avec Wine
+Icon=wine
+Exec=/usr/libexec/binixx/binixx-ouvrir-windows --moteur wine %f
+
+[Desktop Action windows]
+Name=Ouvrir dans Windows (WinBoat)
+Icon=computer
+Exec=/usr/libexec/binixx/binixx-ouvrir-windows --moteur windows %f
+
+[Desktop Action equivalent]
+Name=Chercher un équivalent BinixX OS
+Icon=edit-find
+Exec=/usr/libexec/binixx/binixx-centre --programme %f
+
+[Desktop Action oublier]
+Name=Oublier mon choix pour ce programme
+Icon=edit-undo
+Exec=/usr/libexec/binixx/binixx-ouvrir-windows --oublier %f
