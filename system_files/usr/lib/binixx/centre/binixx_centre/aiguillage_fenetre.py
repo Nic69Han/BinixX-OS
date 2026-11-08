@@ -17,14 +17,65 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLabel, QPr
 
 from . import catalogue, launch, moteurs, theme, virtualisation, widgets
 
-LARGEUR = 640
+LARGEUR = 440
 FERMETURE_AUTO_MS = 4000  # choix retenu : la fenêtre se ferme seule une fois le programme lancé
 ICONES = {"equivalent": "package", "wine": "layers", "windows": "monitor"}
 COULEURS = {"equivalent": theme.ACCENTS["vert"], "wine": theme.ACCENTS["bleu"], "windows": theme.ACCENTS["indigo"]}
 
+# Une feuille « Ouvrir avec » de téléphone : des lignes plates, la conseillée sur un fond bleu pastel
+STYLE = f"""
+QPushButton#choixLigne {{ background: transparent; border: none; border-radius: 14px; padding: 0; text-align: left; }}
+QPushButton#choixLigne:hover {{ background: rgba(128,128,128,0.12); }}
+QPushButton#choixLigne:focus {{ outline: none; background: rgba(128,128,128,0.12); }}
+QPushButton#choixLigne[conseille="true"] {{ background: rgba(173,207,251,0.38); }}
+QPushButton#choixLigne[conseille="true"]:hover {{ background: rgba(173,207,251,0.55); }}
+QLabel#choixTitre {{ font-size: 10.5pt; font-weight: 600; background: transparent; }}
+QLabel#choixSous {{ font-size: 9pt; background: transparent; }}
+QLabel#choixPastille {{ background: {theme.BLUE}; color: white; border-radius: 9px; padding: 2px 9px;
+                        font-size: 8pt; font-weight: 600; }}
+QLabel#aiguillageNom {{ font-size: 12pt; font-weight: 700; }}
+QPushButton#lien {{ background: transparent; border: none; color: {theme.BLUE}; padding: 4px 2px; }}
+QPushButton#lien:hover {{ text-decoration: underline; }}
+"""
+
 
 def _echapper(texte):
     return texte.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+class Ligne(QPushButton):
+    """Une ligne cliquable : pastille, titre, une ligne de précision, et « Conseillé » à droite."""
+
+    def __init__(self, titre, sous_titre, icone, couleurs, conseille=False, explication=""):
+        super().__init__()
+        self.setObjectName("choixLigne")
+        self.setProperty("conseille", conseille)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setToolTip(explication)
+        self.setAccessibleName(f"{titre} : {sous_titre}")
+        ligne = QHBoxLayout(self)
+        ligne.setContentsMargins(10, 8, 12, 8)
+        ligne.setSpacing(12)
+        ligne.addWidget(widgets.pastille_label(icone, couleurs, 36))
+        colonne = QVBoxLayout()
+        colonne.setSpacing(0)
+        haut = QLabel(titre)
+        haut.setObjectName("choixTitre")
+        haut.setTextFormat(Qt.PlainText)
+        bas = QLabel(sous_titre)
+        bas.setObjectName("choixSous")
+        bas.setTextFormat(Qt.PlainText)
+        bas.setEnabled(False)  # gris discret du thème
+        colonne.addWidget(haut)
+        colonne.addWidget(bas)
+        ligne.addLayout(colonne, 1)
+        if conseille:
+            marque = QLabel("Conseillé")
+            marque.setObjectName("choixPastille")
+            ligne.addWidget(marque, 0, Qt.AlignVCenter)
+        for enfant in self.findChildren(QLabel):
+            enfant.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.setMinimumHeight(56)
 
 
 class Fenetre(QWidget):
@@ -49,17 +100,29 @@ class Fenetre(QWidget):
         if self.conseil.equivalent is not None:
             self.equivalent = catalogue.etat(self.conseil.equivalent, installees, catalogue.fournies())
 
-        self.setWindowTitle(f"Ouvrir {self.nom}")
+        self.setWindowTitle("Ouvrir avec")
+        self.setStyleSheet(STYLE)
         self.setFixedWidth(LARGEUR)
         page = QVBoxLayout(self)
-        page.setContentsMargins(24, 22, 24, 18)
-        page.setSpacing(12)
-        entete = widgets.entete(
-            "Ouvrir un programme Windows",
-            f"« {self.nom} » est fait pour Windows. BinixX OS peut l'ouvrir de plusieurs façons : la plus adaptée est "
-            "en premier.", "layers")
-        entete.texte.setTextFormat(Qt.PlainText)  # le nom du fichier tel quel, jamais lu comme du HTML
-        page.addWidget(entete)
+        page.setContentsMargins(18, 16, 18, 14)
+        page.setSpacing(10)
+
+        # --- le fichier : son nom, et ce que c'est
+        tete = QHBoxLayout()
+        tete.setSpacing(12)
+        tete.addWidget(widgets.pastille_label("layers", theme.ACCENTS["bleu"], 40))
+        noms = QVBoxLayout()
+        noms.setSpacing(0)
+        nom = QLabel(self.nom)
+        nom.setObjectName("aiguillageNom")
+        nom.setTextFormat(Qt.PlainText)  # le nom du fichier tel quel, jamais lu comme du HTML
+        nom.setToolTip(self.programme)
+        precision = QLabel("Programme Windows · ouvrir avec :")
+        precision.setEnabled(False)
+        noms.addWidget(nom)
+        noms.addWidget(precision)
+        tete.addLayout(noms, 1)
+        page.addLayout(tete)
 
         self.bandeau = QLabel()
         self.bandeau.setObjectName("bandeau")
@@ -67,19 +130,29 @@ class Fenetre(QWidget):
         self.bandeau.setVisible(False)
         page.addWidget(self.bandeau)
 
-        # --- écran de choix
+        # --- écran de choix : une ligne par chemin, le conseillé en premier
         self.choix = QWidget()
         colonne = QVBoxLayout(self.choix)
         colonne.setContentsMargins(0, 0, 0, 0)
-        colonne.setSpacing(10)
+        colonne.setSpacing(2)
         self.cartes = {}
         for moteur_ in self._ordre():
-            carte = self._carte(moteur_)
-            if carte is not None:
-                self.cartes[moteur_] = carte
-                colonne.addWidget(carte)
-        self.retenir = QCheckBox("Retenir ce choix pour ce programme")
-        colonne.addWidget(self.retenir)
+            ligne = self._ligne(moteur_)
+            if ligne is not None:
+                ligne.clicked.connect(lambda _=False, m=moteur_: self.choisir(m))
+                self.cartes[moteur_] = ligne
+                colonne.addWidget(ligne)
+        bas = QHBoxLayout()
+        bas.setContentsMargins(4, 6, 0, 0)
+        self.retenir = QCheckBox("Toujours l'ouvrir ainsi")
+        self.autres = QPushButton("Autres solutions")
+        self.autres.setObjectName("lien")
+        self.autres.setCursor(Qt.PointingHandCursor)
+        self.autres.clicked.connect(self._autres_solutions)
+        bas.addWidget(self.retenir)
+        bas.addStretch(1)
+        bas.addWidget(self.autres)
+        colonne.addLayout(bas)
         page.addWidget(self.choix)
 
         # --- écran de travail
@@ -91,14 +164,13 @@ class Fenetre(QWidget):
         self.progression = QProgressBar()
         self.progression.setRange(0, 0)
         self.progression.setTextVisible(False)
-        self.progression.setFixedHeight(8)
+        self.progression.setFixedHeight(6)
         self.progression.setVisible(False)
         page.addWidget(self.progression)
 
-        boutons = QHBoxLayout()
-        self.autres = QPushButton("Autres solutions")
-        self.autres.setCursor(Qt.PointingHandCursor)
-        self.autres.clicked.connect(self._autres_solutions)
+        self.boutons = QWidget()
+        boutons = QHBoxLayout(self.boutons)
+        boutons.setContentsMargins(0, 4, 0, 0)
         self.essayer_windows = QPushButton("Ouvrir dans Windows")
         self.essayer_windows.setObjectName("primary")
         self.essayer_windows.setCursor(Qt.PointingHandCursor)
@@ -107,11 +179,16 @@ class Fenetre(QWidget):
         self.fermer = QPushButton("Fermer")
         self.fermer.setCursor(Qt.PointingHandCursor)
         self.fermer.clicked.connect(self.close)
-        boutons.addWidget(self.autres)
+        autres = QPushButton("Autres solutions")
+        autres.setObjectName("lien")
+        autres.setCursor(Qt.PointingHandCursor)
+        autres.clicked.connect(self._autres_solutions)
+        boutons.addWidget(autres)
         boutons.addStretch(1)
         boutons.addWidget(self.essayer_windows)
         boutons.addWidget(self.fermer)
-        page.addLayout(boutons)
+        self.boutons.setVisible(False)  # l'écran de choix se ferme avec la croix de la fenêtre ou Échap
+        page.addWidget(self.boutons)
 
         if moteur is not None:
             QTimer.singleShot(0, lambda: self.choisir(moteur))
@@ -123,29 +200,31 @@ class Fenetre(QWidget):
         suite = ("equivalent", "windows", "wine") if self.raison_windows else moteurs.MOTEURS
         return [self.conseil.moteur] + [m for m in suite if m != self.conseil.moteur]
 
-    def _carte(self, moteur):
+    def _ligne(self, moteur):
         conseille = moteur == self.conseil.moteur
-        marque = "   <span style='font-weight:400; font-size:9pt;'>· Conseillé</span>" if conseille else ""
-        details = self.conseil.raison if conseille and not self.conseil.retenu else None
+        explication = self.conseil.raison if conseille else ""
         if moteur == "equivalent":
             if self.equivalent is None:
                 return None
-            badge, bouton, _ = self.equivalent
+            _, bouton, _ = self.equivalent
             entree = self.conseil.equivalent
-            return widgets.carte(f"{_echapper(entree.remplacant)}{marque}", entree.remarque, bouton or "Voir",
-                                 lambda: self.choisir("equivalent"), avant=f"Équivalent sous BinixX OS · {badge}",
-                                 icone=catalogue.icone_de(entree.categorie), couleurs=COULEURS[moteur])
+            etat = {"Ouvrir": "installé", "Ouvrir le site": "en ligne"}.get(bouton, "à installer")
+            return Ligne(entree.remplacant, f"Équivalent BinixX · {etat}", catalogue.icone_de(entree.categorie),
+                         COULEURS[moteur], conseille, entree.remarque)
         if moteur == "wine":
-            if self.raison_windows:
-                details = "Déconseillé : " + self.raison_windows
-            return widgets.carte(f"Avec Wine{marque}", "Sans Windows, directement : rapide ; marche avec beaucoup de "
-                                 "logiciels, pas tous.", "Ouvrir avec Wine", lambda: self.choisir("wine"),
-                                 details=details, avant="Compatibilité Windows", icone=ICONES[moteur],
-                                 couleurs=COULEURS[moteur])
-        return widgets.carte(f"Dans Windows{marque}", "Le vrai Windows en arrière-plan (WinBoat), le programme dans sa "
-                             "propre fenêtre : le plus compatible ; demande une licence Windows et de la mémoire.",
-                             "Ouvrir dans Windows", lambda: self.choisir("windows"), details=details,
-                             avant="Windows complet", icone=ICONES[moteur], couleurs=COULEURS[moteur])
+            sous_titre = "Déconseillé pour ce programme" if self.raison_windows else "Rapide, sans Windows"
+            return Ligne("Wine", sous_titre, ICONES[moteur], COULEURS[moteur], conseille,
+                         self.raison_windows or explication or "Le programme tourne directement, dans une bouteille "
+                         "Bottles à part. Marche avec beaucoup de logiciels, pas tous.")
+        return Ligne("Windows", "Le plus compatible · WinBoat", ICONES[moteur], COULEURS[moteur], conseille,
+                     explication or "Le vrai Windows en arrière-plan, le programme dans sa propre fenêtre. Demande une "
+                     "licence Windows, de la mémoire et la virtualisation.")
+
+    def keyPressEvent(self, evenement):
+        if evenement.key() == Qt.Key_Escape:
+            self.close()
+            return
+        super().keyPressEvent(evenement)
 
     def _ajuster(self):
         """Les textes sur plusieurs lignes : la fenêtre prend la hauteur qu'il leur faut à sa largeur."""
@@ -154,6 +233,9 @@ class Fenetre(QWidget):
     def showEvent(self, evenement):
         super().showEvent(evenement)
         QTimer.singleShot(0, self._ajuster)
+        premiere = next(iter(self.cartes.values()), None)
+        if premiere is not None and not self.auto:
+            premiere.setFocus()  # Entrée ouvre le chemin conseillé
 
     def choisir(self, moteur):
         if not self.auto and self.retenir.isChecked():
@@ -173,6 +255,7 @@ class Fenetre(QWidget):
         self.statut.setText(texte)
         self.statut.setVisible(True)
         self.progression.setVisible(en_cours)
+        self.boutons.setVisible(True)
         self.essayer_windows.setVisible(False)
         self.fermer.setText("Annuler" if en_cours else "Fermer")
         self.setMinimumHeight(0)
@@ -280,8 +363,8 @@ class Fenetre(QWidget):
         return _echapper(lignes[-1][:200]) if lignes else ""
 
     def _reussi(self):
-        self._travail(f"✓ <b>{_echapper(self.nom)}</b> démarre avec Wine. Rien ne s'affiche d'ici une minute ? Ce "
-                      "programme a peut-être besoin du vrai Windows.", en_cours=False)
+        self._travail("✓ Ouvert avec Wine. Rien ne s'affiche d'ici une minute ? Ce programme a sans doute besoin de "
+                      "Windows.", en_cours=False)
         self.essayer_windows.setVisible(True)
         if self.auto:
             QTimer.singleShot(FERMETURE_AUTO_MS, self.close)
@@ -289,7 +372,7 @@ class Fenetre(QWidget):
     def _echec(self, message):
         self.etape = "fini"
         self._travail(message, en_cours=False)
-        self.bandeau.setText("Wine n'a pas réussi : essayez Windows lui-même, ou un équivalent (« Autres solutions »).")
+        self.bandeau.setText("Wine n'a pas réussi : essayez Windows, ou un équivalent.")
         self.bandeau.setVisible(True)
         self.essayer_windows.setVisible(True)
 

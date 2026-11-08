@@ -241,7 +241,7 @@ class Fenetre(unittest.TestCase):
         self.assertIn("new --bottle-name BinixX --environment application", journal)
         self.assertIn(f"--filesystem={self.dossier}:ro", journal)
         self.assertIn(f"run -b BinixX -e {self.programme}", journal)
-        self.assertIn("démarre avec Wine", fenetre.statut.text())
+        self.assertIn("Ouvert avec Wine", fenetre.statut.text())
         self.assertFalse(fenetre.essayer_windows.isHidden())
         self.assertEqual(moteurs.lire_memoire(), {self.programme: "wine"})
 
@@ -253,7 +253,7 @@ class Fenetre(unittest.TestCase):
         journal = self.journal()
         self.assertNotIn("installateur", journal)
         self.assertNotIn("new --bottle-name", journal)
-        self.assertIn("démarre avec Wine", fenetre.statut.text())
+        self.assertIn("Ouvert avec Wine", fenetre.statut.text())
         self.assertEqual(moteurs.lire_memoire(), {})   # « Retenir » n'est pas coché
 
     def test_echec_de_wine_propose_windows(self):

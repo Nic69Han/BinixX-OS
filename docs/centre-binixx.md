@@ -18,9 +18,9 @@ D'autres pages s'y ajoutent : voir la [feuille de route](feuille-de-route.md).
 
 ## Quand on ouvre un .exe ou un .msi : l'aiguillage
 
-Un double-clic sur un `.exe` ou un `.msi` ouvre la fenêtre **« Ouvrir un programme Windows »**
-(`binixx-ouvrir-windows`, `binixx_centre/moteurs.py` et `aiguillage_fenetre.py`). Elle propose trois chemins,
-le plus adapté en premier et marqué « Conseillé » :
+Un double-clic sur un `.exe` ou un `.msi` ouvre une petite fenêtre **« Ouvrir avec »**, comme sur un téléphone
+(`binixx-ouvrir-windows`, `binixx_centre/moteurs.py` et `aiguillage_fenetre.py`) : trois lignes, le chemin le plus
+adapté en premier, sur fond bleu pastel et marqué « Conseillé » (Entrée l'ouvre, Échap ferme) :
 
 | Chemin | Quand il est conseillé | Ce qui se passe |
 | --- | --- | --- |
@@ -28,7 +28,7 @@ le plus adapté en premier et marqué « Conseillé » :
 | **Avec Wine** | programme inconnu du catalogue | Bottles (Flatpak) est installé s'il manque, la bouteille « BinixX » est préparée la première fois, puis le programme s'ouvre. Rien ne s'affiche ? un bouton propose Windows |
 | **Dans Windows** | programme connu pour ne pas marcher avec Wine (`catalogue-windows/windows-requis.tsv` : Adobe, Office pour Windows, CAO…) ou sans équivalent au catalogue (Sage, Access) | WinBoat s'ouvre s'il est installé et que le PC peut faire tourner Windows, avec la marche à suivre ; sinon la page *Windows complet*, qui dit ce qui manque ([windows-vm.md](windows-vm.md)) |
 
-« Retenir ce choix pour ce programme » l'enregistre dans `~/.config/binixx/moteurs-windows.json` : les fois
+« Toujours l'ouvrir ainsi » enregistre le choix dans `~/.config/binixx/moteurs-windows.json` : les fois
 suivantes, le programme s'ouvre directement. Le clic droit sur un `.exe` (menu **Programme Windows** de Dolphin)
 donne les mêmes chemins, « Choisir comment l'ouvrir… » et « Oublier mon choix ».
 
