@@ -14,12 +14,12 @@ Icon=system-run
 Exec=/usr/libexec/binixx/binixx-ouvrir-windows --choisir %f
 
 [Desktop Action wine]
-Name=Ouvrir avec Wine
-Icon=wine
+Name=Ouvrir ici (rapide)
+Icon=media-playback-start
 Exec=/usr/libexec/binixx/binixx-ouvrir-windows --moteur wine %f
 
 [Desktop Action windows]
-Name=Ouvrir dans Windows (WinBoat)
+Name=Ouvrir dans Windows
 Icon=computer
 Exec=/usr/libexec/binixx/binixx-ouvrir-windows --moteur windows %f
 

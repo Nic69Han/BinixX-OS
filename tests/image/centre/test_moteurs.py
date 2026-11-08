@@ -241,7 +241,7 @@ class Fenetre(unittest.TestCase):
         self.assertIn("new --bottle-name BinixX --environment application", journal)
         self.assertIn(f"--filesystem={self.dossier}:ro", journal)
         self.assertIn(f"run -b BinixX -e {self.programme}", journal)
-        self.assertIn("Ouvert avec Wine", fenetre.statut.text())
+        self.assertIn("Le programme s'ouvre", fenetre.statut.text())
         self.assertFalse(fenetre.essayer_windows.isHidden())
         self.assertEqual(moteurs.lire_memoire(), {self.programme: "wine"})
 
@@ -253,7 +253,7 @@ class Fenetre(unittest.TestCase):
         journal = self.journal()
         self.assertNotIn("installateur", journal)
         self.assertNotIn("new --bottle-name", journal)
-        self.assertIn("Ouvert avec Wine", fenetre.statut.text())
+        self.assertIn("Le programme s'ouvre", fenetre.statut.text())
         self.assertEqual(moteurs.lire_memoire(), {})   # « Retenir » n'est pas coché
 
     def test_echec_de_wine_propose_windows(self):
@@ -261,7 +261,7 @@ class Fenetre(unittest.TestCase):
             open(os.path.join(self.etat, nom), "w").close()
         fenetre = self.fenetre(moteur="wine")
         self.attendre(fenetre)
-        self.assertIn("Wine n'a pas pu ouvrir", fenetre.statut.text())
+        self.assertIn("n'a pas pu s'ouvrir ici", fenetre.statut.text())
         self.assertIn("erreur de démarrage", fenetre.statut.text())
         self.assertFalse(fenetre.bandeau.isHidden())
         self.assertFalse(fenetre.essayer_windows.isHidden())
@@ -270,7 +270,7 @@ class Fenetre(unittest.TestCase):
         self.installateur = self._script("installateur", "#!/bin/bash\nexit 0\n")  # l'utilisateur ferme la fenêtre
         fenetre = self.fenetre(moteur="wine")
         self.attendre(fenetre)
-        self.assertIn("Bottles n'est pas installé", fenetre.statut.text())
+        self.assertIn("L'installation n'a pas abouti", fenetre.statut.text())
 
     def test_windows_ouvre_winboat_ou_la_page_du_centre(self):
         appels = []

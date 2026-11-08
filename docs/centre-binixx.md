@@ -20,13 +20,15 @@ D'autres pages s'y ajoutent : voir la [feuille de route](feuille-de-route.md).
 
 Un double-clic sur un `.exe` ou un `.msi` ouvre une petite fenêtre **« Ouvrir avec »**, comme sur un téléphone
 (`binixx-ouvrir-windows`, `binixx_centre/moteurs.py` et `aiguillage_fenetre.py`) : trois lignes, le chemin le plus
-adapté en premier, sur fond bleu pastel et marqué « Conseillé » (Entrée l'ouvre, Échap ferme) :
+adapté en premier, sur fond bleu pastel et marqué « Conseillé » (Entrée l'ouvre, Échap ferme). Aucun nom technique
+à l'écran : l'icône de l'application pour l'équivalent, un éclair pour « Ouvrir ici » (Wine), les quatre carreaux
+pour « Ouvrir dans Windows » (WinBoat) :
 
 | Chemin | Quand il est conseillé | Ce qui se passe |
 | --- | --- | --- |
 | **Équivalent BinixX OS** | le catalogue « Mon logiciel Windows » en connaît un (`WordSetup.exe` → OnlyOffice) | l'équivalent s'ouvre, ou s'installe |
-| **Avec Wine** | programme inconnu du catalogue | Bottles (Flatpak) est installé s'il manque, la bouteille « BinixX » est préparée la première fois, puis le programme s'ouvre. Rien ne s'affiche ? un bouton propose Windows |
-| **Dans Windows** | programme connu pour ne pas marcher avec Wine (`catalogue-windows/windows-requis.tsv` : Adobe, Office pour Windows, CAO…) ou sans équivalent au catalogue (Sage, Access) | WinBoat s'ouvre s'il est installé et que le PC peut faire tourner Windows, avec la marche à suivre ; sinon la page *Windows complet*, qui dit ce qui manque ([windows-vm.md](windows-vm.md)) |
+| **Ouvrir ici** (Wine) | programme inconnu du catalogue | Bottles (Flatpak) est installé s'il manque, la bouteille « BinixX » est préparée la première fois, puis le programme s'ouvre. Rien ne s'affiche ? un bouton propose Windows |
+| **Ouvrir dans Windows** (WinBoat) | programme connu pour ne pas marcher avec Wine (`catalogue-windows/windows-requis.tsv` : Adobe, Office pour Windows, CAO…) ou sans équivalent au catalogue (Sage, Access) | WinBoat s'ouvre s'il est installé et que le PC peut faire tourner Windows, avec la marche à suivre ; sinon la page *Windows complet*, qui dit ce qui manque ([windows-vm.md](windows-vm.md)) |
 
 « Toujours l'ouvrir ainsi » enregistre le choix dans `~/.config/binixx/moteurs-windows.json` : les fois
 suivantes, le programme s'ouvre directement. Le clic droit sur un `.exe` (menu **Programme Windows** de Dolphin)

@@ -11,7 +11,8 @@ Ouverte avec un moteur déjà choisi (choix retenu, menu du clic droit), elle pa
 import os
 import sys
 
-from PySide6.QtCore import QProcess, Qt, QTimer
+from PySide6.QtCore import QProcess, QSize, Qt, QTimer
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLabel, QProgressBar, QPushButton, QVBoxLayout,
                                QWidget)
 
@@ -19,8 +20,11 @@ from . import catalogue, launch, moteurs, theme, virtualisation, widgets
 
 LARGEUR = 440
 FERMETURE_AUTO_MS = 4000  # choix retenu : la fenêtre se ferme seule une fois le programme lancé
-ICONES = {"equivalent": "package", "wine": "layers", "windows": "monitor"}
-COULEURS = {"equivalent": theme.ACCENTS["vert"], "wine": theme.ACCENTS["bleu"], "windows": theme.ACCENTS["indigo"]}
+# Des images qui se comprennent d'un coup d'œil, sans nom technique : un éclair (ouvrir ici, vite), les quatre carreaux
+# (dans Windows) ; l'équivalent montre l'icône de l'application elle-même
+ICONES = {"equivalent": "package", "wine": "zap", "windows": "grid"}
+COULEURS = {"equivalent": theme.ACCENTS["vert"], "wine": theme.ACCENTS["ambre"], "windows": theme.ACCENTS["bleu"]}
+TAILLE_ICONE = 36
 
 # Une feuille « Ouvrir avec » de téléphone : des lignes plates, la conseillée sur un fond bleu pastel
 STYLE = f"""
@@ -46,7 +50,7 @@ def _echapper(texte):
 class Ligne(QPushButton):
     """Une ligne cliquable : pastille, titre, une ligne de précision, et « Conseillé » à droite."""
 
-    def __init__(self, titre, sous_titre, icone, couleurs, conseille=False, explication=""):
+    def __init__(self, titre, sous_titre, icone, couleurs, conseille=False, explication="", image=None):
         super().__init__()
         self.setObjectName("choixLigne")
         self.setProperty("conseille", conseille)
@@ -56,7 +60,13 @@ class Ligne(QPushButton):
         ligne = QHBoxLayout(self)
         ligne.setContentsMargins(10, 8, 12, 8)
         ligne.setSpacing(12)
-        ligne.addWidget(widgets.pastille_label(icone, couleurs, 36))
+        if image is not None:  # l'icône de l'application elle-même
+            etiquette = QLabel()
+            etiquette.setPixmap(image)
+            etiquette.setFixedSize(TAILLE_ICONE, TAILLE_ICONE)
+            ligne.addWidget(etiquette)
+        else:
+            ligne.addWidget(widgets.pastille_label(icone, couleurs, TAILLE_ICONE))
         colonne = QVBoxLayout()
         colonne.setSpacing(0)
         haut = QLabel(titre)
@@ -110,14 +120,21 @@ class Fenetre(QWidget):
         # --- le fichier : son nom, et ce que c'est
         tete = QHBoxLayout()
         tete.setSpacing(12)
-        tete.addWidget(widgets.pastille_label("layers", theme.ACCENTS["bleu"], 40))
+        icone_fichier = QIcon.fromTheme("application-x-ms-dos-executable")
+        if icone_fichier.isNull():
+            tete.addWidget(widgets.pastille_label("file", theme.ACCENTS["bleu"], 40))
+        else:
+            fichier = QLabel()
+            fichier.setPixmap(icone_fichier.pixmap(QSize(40, 40)))
+            fichier.setFixedSize(40, 40)
+            tete.addWidget(fichier)
         noms = QVBoxLayout()
         noms.setSpacing(0)
         nom = QLabel(self.nom)
         nom.setObjectName("aiguillageNom")
         nom.setTextFormat(Qt.PlainText)  # le nom du fichier tel quel, jamais lu comme du HTML
         nom.setToolTip(self.programme)
-        precision = QLabel("Programme Windows · ouvrir avec :")
+        precision = QLabel("Programme pour Windows · comment l'ouvrir ?")
         precision.setEnabled(False)
         noms.addWidget(nom)
         noms.addWidget(precision)
@@ -202,23 +219,30 @@ class Fenetre(QWidget):
 
     def _ligne(self, moteur):
         conseille = moteur == self.conseil.moteur
-        explication = self.conseil.raison if conseille else ""
         if moteur == "equivalent":
             if self.equivalent is None:
                 return None
-            _, bouton, _ = self.equivalent
+            _, bouton, action = self.equivalent
             entree = self.conseil.equivalent
-            etat = {"Ouvrir": "installé", "Ouvrir le site": "en ligne"}.get(bouton, "à installer")
-            return Ligne(entree.remplacant, f"Équivalent BinixX · {etat}", catalogue.icone_de(entree.categorie),
-                         COULEURS[moteur], conseille, entree.remarque)
+            etat = {"Ouvrir": "déjà installée", "Ouvrir le site": "en ligne"}.get(bouton, "à installer")
+            return Ligne(entree.remplacant, f"L'application qui le remplace · {etat}", catalogue.icone_de(entree.categorie),
+                         COULEURS[moteur], conseille, entree.remarque, image=self._icone_application(entree))
         if moteur == "wine":
-            sous_titre = "Déconseillé pour ce programme" if self.raison_windows else "Rapide, sans Windows"
-            return Ligne("Wine", sous_titre, ICONES[moteur], COULEURS[moteur], conseille,
-                         self.raison_windows or explication or "Le programme tourne directement, dans une bouteille "
-                         "Bottles à part. Marche avec beaucoup de logiciels, pas tous.")
-        return Ligne("Windows", "Le plus compatible · WinBoat", ICONES[moteur], COULEURS[moteur], conseille,
-                     explication or "Le vrai Windows en arrière-plan, le programme dans sa propre fenêtre. Demande une "
-                     "licence Windows, de la mémoire et la virtualisation.")
+            sous_titre = "Déconseillé pour ce programme" if self.raison_windows else "Rapide · pas avec tous les programmes"
+            return Ligne("Ouvrir ici", sous_titre, ICONES[moteur], COULEURS[moteur], conseille,
+                         self.raison_windows or "Le programme s'ouvre directement sur BinixX OS, sans Windows. Beaucoup "
+                         "de programmes marchent ainsi, pas tous.")
+        return Ligne("Ouvrir dans Windows", "Marche presque toujours · plus lent à démarrer", ICONES[moteur],
+                     COULEURS[moteur], conseille, "Windows tourne en arrière-plan et le programme s'affiche dans sa "
+                     "propre fenêtre. Il faut une licence Windows, et un PC assez puissant.")
+
+    @staticmethod
+    def _icone_application(entree):
+        """L'icône de l'équivalent (son identifiant Flatpak ou son lanceur), ou None : on garde alors la pastille."""
+        if entree.type not in ("inclus", "flatpak"):
+            return None
+        icone = QIcon.fromTheme(entree.cible)
+        return None if icone.isNull() else icone.pixmap(QSize(TAILLE_ICONE, TAILLE_ICONE))
 
     def keyPressEvent(self, evenement):
         if evenement.key() == Qt.Key_Escape:
@@ -282,9 +306,9 @@ class Fenetre(QWidget):
         if lanceur and moteurs.windows_possible(self.verifier()):
             launch.open_desktop_file(lanceur)
             self._travail(
-                f"<b>WinBoat s'ouvre.</b> Votre dossier personnel y est partagé avec Windows : dans WinBoat, choisissez "
-                f"« Apps », puis « Add custom » (ajouter), et prenez <b>{_echapper(self.nom)}</b> dans le dossier "
-                f"<i>{_echapper(os.path.dirname(self.programme))}</i>. Le programme aura ensuite sa propre fenêtre.",
+                f"<b>Windows démarre.</b> Dans la fenêtre qui s'ouvre, choisissez « Apps » puis « Add custom », et prenez "
+                f"<b>{_echapper(self.nom)}</b> dans <i>{_echapper(os.path.dirname(self.programme))}</i> : vos dossiers "
+                "sont partagés avec Windows. Le programme aura ensuite sa propre fenêtre.",
                 en_cours=False)
             return
         # WinBoat absent ou PC pas prêt : la page du Centre dit quoi faire (virtualisation, mémoire, installation)
@@ -294,7 +318,7 @@ class Fenetre(QWidget):
     # --- Wine (Bottles) ----------------------------------------------------------------------------------------------------
 
     def _wine(self):
-        self._travail("Vérification de Wine (Bottles)…")
+        self._travail("Préparation…")
         self._lancer("installee", moteurs.commande_installee(self.flatpak))
 
     def _lancer(self, etape, argv):
@@ -316,7 +340,7 @@ class Fenetre(QWidget):
     def _introuvable(self, processus):
         if processus.error() == QProcess.FailedToStart and processus is self.processus:
             self.etape = "fini"
-            self._echec("Flatpak n'a pas pu démarrer sur ce PC.")
+            self._echec("Le programme ne peut pas s'ouvrir ici sur ce PC.")
 
     def _fini(self, processus, code):
         if processus is not self.processus or self.etape == "fini":
@@ -328,34 +352,33 @@ class Fenetre(QWidget):
                 self._lancer("lister", moteurs.commande_lister(self.flatpak))
             elif not self.installation_tentee:
                 self.installation_tentee = True
-                self.statut.setText("Installation de Bottles, qui fait tourner les programmes Windows avec Wine… "
-                                    "(une fenêtre suit l'installation)")
+                self.statut.setText("Installation de ce qu'il faut pour ouvrir les programmes Windows… (une fenêtre "
+                                    "suit l'installation, une seule fois)")
                 self._lancer("installation", [self.installateur, moteurs.BOTTLES])
             else:
-                self._echec("Bottles n'est pas installé : l'installation n'a pas abouti ou a été annulée.")
+                self._echec("L'installation n'a pas abouti ou a été annulée : le programme ne peut pas s'ouvrir ici.")
         elif etape == "installation":
             self._lancer("installee", moteurs.commande_installee(self.flatpak))
         elif etape == "lister":
             if code == 0 and moteurs.bouteille_existe(self.sortie):
                 self._ouvrir()
             else:
-                self.statut.setText("Préparation de Wine pour la première fois : cela prend quelques minutes, une seule "
-                                    "fois…")
+                self.statut.setText("Première fois : préparation, quelques minutes, une seule fois…")
                 self._lancer("creer", moteurs.commande_creer(self.flatpak))
         elif etape == "creer":
             if code == 0:
                 self._ouvrir()
             else:
-                self._echec("La bouteille Wine de BinixX OS n'a pas pu être préparée. " + self._derniere_ligne())
+                self._echec("La préparation n'a pas abouti. " + self._derniere_ligne())
         elif etape == "lancer":
             self.etape = "fini"
             if code == 0:
                 self._reussi()
             else:
-                self._echec("Wine n'a pas pu ouvrir ce programme. " + self._derniere_ligne())
+                self._echec("Ce programme n'a pas pu s'ouvrir ici. " + self._derniere_ligne())
 
     def _ouvrir(self):
-        self.statut.setText(f"Ouverture de <b>{_echapper(self.nom)}</b> avec Wine…")
+        self.statut.setText(f"Ouverture de <b>{_echapper(self.nom)}</b>…")
         self._lancer("lancer", moteurs.commande_lancer(self.programme, self.flatpak))
 
     def _derniere_ligne(self):
@@ -363,8 +386,8 @@ class Fenetre(QWidget):
         return _echapper(lignes[-1][:200]) if lignes else ""
 
     def _reussi(self):
-        self._travail("✓ Ouvert avec Wine. Rien ne s'affiche d'ici une minute ? Ce programme a sans doute besoin de "
-                      "Windows.", en_cours=False)
+        self._travail("✓ Le programme s'ouvre. Rien ne s'affiche d'ici une minute ? Ouvrez-le dans Windows.",
+                      en_cours=False)
         self.essayer_windows.setVisible(True)
         if self.auto:
             QTimer.singleShot(FERMETURE_AUTO_MS, self.close)
@@ -372,7 +395,7 @@ class Fenetre(QWidget):
     def _echec(self, message):
         self.etape = "fini"
         self._travail(message, en_cours=False)
-        self.bandeau.setText("Wine n'a pas réussi : essayez Windows, ou un équivalent.")
+        self.bandeau.setText("Ça n'a pas marché ici : ouvrez-le dans Windows, ou voyez les autres solutions.")
         self.bandeau.setVisible(True)
         self.essayer_windows.setVisible(True)
 
