@@ -2,15 +2,16 @@
 
 ## Écran de verrouillage (Windows + L, mise en veille)
 
-- **Au repos**, l'heure et la date s'affichent sur le fond d'écran BinixX, **toujours en blanc**. Avant, elles prenaient la couleur de
+- **Au repos**, l'heure et la date s'affichent sur le fond d'écran BinixX, **toujours en blanc**, comme le nom de l'utilisateur et les
+  boutons du bas (« Mettre en veille », « Changer d'utilisateur »). Avant, elles prenaient la couleur de
   texte du style des applications, et sortaient gris foncé sur le ciel sombre du fond d'écran.
 - **Dès qu'on touche une touche ou la souris**, KDE floute et assombrit le fond. L'avatar et le mot de passe apparaissent alors sur un
   **panneau de verre fumé** aux coins arrondis, avec un liseré clair d'un pixel : le même verre que la barre des tâches et les menus
   en Nuit (`build_files/verre_plasma.py`).
 
 L'écran de verrouillage est un fichier QML de KDE (`/usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen/LockScreenUi.qml`).
-`build_files/verre_verrouillage.py` le modifie à la construction de l'image, à deux endroits repérés par leur texte : l'horloge et la
-pile qui affiche le mot de passe. Si une version de KDE change ces repères, **la construction échoue** : il faut alors revoir le
+`build_files/verre_verrouillage.py` le modifie à la construction de l'image, à trois endroits repérés par leur texte : les couleurs de
+l'écran, l'horloge et la pile qui affiche le mot de passe. Si une version de KDE change ces repères, **la construction échoue** : il faut alors revoir le
 fichier, au lieu de publier un écran de verrouillage cassé. En cas d'erreur de QML, l'écran de verrouillage de secours de KDE prend
 le relais : le PC reste toujours déverrouillable.
 

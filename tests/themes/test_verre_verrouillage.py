@@ -69,6 +69,12 @@ class Verrouillage(unittest.TestCase):
         self.assertIn('Kirigami.Theme.textColor: "#FFFFFF"', horloge)
         self.assertIn("Kirigami.Theme.inherit: false", horloge)
 
+    def test_textes_blancs_sur_tout_l_ecran(self):
+        texte = V.modifier(EXTRAIT)
+        racine = texte[:texte.index("MouseArea {")]
+        self.assertIn('Kirigami.Theme.textColor: "#FFFFFF"', racine)
+        self.assertEqual(texte.count('Kirigami.Theme.textColor: "#FFFFFF"'), 2)  # l'écran et l'horloge
+
     def test_qml_reste_bien_forme(self):
         self.assertTrue(accolades_equilibrees(V.modifier(EXTRAIT)))
 
@@ -82,6 +88,8 @@ class Verrouillage(unittest.TestCase):
             V.modifier(EXTRAIT.replace("id: clock", "id: horloge"))
         with self.assertRaises(ValueError):
             V.modifier(EXTRAIT.replace("id: mainStack", "id: pile"))
+        with self.assertRaises(ValueError):
+            V.modifier(EXTRAIT.replace("Kirigami.Theme.Complementary", "Kirigami.Theme.View"))
 
     def test_fichier_modifie_en_place(self):
         with tempfile.NamedTemporaryFile("w", suffix=".qml", delete=False, encoding="utf-8") as fichier:
