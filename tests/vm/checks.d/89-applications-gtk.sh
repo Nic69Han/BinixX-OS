@@ -1,10 +1,10 @@
 # shellcheck shell=bash
 # Applications GTK aux couleurs de BinixX OS (docs/applications-unifiees.md).
-#  - phase base : kde-gtk-config a reporté dans les réglages GTK du compte le thème Breeze, la police Inter et les icônes de
-#    BinixX OS ; les Flatpak GTK lisent ces réglages (permission globale) et ont le thème Breeze (extension de Flathub) ;
-#    Firefox est réglé pour la boîte « Ouvrir / Enregistrer » de KDE ;
-#  - phase applications (lancée par run-vm-test.sh, qui photographie ensuite l'écran : applications-gtk.png) : Firefox s'ouvre
-#    dans la vraie session, sur ses paramètres ; la fenêtre reste ouverte pour la capture.
+#  - phase base : les Flatpak GTK lisent les réglages GTK du compte (permission globale) et ont le thème Breeze (extension de
+#    Flathub) ; Firefox est réglé pour la boîte « Ouvrir / Enregistrer » de KDE ; Breeze est le thème GTK du système ;
+#  - phase applications (lancée par run-vm-test.sh après le retour en Aube, qui photographie ensuite l'écran :
+#    applications-gtk.png) : kde-gtk-config a reporté dans les réglages GTK du compte la police Inter, les icônes et le pointeur de
+#    BinixX OS et le bleu BinixX ; Firefox s'ouvre dans la vraie session, sur ses paramètres, et reste ouvert pour la capture.
 applications_session() {
     local uid
     uid="$(id -u "${TEST_USER}")"
@@ -15,29 +15,11 @@ reglage_gtk() { # reglage_gtk <version 3.0|4.0> <clé> : valeur dans les réglag
     sed -n "s/^$2=//p" "${TEST_HOME}/.config/gtk-$1/settings.ini" 2>/dev/null | head -n 1
 }
 
-reglages_gtk_synchronises() { [[ "$(reglage_gtk 3.0 gtk-theme-name)" == Breeze* ]]; }
-
+# Phase base : ce qui ne dépend pas de l'ambiance du moment (le contrôle des ambiances laisse alors le bureau en Contraste élevé et
+# en grand texte, que kde-gtk-config reporte aussi aux applications GTK)
 check_applications_gtk() {
     section "Applications GTK aux couleurs de BinixX OS"
     local valeur
-    if wait_for 120 reglages_gtk_synchronises; then
-        pass "thème GTK 3 du compte : $(reglage_gtk 3.0 gtk-theme-name) (reporté de KDE par kde-gtk-config)"
-    else
-        fail "réglages GTK du compte non synchronisés : gtk-theme-name='$(reglage_gtk 3.0 gtk-theme-name)' ($(ls -la "${TEST_HOME}/.config/gtk-3.0" 2>&1 | tr '\n' ' ' | cut -c1-300))"
-    fi
-    valeur="$(reglage_gtk 3.0 gtk-font-name)"
-    if [[ "${valeur}" == Inter* ]]; then pass "police des applications GTK : ${valeur}"; else fail "police GTK : '${valeur}' (Inter attendue)"; fi
-    valeur="$(reglage_gtk 3.0 gtk-icon-theme-name)"
-    if [[ "${valeur}" == binixx-os* ]]; then pass "icônes des applications GTK : ${valeur}"; else fail "icônes GTK : '${valeur}' (binixx-os attendu)"; fi
-    valeur="$(reglage_gtk 3.0 gtk-cursor-theme-name)"
-    if [[ "${valeur}" == binixx-curseurs ]]; then pass "pointeur des applications GTK : ${valeur}"; else warn "pointeur GTK : '${valeur}'"; fi
-    echo "            info : boutons des fenêtres GTK : $(reglage_gtk 3.0 gtk-decoration-layout) ; GTK 4 : $(reglage_gtk 4.0 gtk-theme-name)"
-    if grep -rqs "0C6EEE\|#0c6eee\|12, *110, *238" "${TEST_HOME}/.config/gtk-3.0/colors.css" "${TEST_HOME}/.config/gtk-4.0/colors.css"; then
-        pass "couleurs GTK au bleu BinixX (colors.css)"
-    else
-        fail "bleu BinixX absent des couleurs GTK du compte ($(ls "${TEST_HOME}/.config/gtk-3.0" "${TEST_HOME}/.config/gtk-4.0" 2>&1 | tr '\n' ' '))"
-    fi
-
     valeur="$(flatpak override --system --show 2>&1)"
     if grep -q 'xdg-config/gtk-3.0:ro' <<<"${valeur}" && grep -q 'xdg-config/gtk-4.0:ro' <<<"${valeur}"; then
         pass "Flatpak : réglages GTK lisibles par toutes les applications (lecture seule)"
@@ -51,8 +33,37 @@ check_applications_gtk() {
     fi
     check "Firefox : boîte « Ouvrir / Enregistrer » de KDE" \
         grep -q 'widget.use-xdg-desktop-portal.file-picker", 1' /usr/lib64/firefox/browser/defaults/preferences/binixx-prefs.js
+    check "thème GTK par défaut du système : Breeze" grep -qx 'gtk-theme-name=Breeze' /etc/xdg/gtk-3.0/settings.ini
 }
 register_check base check_applications_gtk
+
+bleu_binixx_gtk() { grep -rqsi "0c6eee\|12, *110, *238" "${TEST_HOME}/.config/gtk-3.0/colors.css"; }
+
+# Phase applications : le bureau est revenu en Aube et en texte normal ; kde-gtk-config l'a reporté aux applications GTK
+check_applications_reglages() {
+    section "Applications GTK : réglages du compte en Aube"
+    local valeur
+    wait_for 60 bleu_binixx_gtk || true
+    valeur="$(reglage_gtk 3.0 gtk-theme-name)"
+    if [[ -z "${valeur}" || "${valeur}" == Breeze* ]]; then
+        pass "thème GTK 3 du compte : ${valeur:-Breeze, celui du système (/etc/xdg/gtk-3.0)}"
+    else
+        fail "thème GTK 3 du compte : '${valeur}' (Breeze attendu)"
+    fi
+    valeur="$(reglage_gtk 3.0 gtk-font-name)"
+    if [[ "${valeur}" == Inter* ]]; then pass "police des applications GTK : ${valeur}"; else fail "police GTK : '${valeur}' (Inter attendue)"; fi
+    valeur="$(reglage_gtk 3.0 gtk-icon-theme-name)"
+    if [[ "${valeur}" == binixx-os ]]; then pass "icônes des applications GTK : ${valeur}"; else fail "icônes GTK : '${valeur}' (binixx-os attendu)"; fi
+    valeur="$(reglage_gtk 3.0 gtk-cursor-theme-name)"
+    if [[ "${valeur}" == binixx-curseurs ]]; then pass "pointeur des applications GTK : ${valeur}"; else fail "pointeur GTK : '${valeur}' (binixx-curseurs attendu)"; fi
+    if bleu_binixx_gtk; then
+        pass "couleurs GTK au bleu BinixX (colors.css)"
+    else
+        fail "bleu BinixX absent de ~/.config/gtk-3.0/colors.css"
+    fi
+    echo "            info : settings.ini du compte : $(tr '\n' ' ' <"${TEST_HOME}/.config/gtk-3.0/settings.ini" 2>&1 | cut -c1-500)"
+}
+register_check applications check_applications_reglages
 
 firefox_ouvert() { pgrep -u "${TEST_USER}" -x firefox >/dev/null && sleep 1 && pgrep -u "${TEST_USER}" -x firefox >/dev/null; }
 
