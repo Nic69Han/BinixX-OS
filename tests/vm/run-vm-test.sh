@@ -399,6 +399,23 @@ explorateur_etape() {
     [[ ${explorateur_status} -eq 0 ]] || die "explorateur de fichiers (voir « Explorateur BinixX » plus haut)"
 }
 
+### Écran de verrouillage en verre : verrouillé, puis le mot de passe affiché, puis déverrouillé -------------------------------------
+
+# Verrouillage par logind (comme Windows + L) : la capture « verrouillage » montre l'heure sur le fond d'écran ; une touche fait
+# apparaître l'avatar et le mot de passe sur le panneau de verre (« verrouillage-mot-de-passe ») ; logind déverrouille ensuite la
+# session, que la suite du test retrouve telle quelle. Vérifications : tests/vm/checks.d/90-verre-connexion.sh.
+verrouillage_etape() {
+    log "Écran de verrouillage (captures)"
+    ssh_vm 'sudo loginctl lock-sessions' || { log "verrouillage par logind impossible : pas de capture"; return 0; }
+    sleep 8
+    screenshot verrouillage
+    qmp send-key '{"keys": [{"type": "qcode", "data": "shift"}]}' || true
+    sleep 4
+    screenshot verrouillage-mot-de-passe
+    ssh_vm 'sudo loginctl unlock-sessions' || true
+    sleep 4
+}
+
 ### 3b. Démarrage comme sur un vrai PC : écran de démarrage, puis écran de connexion ----------
 
 # L'installation automatique laisse « console=ttyS0 » dans les paramètres du noyau : les messages partent sur le port série et
@@ -427,6 +444,7 @@ guest_checks memoire || die "mémoire de la session au repos (voir « Mémoire d
 
 if [[ ${RUN_UPDATE} -ne 1 ]]; then
     explorateur_etape
+    verrouillage_etape
     theme_etape
 fi
 
@@ -451,6 +469,7 @@ EOF
     reboot_vm
     guest_checks after-update || die "vérifications après la mise à jour"
     explorateur_etape
+    verrouillage_etape
     theme_etape
 
     log "Retour arrière vers la version précédente"

@@ -84,6 +84,7 @@ French documentation:
 - [Welcome Center and applications](docs/centre-binixx.md)
 - [Windows-style desktop theme](docs/theme-windows-11.md)
 - [Visual identity](docs/identite-visuelle.md)
+- [Glass lock and login screens](docs/verre-connexion.md)
 - [Boot experience](docs/demarrage.md)
 - [NVIDIA graphics](docs/nvidia.md)
 - [Security](docs/securite.md)
