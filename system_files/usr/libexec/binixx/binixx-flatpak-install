@@ -19,14 +19,27 @@ shopt -s nullglob
 lists+=("${LIST_DIR}"/*.list)
 shopt -u nullglob
 
+# Applications Flatpak GTK (Thunderbird, Remmina, Déjà Dup…) comme celles du système : elles lisent, en lecture seule, les
+# réglages GTK que kde-gtk-config écrit à chaque ouverture de session (couleurs BinixX, police, icônes) ; à chaque démarrage,
+# c'est instantané et sans réseau. docs/applications-unifiees.md
+flatpak override --system --filesystem=xdg-config/gtk-3.0:ro --filesystem=xdg-config/gtk-4.0:ro
+
+# Normalement ajouté par flatpak-add-flathub-repos.service (image de base Universal Blue)
+flatpak remote-add --system --if-not-exists "${REMOTE}" https://dl.flathub.org/repo/flathub.flatpakrepo
+
+# Thème Breeze pour les applications Flatpak en GTK 3 (une extension de Flathub) ; les applications GTK 4 (libadwaita)
+# prennent le bleu BinixX et le mode clair ou sombre par le portail de KDE. Sans réseau ou si Flathub le refuse, les
+# applications restent installées, avec le thème par défaut de GTK.
+if ! flatpak info --system org.gtk.Gtk3theme.Breeze >/dev/null 2>&1; then
+    flatpak install --system --noninteractive --assumeyes "${REMOTE}" org.gtk.Gtk3theme.Breeze ||
+        echo "Thème Breeze pour les Flatpak GTK 3 non installé (réessayé au prochain démarrage)"
+fi
+
 list_hash="$(cat "${lists[@]}" | sha256sum | cut -d' ' -f1)"
 if [[ -f "${STAMP}" && "$(<"${STAMP}")" == "${list_hash}" ]]; then
     echo "Liste Flatpak inchangée, rien à faire."
     exit 0
 fi
-
-# Normalement ajouté par flatpak-add-flathub-repos.service (image de base Universal Blue)
-flatpak remote-add --system --if-not-exists "${REMOTE}" https://dl.flathub.org/repo/flathub.flatpakrepo
 
 # Seule source d'applications : Flathub (pas de source « Fedora » dans Discover)
 for remote in fedora fedora-testing; do
