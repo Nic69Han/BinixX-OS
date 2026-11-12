@@ -282,6 +282,31 @@ for key in Image PreviewImage; do
         --group Greeter --group Wallpaper --group org.kde.image --group General --key "${key}" "${BINIXX_WALLPAPER}"
 done
 
+# Écran de verrouillage en verre : un panneau de verre fumé derrière l'avatar et le mot de passe, l'heure toujours en blanc
+# (build_files/verre_verrouillage.py modifie le LockScreenUi.qml de KDE ; échoue si KDE en a changé les repères)
+python3 /ctx/verre_verrouillage.py
+
+# Écran de connexion (Plasma Login Manager) : toujours en Nuit, textes clairs et champs sombres sur le ciel du fond d'écran ; avec le
+# thème clair, l'heure sortait gris foncé sur le ciel sombre. L'écran de connexion lit le thème global dans le kdeglobals de son
+# compte (plasmalogin), que tmpfiles réécrit à chaque démarrage ; le dossier vient de la déclaration du compte (sysusers.d).
+python3 - <<'PYEOF'
+import glob, shlex
+maison = None
+for fichier in sorted(glob.glob("/usr/lib/sysusers.d/*.conf")):
+    for ligne in open(fichier, encoding="utf-8"):
+        champs = shlex.split(ligne, comments=True)
+        if len(champs) >= 5 and champs[0] == "u" and champs[1] == "plasmalogin":
+            maison = champs[4]
+if not maison or not maison.startswith("/var/"):
+    raise SystemExit(f"compte plasmalogin introuvable dans sysusers.d (dossier : {maison})")
+with open("/usr/lib/tmpfiles.d/binixx-plasmalogin.conf", "w", encoding="utf-8") as sortie:
+    sortie.write("# BinixX OS : écran de connexion toujours en Nuit (build_files/build.sh)\n"
+                 f"d {maison}/.config 0750 plasmalogin plasmalogin -\n"
+                 f"f+ {maison}/.config/kdeglobals 0644 plasmalogin plasmalogin - "
+                 "[KDE]\\nLookAndFeelPackage=org.binixx.dark.desktop\\nAutomaticLookAndFeel=false\\n\n")
+print(f"écran de connexion en Nuit : {maison}/.config/kdeglobals")
+PYEOF
+
 # Écran de démarrage : thème Plymouth BinixX OS. Les images d'animation viennent du thème
 # « spinner » de Fedora ; watermark.png (le logo) n'est pas écrasé.
 cp -a --update=none /usr/share/plymouth/themes/spinner/. /usr/share/plymouth/themes/binixx/
