@@ -78,6 +78,12 @@ SECURITY=(
 # (thèmes Win11OS-light et Win11OS-dark de usr/share/Kvantum, docs/theme-windows-11.md)
 APPEARANCE=(
     kvantum
+    # Applications GTK (Firefox, Remmina, Déjà Dup…) : thème Breeze, et kde-gtk-config qui leur reporte à chaque
+    # ouverture de session les couleurs (bleu BinixX), la police Inter, les icônes, le pointeur et les boutons de
+    # fenêtre réglés dans KDE (docs/applications-unifiees.md)
+    breeze-gtk-gtk3
+    breeze-gtk-gtk4
+    kde-gtk-config
 )
 
 # Administration à la souris : Cockpit, console web de Fedora (domaine Active Directory, mises à
@@ -348,6 +354,16 @@ about=Mozilla Firefox pour BinixX OS
 app.distributor=binixx
 app.distributor.channel=binixx
 INIEOF
+
+# Firefox : la boîte « Ouvrir » / « Enregistrer sous » de KDE (celle de Dolphin, avec les mêmes raccourcis) au lieu de
+# celle de GTK, et les fichiers téléchargés ouverts par l'application choisie dans KDE (portail xdg-desktop-portal-kde) ;
+# pas de question « navigateur par défaut » (Firefox l'est déjà). docs/applications-unifiees.md
+cat >"${FIREFOX_DIR}/browser/defaults/preferences/binixx-prefs.js" <<'JSEOF'
+// BinixX OS : Firefox comme les autres applications du bureau (build_files/build.sh)
+pref("widget.use-xdg-desktop-portal.file-picker", 1);
+pref("widget.use-xdg-desktop-portal.mime-handler", 1);
+pref("browser.shell.checkDefaultBrowser", false);
+JSEOF
 
 # Discover ne propose que Flathub : pas de source d'applications « Fedora »
 # (binixx-flatpak-install retire aussi une source déjà ajoutée)

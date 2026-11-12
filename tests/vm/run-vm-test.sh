@@ -399,6 +399,19 @@ explorateur_etape() {
     [[ ${explorateur_status} -eq 0 ]] || die "explorateur de fichiers (voir « Explorateur BinixX » plus haut)"
 }
 
+### Applications GTK : Firefox ouvert dans la session, puis capture d'écran ---------------------------------------------------------
+
+# La phase « applications » (tests/vm/checks.d/89-applications-gtk.sh) ouvre Firefox sur ses paramètres ; la capture
+# (applications-gtk.png) montre ses barres, onglets et boutons aux couleurs et à la police de BinixX OS. Firefox est ensuite fermé.
+applications_etape() {
+    log "Applications GTK : Firefox dans la session"
+    local applications_status=0
+    guest_checks applications || applications_status=$?
+    screenshot applications-gtk
+    ssh_vm 'pkill -x firefox; sleep 3; pkill -KILL -x firefox; true' || true
+    [[ ${applications_status} -eq 0 ]] || die "applications GTK (voir « Applications GTK » plus haut)"
+}
+
 ### 3b. Démarrage comme sur un vrai PC : écran de démarrage, puis écran de connexion ----------
 
 # L'installation automatique laisse « console=ttyS0 » dans les paramètres du noyau : les messages partent sur le port série et
@@ -427,6 +440,7 @@ guest_checks memoire || die "mémoire de la session au repos (voir « Mémoire d
 
 if [[ ${RUN_UPDATE} -ne 1 ]]; then
     explorateur_etape
+    applications_etape
     theme_etape
 fi
 
@@ -451,6 +465,7 @@ EOF
     reboot_vm
     guest_checks after-update || die "vérifications après la mise à jour"
     explorateur_etape
+    applications_etape
     theme_etape
 
     log "Retour arrière vers la version précédente"

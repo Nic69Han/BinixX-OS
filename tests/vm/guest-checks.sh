@@ -265,7 +265,7 @@ PYEOF
 }
 
 # Vérifications par fonctionnalité : un fichier par chantier dans checks.d/ (ordre alphabétique).
-# Il définit une fonction et l'inscrit à une phase : register_check <base|after-update|after-rollback|explorateur|memoire> <fonction>
+# Il définit une fonction et l'inscrit à une phase : register_check <base|after-update|after-rollback|explorateur|applications|memoire> <fonction>
 declare -A PHASE_CHECKS=()
 register_check() { PHASE_CHECKS[$1]+=" $2"; }
 run_module_checks() { # run_module_checks <phase>
@@ -314,6 +314,9 @@ after-auto-rollback)
     ;;
 explorateur)
     run_module_checks explorateur
+    ;;
+applications)
+    run_module_checks applications
     ;;
 memoire)
     run_module_checks memoire
